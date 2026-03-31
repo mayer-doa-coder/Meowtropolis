@@ -6,6 +6,15 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		D0A0E9E52F7C713300343361 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = D0A0E9E42F7C713300343361 /* GoogleService-Info.plist */; };
+		D0A0E9F52F7C77FA00343361 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0A0E9F42F7C77FA00343361 /* FirebaseAnalytics */; };
+		D0A0E9F72F7C77FA00343361 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D0A0E9F62F7C77FA00343361 /* FirebaseAuth */; };
+		D0A0E9F92F7C77FA00343361 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = D0A0E9F82F7C77FA00343361 /* FirebaseCore */; };
+		D0A0E9FB2F7C77FA00343361 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = D0A0E9FA2F7C77FA00343361 /* FirebaseDatabase */; };
+		D0A0E9FD2F7C77FA00343361 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D0A0E9FC2F7C77FA00343361 /* FirebaseFirestore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		D07D72552F7B0DB00098D4A2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +36,7 @@
 		D07D72472F7B0DAD0098D4A2 /* Meowtropolis.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Meowtropolis.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D07D72542F7B0DB00098D4A2 /* MeowtropolisTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MeowtropolisTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D07D725E2F7B0DB00098D4A2 /* MeowtropolisUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MeowtropolisUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D0A0E9E42F7C713300343361 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -52,6 +62,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0A0E9F52F7C77FA00343361 /* FirebaseAnalytics in Frameworks */,
+				D0A0E9F92F7C77FA00343361 /* FirebaseCore in Frameworks */,
+				D0A0E9FB2F7C77FA00343361 /* FirebaseDatabase in Frameworks */,
+				D0A0E9FD2F7C77FA00343361 /* FirebaseFirestore in Frameworks */,
+				D0A0E9F72F7C77FA00343361 /* FirebaseAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -75,6 +90,7 @@
 		D07D723E2F7B0DAD0098D4A2 = {
 			isa = PBXGroup;
 			children = (
+				D0A0E9E42F7C713300343361 /* GoogleService-Info.plist */,
 				D07D72492F7B0DAD0098D4A2 /* Meowtropolis */,
 				D07D72572F7B0DB00098D4A2 /* MeowtropolisTests */,
 				D07D72612F7B0DB00098D4A2 /* MeowtropolisUITests */,
@@ -112,6 +128,11 @@
 			);
 			name = Meowtropolis;
 			packageProductDependencies = (
+				D0A0E9F42F7C77FA00343361 /* FirebaseAnalytics */,
+				D0A0E9F62F7C77FA00343361 /* FirebaseAuth */,
+				D0A0E9F82F7C77FA00343361 /* FirebaseCore */,
+				D0A0E9FA2F7C77FA00343361 /* FirebaseDatabase */,
+				D0A0E9FC2F7C77FA00343361 /* FirebaseFirestore */,
 			);
 			productName = Meowtropolis;
 			productReference = D07D72472F7B0DAD0098D4A2 /* Meowtropolis.app */;
@@ -195,6 +216,9 @@
 			);
 			mainGroup = D07D723E2F7B0DAD0098D4A2;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				D0A0E9F32F7C77FA00343361 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D07D72482F7B0DAD0098D4A2 /* Products */;
 			projectDirPath = "";
@@ -212,6 +236,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0A0E9E52F7C713300343361 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -570,6 +595,45 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		D0A0E9F32F7C77FA00343361 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.11.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D0A0E9F42F7C77FA00343361 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0A0E9F32F7C77FA00343361 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		D0A0E9F62F7C77FA00343361 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0A0E9F32F7C77FA00343361 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		D0A0E9F82F7C77FA00343361 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0A0E9F32F7C77FA00343361 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		D0A0E9FA2F7C77FA00343361 /* FirebaseDatabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0A0E9F32F7C77FA00343361 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseDatabase;
+		};
+		D0A0E9FC2F7C77FA00343361 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0A0E9F32F7C77FA00343361 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = D07D723F2F7B0DAD0098D4A2 /* Project object */;
 }

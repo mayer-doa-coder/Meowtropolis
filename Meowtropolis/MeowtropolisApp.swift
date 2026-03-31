@@ -1,14 +1,13 @@
-//
-//  MeowtropolisApp.swift
-//  Meowtropolis
-//
-//  Created by MD.Ashraful Islam  on 31/3/26.
-//
-
 import SwiftUI
+import FirebaseCore
 
 @main
 struct MeowtropolisApp: App {
+    init() {
+        FirebaseApp.configure()
+        print("Firebase configured successfully")
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()
