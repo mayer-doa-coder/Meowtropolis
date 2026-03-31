@@ -1,16 +1,13 @@
 import SwiftUI
-import FirebaseCore
 
 @main
 struct MeowtropolisApp: App {
-    init() {
-        FirebaseApp.configure()
-        print("Firebase configured successfully")
-    }
+    @StateObject private var appState = AppState()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(appState)
         }
     }
 }
