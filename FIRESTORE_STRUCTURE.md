@@ -89,19 +89,19 @@ Example document:
 Matches Swift model: Product
 
 Required fields:
-- id: String
 - name: String
 - price: Double
 - category: String
+- imageURL: String
 
 Example document:
 
 ```json
 {
-  "id": "product_001",
   "name": "Cat Food Premium",
   "price": 19.99,
-  "category": "food"
+  "category": "food",
+  "imageURL": "https://images.meowtropolis.app/products/cat-food-premium.png"
 }
 ```
 
