@@ -10,14 +10,18 @@ struct RootView: View {
                 SplashView {
                     showSplash = false
                 }
+            } else if appState.isLoggedIn {
+                NavigationStack {
+                    DashboardView()
+                }
+                // Reset authenticated navigation tree when auth state changes.
+                .id("authenticated")
             } else {
                 NavigationStack {
-                    if appState.isLoggedIn {
-                        DashboardView()
-                    } else {
-                        LoginView()
-                    }
+                    LoginView()
                 }
+                // Reset login navigation tree when auth state changes.
+                .id("unauthenticated")
             }
         }
     }
