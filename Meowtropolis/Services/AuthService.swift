@@ -21,4 +21,7 @@ protocol AuthService {
 
     /// Sign out current user.
     func signOut(completion: @escaping (Result<Void, Error>) -> Void)
+
+    /// Send password reset email.
+    func resetPassword(email: String, completion: @escaping (Result<Void, Error>) -> Void)
 }

@@ -32,6 +32,7 @@ struct MeowtropolisTests {
     @Test func productEncodingDecodingRoundTrip() throws {
         // 1) Create a sample Product object.
         let product = Product(
+            id: "product_001",
             name: "Premium Salmon Cat Food",
             price: 18.99,
             category: "food",
@@ -47,12 +48,14 @@ struct MeowtropolisTests {
         print("Decoded Product:", decodedProduct)
 
         // 4) Validate values after round-trip.
+        #expect(decodedProduct.id == product.id)
         #expect(decodedProduct.name == product.name)
         #expect(decodedProduct.price == product.price)
         #expect(decodedProduct.category == product.category)
         #expect(decodedProduct.imageURL == product.imageURL)
 
         // Extra checks on encoded payload shape.
+        #expect(encodedDictionary["id"] as? String == product.id)
         #expect(encodedDictionary["name"] as? String == product.name)
         #expect(encodedDictionary["price"] as? Double == product.price)
         #expect(encodedDictionary["category"] as? String == product.category)
@@ -62,6 +65,7 @@ struct MeowtropolisTests {
     @Test func productJSONDecodesSuccessfully() throws {
         let json = """
         {
+                    "id": "product_001",
           "name": "Premium Salmon Cat Food",
           "price": 18.99,
           "category": "food",
@@ -73,6 +77,7 @@ struct MeowtropolisTests {
         let product = try JSONDecoder().decode(Product.self, from: jsonData)
         print("Decoded Product from JSON:", product)
 
+        #expect(product.id == "product_001")
         #expect(product.name == "Premium Salmon Cat Food")
         #expect(product.price == 18.99)
         #expect(product.category == "food")
@@ -119,6 +124,7 @@ struct MeowtropolisTests {
 
         let productDocumentId = "product_001"
         let product = Product(
+            id: productDocumentId,
             name: "Premium Salmon Cat Food",
             price: 18.99,
             category: "food",
@@ -127,6 +133,7 @@ struct MeowtropolisTests {
         try store.write(product, to: .products, documentId: productDocumentId)
         let fetchedProduct = try #require(try store.read(Product.self, from: .products, documentId: productDocumentId))
         print("Read product:", fetchedProduct)
+        #expect(fetchedProduct.id == product.id)
         #expect(fetchedProduct.name == product.name)
         #expect(fetchedProduct.price == product.price)
         #expect(fetchedProduct.category == product.category)

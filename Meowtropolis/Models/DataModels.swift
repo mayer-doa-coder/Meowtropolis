@@ -48,6 +48,8 @@ struct Booking: Codable {
 
 /// Item available in the marketplace.
 struct Product: Codable {
+    /// Unique identifier for the product.
+    let id: String
     /// Product name shown in listings.
     let name: String
     /// Product price value.

@@ -55,4 +55,14 @@ final class FirebaseAuthService: AuthService {
             completion(.failure(error))
         }
     }
+
+    func resetPassword(email: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        Auth.auth().sendPasswordReset(withEmail: email) { error in
+            if let error {
+                completion(.failure(error))
+                return
+            }
+            completion(.success(()))
+        }
+    }
 }

@@ -97,4 +97,12 @@ final class AppState: ObservableObject {
             }
         }
     }
+
+    func resetPassword(email: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        authService.resetPassword(email: email) { result in
+            DispatchQueue.main.async {
+                completion(result)
+            }
+        }
+    }
 }

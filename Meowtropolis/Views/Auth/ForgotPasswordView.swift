@@ -1,7 +1,7 @@
 import SwiftUI
-import FirebaseAuth
 
 struct ForgotPasswordView: View {
+    @EnvironmentObject private var appState: AppState
     @Environment(\.dismiss) private var dismiss
 
     @State private var email: String = ""
@@ -85,15 +85,17 @@ struct ForgotPasswordView: View {
         }
 
         isLoading = true
-        Auth.auth().sendPasswordReset(withEmail: cleanedEmail) { error in
+        appState.resetPassword(email: cleanedEmail) { result in
             DispatchQueue.main.async {
                 isLoading = false
-                if let error {
+                switch result {
+                case .success:
+                    message = "Password reset email sent."
+                    goToOTP = true
+                case let .failure(error):
                     message = error.localizedDescription
                     return
                 }
-                message = "Password reset email sent."
-                goToOTP = true
             }
         }
     }

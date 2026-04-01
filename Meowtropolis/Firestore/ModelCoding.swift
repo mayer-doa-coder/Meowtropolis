@@ -43,6 +43,7 @@ enum ProductCodingExample {
     static func run() throws {
         // Swift model -> Dictionary
         let product = Product(
+            id: "product_001",
             name: "Premium Salmon Cat Food",
             price: 18.99,
             category: "food",
