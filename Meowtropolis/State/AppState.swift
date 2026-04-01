@@ -1,7 +1,7 @@
 import Foundation
 import FirebaseAuth
 import FirebaseFirestore
-
+import Combine
 /// Shared app state for simple login-based routing.
 final class AppState: ObservableObject {
     @Published var isLoggedIn: Bool = false
