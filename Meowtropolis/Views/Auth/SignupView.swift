@@ -1,5 +1,4 @@
 import SwiftUI
-import FirebaseAuth
 
 struct SignupView: View {
     @EnvironmentObject private var appState: AppState
@@ -134,7 +133,7 @@ struct SignupView: View {
                 case .success:
                     successMessage = "Account created successfully."
                 case let .failure(error):
-                    errorMessage = userFriendlyAuthError(error)
+                    errorMessage = appState.userFriendlyAuthError(error)
                 }
             }
         }
@@ -191,25 +190,6 @@ struct SignupView: View {
         confirmPasswordError = nil
         errorMessage = nil
         successMessage = nil
-    }
-
-    // Convert Firebase errors into simple messages for users.
-    private func userFriendlyAuthError(_ error: Error) -> String {
-        guard let authError = error as NSError?,
-              let code = AuthErrorCode(rawValue: authError.code) else {
-            return error.localizedDescription
-        }
-
-        switch code {
-        case .invalidEmail:
-            return "The email format is invalid."
-        case .emailAlreadyInUse:
-            return "This email is already registered."
-        case .weakPassword:
-            return "Your password is too weak. Use at least 6 characters."
-        default:
-            return authError.localizedDescription
-        }
     }
 }
 

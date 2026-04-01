@@ -15,7 +15,14 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 @main
 struct MeowtropolisApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    @StateObject private var appState = AppState()
+    private let authService: any AuthService
+    @StateObject private var appState: AppState
+
+    init() {
+        let service = FirebaseAuthService()
+        self.authService = service
+        _appState = StateObject(wrappedValue: AppState(authService: service))
+    }
 
     var body: some Scene {
         WindowGroup {

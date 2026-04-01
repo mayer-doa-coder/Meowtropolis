@@ -1,0 +1,127 @@
+import Foundation
+import FirebaseFirestore
+
+/// Handles Firestore operations for booking data.
+final class BookingService {
+    private let db: Firestore
+
+    init(db: Firestore = Firestore.firestore()) {
+        self.db = db
+    }
+
+    /// Creates a booking document.
+    func createBooking(_ booking: Booking, completion: @escaping (Result<Void, Error>) -> Void) {
+        do {
+            let payload = try FirestoreModelCoder.encode(booking)
+            db.collection(FirestoreCollections.bookings)
+                .document(booking.id)
+                .setData(payload) { error in
+                    if let error {
+                        completion(.failure(error))
+                        return
+                    }
+                    completion(.success(()))
+                }
+        } catch {
+            completion(.failure(error))
+        }
+    }
+
+    /// Lists all bookings for a specific user.
+    func listBookingsByUser(userId: String, completion: @escaping (Result<[Booking], Error>) -> Void) {
+        db.collection(FirestoreCollections.bookings)
+            .whereField("userId", isEqualTo: userId)
+            .getDocuments { snapshot, error in
+                if let error {
+                    completion(.failure(error))
+                    return
+                }
+
+                guard let documents = snapshot?.documents else {
+                    completion(.success([]))
+                    return
+                }
+
+                do {
+                    let bookings = try documents.map { document in
+                        try FirestoreModelCoder.decode(Booking.self, from: document.data())
+                    }
+                    completion(.success(bookings))
+                } catch {
+                    completion(.failure(error))
+                }
+            }
+    }
+
+    /// Lists all bookings for a specific pet.
+    func listBookingsByPet(petId: String, completion: @escaping (Result<[Booking], Error>) -> Void) {
+        db.collection(FirestoreCollections.bookings)
+            .whereField("petId", isEqualTo: petId)
+            .getDocuments { snapshot, error in
+                if let error {
+                    completion(.failure(error))
+                    return
+                }
+
+                guard let documents = snapshot?.documents else {
+                    completion(.success([]))
+                    return
+                }
+
+                do {
+                    let bookings = try documents.map { document in
+                        try FirestoreModelCoder.decode(Booking.self, from: document.data())
+                    }
+                    completion(.success(bookings))
+                } catch {
+                    completion(.failure(error))
+                }
+            }
+    }
+
+    /// Updates only the status field of a booking document.
+    func updateBookingStatus(bookingId: String, status: BookingStatus, completion: @escaping (Result<Void, Error>) -> Void) {
+        db.collection(FirestoreCollections.bookings)
+            .document(bookingId)
+            .updateData(["status": status.rawValue]) { error in
+                if let error {
+                    completion(.failure(error))
+                    return
+                }
+                completion(.success(()))
+            }
+    }
+}
+
+/// Simple smoke test helper for manual verification.
+enum BookingServiceSmokeTest {
+    static func run(bookingService: BookingService = BookingService()) {
+        let sample = Booking(
+            id: "booking_smoke_001",
+            userId: "user_smoke_001",
+            petId: "pet_smoke_001",
+            serviceType: "grooming",
+            date: "2026-04-01T10:00:00Z",
+            status: .pending
+        )
+
+        bookingService.createBooking(sample) { createResult in
+            switch createResult {
+            case .success:
+                print("Smoke test: booking create success")
+
+                bookingService.listBookingsByUser(userId: sample.userId) { fetchResult in
+                    switch fetchResult {
+                    case let .success(bookings):
+                        print("Smoke test: fetched bookings for user =>", bookings)
+                    case let .failure(error):
+                        print("Smoke test: fetch failed =>", error.localizedDescription)
+                    }
+                }
+
+            case let .failure(error):
+                print("Smoke test: create failed =>", error.localizedDescription)
+            }
+        }
+    }
+}

@@ -1,5 +1,13 @@
 import Foundation
 
+/// Fixed booking states used across app and Firestore.
+enum BookingStatus: String, Codable {
+    case pending
+    case confirmed
+    case completed
+    case cancelled
+}
+
 /// Basic account information for an app user.
 struct User: Codable {
     /// Unique identifier for the user.
@@ -34,12 +42,14 @@ struct Booking: Codable {
     let serviceType: String
     /// Booking date in ISO-8601 string format.
     let date: String
-    /// Current booking status (for example: pending).
-    let status: String
+    /// Current booking status.
+    let status: BookingStatus
 }
 
 /// Item available in the marketplace.
 struct Product: Codable {
+    /// Unique identifier for the product.
+    let id: String
     /// Product name shown in listings.
     let name: String
     /// Product price value.
