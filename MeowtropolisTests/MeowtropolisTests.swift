@@ -105,7 +105,7 @@ struct MeowtropolisTests {
             petId: pet.id,
             serviceType: "grooming",
             date: "2026-04-01T10:00:00Z",
-            status: "pending"
+            status: .pending
         )
         try store.write(booking, to: .bookings, documentId: booking.id)
         let fetchedBooking = try #require(try store.read(Booking.self, from: .bookings, documentId: booking.id))
