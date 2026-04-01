@@ -5,6 +5,8 @@ struct LoginView: View {
 
     @State private var email: String = ""
     @State private var password: String = ""
+    @State private var isLoading: Bool = false
+    @State private var errorMessage: String?
 
     var body: some View {
         VStack(spacing: 16) {
@@ -23,10 +25,25 @@ struct LoginView: View {
             SecureField("Password", text: $password)
                 .textFieldStyle(.roundedBorder)
 
-            Button("Login (Temporary)") {
-                // Day 3: temporary login without backend.
-                appState.isLoggedIn = true
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
             }
+
+            Button(isLoading ? "Logging in..." : "Login") {
+                errorMessage = nil
+                isLoading = true
+                appState.login(email: email, password: password) { result in
+                    DispatchQueue.main.async {
+                        isLoading = false
+                        if case let .failure(error) = result {
+                            errorMessage = error.localizedDescription
+                        }
+                    }
+                }
+            }
+            .disabled(isLoading || email.isEmpty || password.isEmpty)
             .buttonStyle(.borderedProminent)
 
             NavigationLink("Create new account", destination: SignupView())
