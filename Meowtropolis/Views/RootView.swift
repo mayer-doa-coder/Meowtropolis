@@ -3,12 +3,17 @@ import SwiftUI
 struct RootView: View {
     @EnvironmentObject private var appState: AppState
     @State private var showSplash: Bool = true
+    @State private var showOnboarding: Bool = true
 
     var body: some View {
         Group {
             if showSplash {
                 SplashView {
                     showSplash = false
+                }
+            } else if !appState.isLoggedIn && showOnboarding {
+                OnboardingView {
+                    showOnboarding = false
                 }
             } else if appState.isLoggedIn {
                 NavigationStack {
@@ -18,7 +23,7 @@ struct RootView: View {
                 .id("authenticated")
             } else {
                 NavigationStack {
-                    LoginView()
+                    AuthLandingView()
                 }
                 // Reset login navigation tree when auth state changes.
                 .id("unauthenticated")

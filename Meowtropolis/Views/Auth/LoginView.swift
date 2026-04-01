@@ -1,7 +1,9 @@
 import SwiftUI
 import FirebaseAuth
+
 struct LoginView: View {
     @EnvironmentObject private var appState: AppState
+    @Environment(\.dismiss) private var dismiss
 
     @State private var email: String = ""
     @State private var password: String = ""
@@ -12,65 +14,110 @@ struct LoginView: View {
     @State private var successMessage: String?
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text("Login")
-                .font(.title)
-                .bold()
+        AppBackground {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    HStack {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundStyle(.white)
+                                .frame(width: 34, height: 34)
+                                .background(AppDesign.primary)
+                                .clipShape(Circle())
+                        }
 
-            Text("Sign in to continue to dashboard")
-                .foregroundStyle(.secondary)
+                        Spacer()
 
-            TextField("Email", text: $email)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .textFieldStyle(.roundedBorder)
+                        Text("Log In")
+                            .font(.system(size: 44, weight: .bold, design: .rounded))
+                            .foregroundStyle(AppDesign.text)
 
-            if let emailError {
-                Text(emailError)
-                    .font(.footnote)
-                    .foregroundStyle(.red)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                        Spacer()
+                        Color.clear.frame(width: 34, height: 34)
+                    }
+                    .padding(.bottom, 24)
+
+                    AppInputField(title: "Email", text: $email) {
+                        if let emailError {
+                            Text(emailError)
+                                .font(.footnote)
+                                .foregroundStyle(.red)
+                        }
+                    }
+
+                    AppInputField(title: "Password", text: $password, isSecure: true) {
+                        if let passwordError {
+                            Text(passwordError)
+                                .font(.footnote)
+                                .foregroundStyle(.red)
+                        }
+                    }
+
+                    HStack {
+                        Label("Remember me", systemImage: "checkmark.square.fill")
+                            .font(.system(size: 17, weight: .medium, design: .rounded))
+                            .foregroundStyle(AppDesign.text)
+
+                        Spacer()
+
+                        NavigationLink("Forgot password?", destination: ForgotPasswordView())
+                            .font(.system(size: 17, weight: .medium, design: .rounded))
+                            .foregroundStyle(AppDesign.muted)
+                    }
+
+                    if let successMessage {
+                        Text(successMessage)
+                            .font(.footnote)
+                            .foregroundStyle(.green)
+                    }
+
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .font(.footnote)
+                            .foregroundStyle(.red)
+                    }
+
+                    Button(isLoading ? "Logging in..." : "Log In") {
+                        loginUser()
+                    }
+                    .buttonStyle(FilledPrimaryButtonStyle(disabled: isLoading))
+                    .disabled(isLoading)
+
+                    if isLoading {
+                        ProgressView("Signing in...")
+                            .frame(maxWidth: .infinity)
+                    }
+
+                    HStack {
+                        Rectangle().fill(AppDesign.line).frame(height: 1)
+                        Text("Or")
+                            .font(.system(size: 16, weight: .regular, design: .rounded))
+                            .foregroundStyle(AppDesign.muted)
+                            .padding(.horizontal, 8)
+                        Rectangle().fill(AppDesign.line).frame(height: 1)
+                    }
+                    .padding(.top, 8)
+
+                    SocialActionButton(title: "Continue with Google", icon: "g.circle.fill")
+                    SocialActionButton(title: "Continue with Facebook", icon: "f.cursive.circle.fill")
+
+                    HStack(spacing: 4) {
+                        Text("Don't have an account?")
+                            .foregroundStyle(AppDesign.muted)
+                        NavigationLink("Register", destination: SignupView())
+                            .foregroundStyle(.blue)
+                    }
+                    .font(.system(size: 18, weight: .medium, design: .rounded))
+                    .frame(maxWidth: .infinity)
+                    .padding(.bottom, 12)
+                }
+                .padding(20)
             }
-
-            SecureField("Password", text: $password)
-                .textFieldStyle(.roundedBorder)
-
-            if let passwordError {
-                Text(passwordError)
-                    .font(.footnote)
-                    .foregroundStyle(.red)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-
-            if let successMessage {
-                Text(successMessage)
-                    .font(.footnote)
-                    .foregroundStyle(.green)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-
-            if let errorMessage {
-                Text(errorMessage)
-                    .font(.footnote)
-                    .foregroundStyle(.red)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-
-            Button(isLoading ? "Logging in..." : "Login") {
-                loginUser()
-            }
-            .disabled(isLoading)
-            .buttonStyle(.borderedProminent)
-
-            if isLoading {
-                ProgressView("Signing in...")
-            }
-
-            NavigationLink("Create new account", destination: SignupView())
-                .padding(.top, 8)
         }
-        .padding()
-        .navigationTitle("Welcome")
+        .navigationBarBackButtonHidden(true)
     }
 
     private func loginUser() {

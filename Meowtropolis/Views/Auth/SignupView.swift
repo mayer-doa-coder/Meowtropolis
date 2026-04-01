@@ -1,85 +1,121 @@
 import SwiftUI
 import FirebaseAuth
+
 struct SignupView: View {
     @EnvironmentObject private var appState: AppState
+    @Environment(\.dismiss) private var dismiss
 
     @State private var fullName: String = ""
     @State private var email: String = ""
     @State private var password: String = ""
+    @State private var confirmPassword: String = ""
     @State private var isLoading: Bool = false
     @State private var fullNameError: String?
     @State private var emailError: String?
     @State private var passwordError: String?
+    @State private var confirmPasswordError: String?
     @State private var errorMessage: String?
     @State private var successMessage: String?
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text("Signup")
-                .font(.title)
-                .bold()
+        AppBackground {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    HStack {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundStyle(.white)
+                                .frame(width: 34, height: 34)
+                                .background(AppDesign.primary)
+                                .clipShape(Circle())
+                        }
 
-            Text("Create account to access Meowtropolis")
-                .foregroundStyle(.secondary)
+                        Spacer()
 
-            TextField("Full Name", text: $fullName)
-                .textFieldStyle(.roundedBorder)
+                        Text("Sign Up")
+                            .font(.system(size: 44, weight: .bold, design: .rounded))
+                            .foregroundStyle(AppDesign.text)
 
-            if let fullNameError {
-                Text(fullNameError)
-                    .font(.footnote)
-                    .foregroundStyle(.red)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
+                        Spacer()
+                        Color.clear.frame(width: 34, height: 34)
+                    }
+                    .padding(.bottom, 24)
 
-            TextField("Email", text: $email)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .textFieldStyle(.roundedBorder)
+                    AppInputField(title: "Name", text: $fullName) {
+                        if let fullNameError {
+                            Text(fullNameError)
+                                .font(.footnote)
+                                .foregroundStyle(.red)
+                        }
+                    }
 
-            if let emailError {
-                Text(emailError)
-                    .font(.footnote)
-                    .foregroundStyle(.red)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
+                    AppInputField(title: "Email", text: $email) {
+                        if let emailError {
+                            Text(emailError)
+                                .font(.footnote)
+                                .foregroundStyle(.red)
+                        }
+                    }
 
-            SecureField("Password", text: $password)
-                .textFieldStyle(.roundedBorder)
+                    AppInputField(title: "Password", text: $password, isSecure: true) {
+                        if let passwordError {
+                            Text(passwordError)
+                                .font(.footnote)
+                                .foregroundStyle(.red)
+                        }
+                    }
 
-            if let passwordError {
-                Text(passwordError)
-                    .font(.footnote)
-                    .foregroundStyle(.red)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
+                    AppInputField(title: "Confirm password", text: $confirmPassword, isSecure: true) {
+                        if let confirmPasswordError {
+                            Text(confirmPasswordError)
+                                .font(.footnote)
+                                .foregroundStyle(.red)
+                        }
+                    }
 
-            if let successMessage {
-                Text(successMessage)
-                    .font(.footnote)
-                    .foregroundStyle(.green)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
+                    if let successMessage {
+                        Text(successMessage)
+                            .font(.footnote)
+                            .foregroundStyle(.green)
+                    }
 
-            if let errorMessage {
-                Text(errorMessage)
-                    .font(.footnote)
-                    .foregroundStyle(.red)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .font(.footnote)
+                            .foregroundStyle(.red)
+                    }
 
-            Button(isLoading ? "Creating Account..." : "Create Account") {
-                createAccount()
-            }
-            .disabled(isLoading)
-            .buttonStyle(.borderedProminent)
+                    Button(isLoading ? "Creating Account..." : "Sign Up") {
+                        createAccount()
+                    }
+                    .buttonStyle(FilledPrimaryButtonStyle(disabled: isLoading))
+                    .disabled(isLoading)
 
-            if isLoading {
-                ProgressView("Creating your account...")
+                    if isLoading {
+                        ProgressView("Creating your account...")
+                            .frame(maxWidth: .infinity)
+                    }
+
+                    HStack {
+                        Rectangle().fill(AppDesign.line).frame(height: 1)
+                        Text("Or")
+                            .font(.system(size: 16, weight: .regular, design: .rounded))
+                            .foregroundStyle(AppDesign.muted)
+                            .padding(.horizontal, 8)
+                        Rectangle().fill(AppDesign.line).frame(height: 1)
+                    }
+                    .padding(.top, 8)
+
+                    SocialActionButton(title: "Continue with Google", icon: "g.circle.fill")
+                    SocialActionButton(title: "Continue with Facebook", icon: "f.cursive.circle.fill")
+                }
+                .padding(20)
             }
         }
-        .padding()
-        .navigationTitle("Create Account")
+        .navigationBarBackButtonHidden(true)
     }
 
     private func createAccount() {
@@ -131,6 +167,14 @@ struct SignupView: View {
             isValid = false
         }
 
+        if confirmPassword.isEmpty {
+            confirmPasswordError = "Please confirm your password."
+            isValid = false
+        } else if confirmPassword != password {
+            confirmPasswordError = "Passwords do not match."
+            isValid = false
+        }
+
         return isValid
     }
 
@@ -144,6 +188,7 @@ struct SignupView: View {
         fullNameError = nil
         emailError = nil
         passwordError = nil
+        confirmPasswordError = nil
         errorMessage = nil
         successMessage = nil
     }
