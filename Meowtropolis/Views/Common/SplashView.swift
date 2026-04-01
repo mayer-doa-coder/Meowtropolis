@@ -2,24 +2,28 @@ import SwiftUI
 
 struct SplashView: View {
     let onContinue: () -> Void
+    @State private var didAutoContinue: Bool = false
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text("Meowtropolis")
-                .font(.largeTitle)
-                .bold()
-
-            Text("Smart Pet Care Ecosystem")
-                .foregroundStyle(.secondary)
-
-            Button("Continue") {
+        AppBackground {
+            VStack {
+                Spacer()
+                AppLogoHeader()
+                Spacer()
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                guard !didAutoContinue else { return }
+                didAutoContinue = true
                 onContinue()
             }
-            .buttonStyle(.borderedProminent)
-            .padding(.top, 12)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding()
+        .task {
+            try? await Task.sleep(nanoseconds: 1_600_000_000)
+            guard !didAutoContinue else { return }
+            didAutoContinue = true
+            onContinue()
+        }
     }
 }
 
