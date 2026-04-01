@@ -1,5 +1,4 @@
 import Foundation
-import FirebaseFirestore
 import Combine
 
 /// Shared app state for simple login-based routing.
@@ -8,10 +7,12 @@ final class AppState: ObservableObject {
     @Published var currentUserId: String?
 
     private let authService: any AuthService
+    private let userService: UserService
     private var authListenerHandle: NSObjectProtocol?
 
-    init(authService: any AuthService = FirebaseAuthService()) {
+    init(authService: any AuthService = FirebaseAuthService(), userService: UserService = UserService()) {
         self.authService = authService
+        self.userService = userService
 
         // Set initial state immediately when app starts.
         checkSession()
@@ -66,25 +67,16 @@ final class AppState: ObservableObject {
             case let .success(uid):
                 let user = User(id: uid, name: fullName, email: email)
 
-                do {
-                    let data = try FirestoreModelCoder.encode(user)
-                    Firestore.firestore()
-                        .collection(FirestoreCollection.users.rawValue)
-                        .document(uid)
-                        .setData(data) { firestoreError in
-                            DispatchQueue.main.async {
-                                if let firestoreError {
-                                    completion(.failure(firestoreError))
-                                    return
-                                }
-                                self.isLoggedIn = true
-                                self.currentUserId = uid
-                                completion(.success(()))
-                            }
-                        }
-                } catch {
+                userService.createUserProfile(user: user) { profileResult in
                     DispatchQueue.main.async {
-                        completion(.failure(error))
+                        switch profileResult {
+                        case .success:
+                            self.isLoggedIn = true
+                            self.currentUserId = uid
+                            completion(.success(()))
+                        case let .failure(error):
+                            completion(.failure(error))
+                        }
                     }
                 }
             }
