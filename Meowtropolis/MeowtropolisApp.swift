@@ -21,6 +21,10 @@ struct MeowtropolisApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(appState)
+                .onAppear {
+                    // Check Firebase session when app starts.
+                    appState.checkSession()
+                }
         }
     }
 }
