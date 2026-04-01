@@ -15,7 +15,10 @@ final class LocalProductService {
 
     /// Reads products.json and decodes it into [Product].
     func loadProducts(completion: @escaping (Result<[Product], Error>) -> Void) {
-        guard let url = bundle.url(forResource: "products", withExtension: "json") else {
+        let url = bundle.url(forResource: "products", withExtension: "json")
+            ?? bundle.url(forResource: "products", withExtension: "json", subdirectory: "SampleData")
+
+        guard let url else {
             completion(.failure(LocalProductServiceError.fileNotFound))
             return
         }

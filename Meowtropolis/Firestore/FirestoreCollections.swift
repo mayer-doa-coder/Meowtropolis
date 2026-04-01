@@ -1,16 +1,25 @@
 import Foundation
 
-/// Locked Firestore collection names used by the app.
+/// Backward-compatible shim for older test/code paths.
 ///
-/// Important: These raw values are part of the database contract.
-/// Do not rename them after data is created in Firestore.
-enum FirestoreCollection: String {
-    /// Collection for app users.
-    case users = "users"
-    /// Collection for pet profiles.
-    case pets = "pets"
-    /// Collection for service bookings.
-    case bookings = "bookings"
-    /// Collection for marketplace products.
-    case products = "products"
+/// Source of truth is `FirestoreCollections` in Services.
+/// This type should not define literal collection names.
+enum FirestoreCollection {
+    case users
+    case pets
+    case bookings
+    case products
+
+    var rawValue: String {
+        switch self {
+        case .users:
+            return FirestoreCollections.users
+        case .pets:
+            return FirestoreCollections.pets
+        case .bookings:
+            return FirestoreCollections.bookings
+        case .products:
+            return FirestoreCollections.products
+        }
+    }
 }

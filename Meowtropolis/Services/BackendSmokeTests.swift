@@ -3,6 +3,15 @@ import Foundation
 /// Simple manual smoke tests for backend services.
 /// These tests are intentionally straightforward for beginner debugging.
 enum BackendSmokeTests {
+    /// One-call entry point for manual checks.
+    /// Uses a unique test email each run to avoid duplicate-account errors.
+    static func runAll() {
+        let unique = UUID().uuidString.prefix(8)
+        let email = "smoke_\(unique)@meowtropolis.app"
+        let password = "Meow123!"
+        runAll(testEmail: email, testPassword: password, fullName: "Smoke User")
+    }
+
     /// Runs all service smoke tests in sequence.
     /// Note: Auth smoke test may fail if test email already exists.
     static func runAll(testEmail: String, testPassword: String, fullName: String = "Smoke User") {

@@ -1,5 +1,4 @@
 import SwiftUI
-import FirebaseAuth
 
 struct LoginView: View {
     @EnvironmentObject private var appState: AppState
@@ -140,7 +139,7 @@ struct LoginView: View {
                     successMessage = "Login successful. Redirecting to dashboard..."
                     // RootView observes appState.isLoggedIn and shows DashboardView automatically.
                 case let .failure(error):
-                    errorMessage = userFriendlyAuthError(error)
+                    errorMessage = appState.userFriendlyAuthError(error)
                 }
             }
         }
@@ -169,25 +168,6 @@ struct LoginView: View {
         passwordError = nil
         errorMessage = nil
         successMessage = nil
-    }
-
-    // Convert Firebase Auth error codes into simple messages.
-    private func userFriendlyAuthError(_ error: Error) -> String {
-        guard let authError = error as NSError?,
-              let code = AuthErrorCode(rawValue: authError.code) else {
-            return "Login failed. Please try again."
-        }
-
-        switch code {
-        case .wrongPassword:
-            return "Incorrect password"
-        case .userNotFound:
-            return "No account found with this email"
-        case .invalidEmail:
-            return "Invalid email format"
-        default:
-            return "Login failed. Please try again."
-        }
     }
 }
 

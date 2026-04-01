@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import FirebaseAuth
 
 /// Shared app state for simple login-based routing.
 final class AppState: ObservableObject {
@@ -103,6 +104,29 @@ final class AppState: ObservableObject {
             DispatchQueue.main.async {
                 completion(result)
             }
+        }
+    }
+
+    /// Converts backend auth errors into simple UI messages.
+    func userFriendlyAuthError(_ error: Error) -> String {
+        guard let authError = error as NSError?,
+              let code = AuthErrorCode(rawValue: authError.code) else {
+            return "Authentication failed. Please try again."
+        }
+
+        switch code {
+        case .wrongPassword:
+            return "Incorrect password"
+        case .userNotFound:
+            return "No account found with this email"
+        case .invalidEmail:
+            return "Invalid email format"
+        case .emailAlreadyInUse:
+            return "This email is already registered."
+        case .weakPassword:
+            return "Password is too weak. Use at least 6 characters."
+        default:
+            return authError.localizedDescription
         }
     }
 }
