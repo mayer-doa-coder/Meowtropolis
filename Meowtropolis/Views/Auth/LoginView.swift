@@ -39,7 +39,7 @@ struct LoginView: View {
                     }
                     .padding(.bottom, 24)
 
-                    AppInputField(title: "Email", text: $email) {
+                    AppInputField(title: "Email", text: $email, fieldIdentifier: "loginEmailField") {
                         if let emailError {
                             Text(emailError)
                                 .font(.footnote)
@@ -47,7 +47,7 @@ struct LoginView: View {
                         }
                     }
 
-                    AppInputField(title: "Password", text: $password, isSecure: true) {
+                    AppInputField(title: "Password", text: $password, isSecure: true, fieldIdentifier: "loginPasswordField") {
                         if let passwordError {
                             Text(passwordError)
                                 .font(.footnote)
@@ -84,6 +84,7 @@ struct LoginView: View {
                     }
                     .buttonStyle(FilledPrimaryButtonStyle(disabled: isLoading))
                     .disabled(isLoading)
+                    .accessibilityIdentifier("loginSubmitButton")
 
                     if isLoading {
                         ProgressView("Signing in...")
@@ -123,6 +124,16 @@ struct LoginView: View {
         clearMessages()
 
         guard validateInputs() else {
+            return
+        }
+
+        if ProcessInfo.processInfo.arguments.contains("-uiTestMockLoginSuccess") {
+            appState.currentUserId = "ui_test_user"
+            appState.currentUser = User(id: "ui_test_user", name: "UI Test User", email: email)
+            appState.isProfileLoading = false
+            appState.profileErrorMessage = nil
+            appState.isLoggedIn = true
+            successMessage = "Login successful. Redirecting to dashboard..."
             return
         }
 

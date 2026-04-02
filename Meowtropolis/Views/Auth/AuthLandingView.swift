@@ -14,11 +14,13 @@ struct AuthLandingView: View {
                     Text("Log In")
                 }
                 .buttonStyle(FilledPrimaryButtonStyle())
+                .accessibilityIdentifier("authLandingLoginButton")
 
                 NavigationLink(destination: SignupView()) {
                     Text("Sign Up")
                 }
                 .buttonStyle(OutlinedPrimaryButtonStyle())
+                .accessibilityIdentifier("authLandingSignupButton")
 
                 HStack {
                     Rectangle().fill(AppDesign.line).frame(height: 1)

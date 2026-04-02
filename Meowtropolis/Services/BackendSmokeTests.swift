@@ -48,6 +48,7 @@ enum BackendSmokeTests {
         let petService = PetService()
         let bookingService = BookingService()
         let productService = ProductService()
+        let localProductService = LocalProductService()
 
         SmokeLogger.start()
 
@@ -61,7 +62,9 @@ enum BackendSmokeTests {
                     runPetSmokeTest(petService: petService, userId: userId) {
                         runBookingSmokeTest(bookingService: bookingService, userId: userId) {
                             runProductSmokeTest(productService: productService) {
-                                SmokeLogger.end()
+                                runLocalProductSmokeTest(localProductService: localProductService) {
+                                    SmokeLogger.end()
+                                }
                             }
                         }
                     }
@@ -69,15 +72,18 @@ enum BackendSmokeTests {
 
             case let .failure(error):
                 SmokeLogger.fail("Auth flow", error: error)
-                // Continue to product smoke test at least.
+                // Continue to product checks at least.
                 runProductSmokeTest(productService: productService) {
-                    SmokeLogger.end()
+                    runLocalProductSmokeTest(localProductService: localProductService) {
+                        SmokeLogger.end()
+                    }
                 }
             }
         }
     }
 
-    /// Signup -> Login -> Logout flow smoke test.
+    /// Signup -> Login -> Logout -> Login flow smoke test.
+    /// Final login keeps session active for Firestore service tests.
     static func runAuthSmokeTest(
         authService: AuthService,
         email: String,
@@ -100,7 +106,17 @@ enum BackendSmokeTests {
                                 case let .failure(error):
                                     SmokeLogger.fail("Auth signOut", error: error)
                                 }
-                                completion(.success(uid))
+
+                                authService.signIn(email: email, password: password) { finalSignInResult in
+                                    switch finalSignInResult {
+                                    case .success:
+                                        SmokeLogger.pass("Auth signIn (session restore)")
+                                        completion(.success(uid))
+                                    case let .failure(error):
+                                        SmokeLogger.fail("Auth signIn (session restore)", error: error)
+                                        completion(.failure(error))
+                                    }
+                                }
                             }
                         case let .failure(error):
                             SmokeLogger.fail("Auth signIn", error: error)
@@ -242,11 +258,23 @@ enum BackendSmokeTests {
             switch result {
             case let .success(products):
                 SmokeLogger.pass("Product fetch count => \(products.count)")
-                if let first = products.first {
-                    print("[INFO] Product sample => \(first.name)")
-                }
+                print("[INFO] Product list => \(products)")
             case let .failure(error):
                 SmokeLogger.fail("Product fetch", error: error)
+            }
+            completion()
+        }
+    }
+
+    /// Local JSON product loading smoke test.
+    static func runLocalProductSmokeTest(localProductService: LocalProductService, completion: @escaping () -> Void) {
+        localProductService.loadProducts { result in
+            switch result {
+            case let .success(products):
+                SmokeLogger.pass("Local product load count => \(products.count)")
+                print("[INFO] Local products => \(products)")
+            case let .failure(error):
+                SmokeLogger.fail("Local product load", error: error)
             }
             completion()
         }

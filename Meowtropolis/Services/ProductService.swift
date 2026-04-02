@@ -27,6 +27,11 @@ final class ProductService {
         firestoreService.fetchProducts { firestoreResult in
             let logLoadedSource: (ProductDataSource, Int) -> Void = { source, count in
                 print("[ProductService] Source: \(source.rawValue). Products loaded: \(count)")
+                if source == .firestore {
+                    print("[ProductService] Loaded from Firestore")
+                } else {
+                    print("[ProductService] Loaded from Local JSON")
+                }
             }
 
             let logFallbackReason: (String) -> Void = { reason in

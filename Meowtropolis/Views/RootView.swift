@@ -2,8 +2,8 @@ import SwiftUI
 
 struct RootView: View {
     @EnvironmentObject private var appState: AppState
-    @State private var showSplash: Bool = true
-    @State private var showOnboarding: Bool = true
+    @State private var showSplash: Bool = !ProcessInfo.processInfo.arguments.contains("-uiTestSkipSplash")
+    @State private var showOnboarding: Bool = !ProcessInfo.processInfo.arguments.contains("-uiTestSkipOnboarding")
 
     var body: some View {
         Group {

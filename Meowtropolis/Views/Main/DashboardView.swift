@@ -23,6 +23,7 @@ struct DashboardView: View {
                 .tabItem { Label("Account", systemImage: "person") }
                 .tag(3)
         }
+        .accessibilityIdentifier("dashboardTabView")
         .tint(AppDesign.primary)
         .navigationBarBackButtonHidden(true)
         .toolbar {

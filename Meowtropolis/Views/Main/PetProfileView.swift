@@ -126,6 +126,7 @@ struct PetProfileView: View {
 
     private func loadPets() {
         guard let userId = appState.currentUserId else {
+            isLoading = false
             errorMessage = "You must be logged in to view pets."
             pets = []
             return
@@ -149,6 +150,7 @@ struct PetProfileView: View {
 
     private func createPet(name: String, breed: String, age: Int?) {
         guard let userId = appState.currentUserId else {
+            isLoading = false
             errorMessage = "You must be logged in to add a pet."
             return
         }
