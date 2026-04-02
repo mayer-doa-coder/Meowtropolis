@@ -26,8 +26,18 @@ struct Pet: Codable {
     let userId: String
     /// Pet name shown in profile and bookings.
     let name: String
+    /// Pet age in years.
+    let age: Int?
     /// Pet breed information.
     let breed: String
+
+    init(id: String, userId: String, name: String, breed: String, age: Int? = nil) {
+        self.id = id
+        self.userId = userId
+        self.name = name
+        self.age = age
+        self.breed = breed
+    }
 }
 
 /// Service appointment made for a pet.

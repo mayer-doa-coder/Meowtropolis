@@ -26,7 +26,7 @@ final class PetService {
 
                 do {
                     let pets = try documents.map { document in
-                        try FirestoreModelCoder.decode(Pet.self, from: document.data())
+                        try self.decodePet(document)
                     }
                     completion(.success(pets))
                 } catch {
@@ -69,5 +69,40 @@ final class PetService {
                 }
                 completion(.success(()))
             }
+    }
+
+    /// Decodes pet safely from Firestore and supports legacy docs where id may be missing in payload.
+    private func decodePet(_ document: QueryDocumentSnapshot) throws -> Pet {
+        let data = document.data()
+
+        let id = (data["id"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let userId = (data["userId"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let name = (data["name"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let breed = (data["breed"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        let resolvedId = (id?.isEmpty == false ? id! : document.documentID)
+
+        guard let resolvedUserId = userId, !resolvedUserId.isEmpty,
+              let resolvedName = name, !resolvedName.isEmpty,
+              let resolvedBreed = breed, !resolvedBreed.isEmpty else {
+            throw NSError(
+                domain: "PetService",
+                code: 422,
+                userInfo: [NSLocalizedDescriptionKey: "Invalid pet data found in database."]
+            )
+        }
+
+        let age: Int?
+        if let ageInt = data["age"] as? Int {
+            age = ageInt
+        } else if let ageNumber = data["age"] as? NSNumber {
+            age = ageNumber.intValue
+        } else if let ageString = data["age"] as? String {
+            age = Int(ageString)
+        } else {
+            age = nil
+        }
+
+        return Pet(id: resolvedId, userId: resolvedUserId, name: resolvedName, breed: resolvedBreed, age: age)
     }
 }

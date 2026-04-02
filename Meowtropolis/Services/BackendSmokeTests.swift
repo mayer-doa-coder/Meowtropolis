@@ -116,7 +116,7 @@ enum BackendSmokeTests {
         completion: @escaping () -> Void
     ) {
         let petId = "pet_smoke_\(UUID().uuidString)"
-        let pet = Pet(id: petId, userId: userId, name: "Milo", breed: "Persian")
+        let pet = Pet(id: petId, userId: userId, name: "Milo", breed: "Persian", age: 2)
 
         petService.addPet(pet) { addResult in
             switch addResult {
@@ -130,7 +130,7 @@ enum BackendSmokeTests {
                         print("Pet smoke: list failed =>", error.localizedDescription)
                     }
 
-                    let updatedPet = Pet(id: pet.id, userId: pet.userId, name: "Milo Updated", breed: pet.breed)
+                    let updatedPet = Pet(id: pet.id, userId: pet.userId, name: "Milo Updated", breed: pet.breed, age: 3)
                     petService.updatePet(updatedPet) { updateResult in
                         switch updateResult {
                         case .success:
