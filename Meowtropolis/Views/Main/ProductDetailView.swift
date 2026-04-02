@@ -87,8 +87,9 @@ struct ProductDetailView: View {
                         }
                     }
 
-                    Button("Add to Cart") {}
-                        .buttonStyle(FilledPrimaryButtonStyle())
+                    Text("MVP mode: browsing only (checkout and payment are not included).")
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundStyle(AppDesign.muted)
                         .padding(.top, 8)
                 }
                 .padding(20)
