@@ -120,10 +120,10 @@ struct AppInputField<Accessory: View>: View {
             Group {
                 if isSecure {
                     SecureField("Type your \(title.lowercased())", text: $text)
-                        .accessibilityIdentifier(fieldIdentifier ?? "")
+                        .modifier(ConditionalAccessibilityIdentifier(identifier: fieldIdentifier))
                 } else {
                     TextField("Type your \(title.lowercased())", text: $text)
-                        .accessibilityIdentifier(fieldIdentifier ?? "")
+                        .modifier(ConditionalAccessibilityIdentifier(identifier: fieldIdentifier))
                 }
             }
             .textInputAutocapitalization(.never)
@@ -138,6 +138,18 @@ struct AppInputField<Accessory: View>: View {
             }
 
             accessory
+        }
+    }
+}
+
+private struct ConditionalAccessibilityIdentifier: ViewModifier {
+    let identifier: String?
+
+    func body(content: Content) -> some View {
+        if let identifier, !identifier.isEmpty {
+            content.accessibilityIdentifier(identifier)
+        } else {
+            content
         }
     }
 }

@@ -180,6 +180,7 @@ struct GroomingView: View {
 
     private func loadInitialData() {
         guard let userId = appState.currentUserId else {
+            isLoading = false
             errorMessage = "You need to log in before creating bookings."
             return
         }
@@ -239,6 +240,7 @@ struct GroomingView: View {
 
     private func createBooking() {
         guard let userId = appState.currentUserId else {
+            isLoading = false
             errorMessage = "You need to log in before creating bookings."
             return
         }
