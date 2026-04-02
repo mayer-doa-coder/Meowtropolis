@@ -100,12 +100,14 @@ struct AppInputField<Accessory: View>: View {
     let title: String
     @Binding var text: String
     var isSecure: Bool = false
+    var fieldIdentifier: String?
     var accessory: Accessory
 
-    init(title: String, text: Binding<String>, isSecure: Bool = false, @ViewBuilder accessory: () -> Accessory = { EmptyView() }) {
+    init(title: String, text: Binding<String>, isSecure: Bool = false, fieldIdentifier: String? = nil, @ViewBuilder accessory: () -> Accessory = { EmptyView() }) {
         self.title = title
         self._text = text
         self.isSecure = isSecure
+        self.fieldIdentifier = fieldIdentifier
         self.accessory = accessory()
     }
 
@@ -118,8 +120,10 @@ struct AppInputField<Accessory: View>: View {
             Group {
                 if isSecure {
                     SecureField("Type your \(title.lowercased())", text: $text)
+                        .accessibilityIdentifier(fieldIdentifier ?? "")
                 } else {
                     TextField("Type your \(title.lowercased())", text: $text)
+                        .accessibilityIdentifier(fieldIdentifier ?? "")
                 }
             }
             .textInputAutocapitalization(.never)
