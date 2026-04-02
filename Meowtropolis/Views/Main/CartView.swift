@@ -11,6 +11,7 @@ struct CartView: View {
                         Text("Cart is empty")
                             .font(.system(size: 24, weight: .bold, design: .rounded))
                             .foregroundStyle(AppDesign.text)
+                            .accessibilityIdentifier("cartEmptyText")
 
                         Text("Add products from the store to continue.")
                             .font(.system(size: 16, weight: .regular, design: .rounded))
@@ -23,6 +24,7 @@ struct CartView: View {
                             cartRow(item)
                         }
                     }
+                    .accessibilityIdentifier("cartItemsList")
                     .scrollContentBackground(.hidden)
                     .background(Color.clear)
 
@@ -34,6 +36,7 @@ struct CartView: View {
         }
         .navigationTitle("My Cart")
         .navigationBarTitleDisplayMode(.inline)
+        .accessibilityIdentifier("cartView")
     }
 
     private func cartRow(_ item: CartItem) -> some View {

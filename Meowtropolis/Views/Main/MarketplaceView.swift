@@ -62,8 +62,10 @@ struct MarketplaceView: View {
                             NavigationLink(destination: ProductDetailView(product: product)) {
                                 productRow(product)
                             }
+                            .accessibilityIdentifier("marketplaceProductRow_\(product.id)")
                         }
                     }
+                    .accessibilityIdentifier("marketplaceProductList")
                     .scrollContentBackground(.hidden)
                     .background(Color.clear)
                 }
@@ -83,6 +85,7 @@ struct MarketplaceView: View {
                     }
                     .foregroundStyle(AppDesign.text)
                 }
+                .accessibilityIdentifier("marketplaceCartButton")
             }
         }
         .task {

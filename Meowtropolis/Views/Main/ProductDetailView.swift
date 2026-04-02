@@ -94,6 +94,7 @@ struct ProductDetailView: View {
                         Text(successMessage)
                             .font(.footnote)
                             .foregroundStyle(.green)
+                            .accessibilityIdentifier("productDetailAddToCartSuccessMessage")
                     }
 
                     Button("Add to Cart") {
@@ -101,6 +102,7 @@ struct ProductDetailView: View {
                         successMessage = "Added to cart"
                     }
                     .buttonStyle(FilledPrimaryButtonStyle())
+                    .accessibilityIdentifier("productDetailAddToCartButton")
 
                     Text("MVP mode: checkout is demo-only and does not process real payment.")
                         .font(.system(size: 14, weight: .medium, design: .rounded))
@@ -125,6 +127,7 @@ struct ProductDetailView: View {
                         }
                     }
                 }
+                .accessibilityIdentifier("productDetailCartButton")
             }
         }
     }
