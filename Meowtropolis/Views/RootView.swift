@@ -15,6 +15,10 @@ struct RootView: View {
                 OnboardingView {
                     showOnboarding = false
                 }
+            } else if appState.isLoggedIn && appState.isProfileLoading {
+                profileLoadingView
+            } else if appState.isLoggedIn, let profileError = appState.profileErrorMessage {
+                profileErrorView(profileError)
             } else if appState.isLoggedIn {
                 NavigationStack {
                     DashboardView()
@@ -28,6 +32,44 @@ struct RootView: View {
                 // Reset login navigation tree when auth state changes.
                 .id("unauthenticated")
             }
+        }
+    }
+
+    private var profileLoadingView: some View {
+        AppBackground {
+            VStack(spacing: 12) {
+                ProgressView()
+                Text("Loading your profile...")
+                    .font(.system(size: 17, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppDesign.muted)
+            }
+            .padding(20)
+        }
+    }
+
+    private func profileErrorView(_ message: String) -> some View {
+        AppBackground {
+            VStack(spacing: 16) {
+                Text("Could not load profile")
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppDesign.text)
+
+                Text(message)
+                    .font(.system(size: 16, weight: .regular, design: .rounded))
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+
+                Button("Try Again") {
+                    appState.loadCurrentUserProfile()
+                }
+                .buttonStyle(FilledPrimaryButtonStyle())
+
+                Button("Logout") {
+                    appState.logout()
+                }
+                .buttonStyle(OutlinedPrimaryButtonStyle())
+            }
+            .padding(20)
         }
     }
 }

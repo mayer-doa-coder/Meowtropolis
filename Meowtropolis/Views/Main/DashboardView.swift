@@ -46,6 +46,8 @@ struct DashboardView: View {
 }
 
 private struct HomeTabView: View {
+    @EnvironmentObject private var appState: AppState
+
     var body: some View {
         AppBackground {
             ScrollView {
@@ -56,7 +58,7 @@ private struct HomeTabView: View {
                             .frame(width: 56, height: 56)
 
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Hello, Sarah")
+                            Text("Hello, \(appState.currentUser?.name ?? "Pet Parent")")
                                 .font(.system(size: 28, weight: .bold, design: .rounded))
                                 .foregroundStyle(AppDesign.text)
                             Text("Good Morning!")

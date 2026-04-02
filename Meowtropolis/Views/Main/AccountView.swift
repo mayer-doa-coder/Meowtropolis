@@ -3,6 +3,7 @@ import SwiftUI
 struct AccountView: View {
     @EnvironmentObject private var appState: AppState
     @State private var logoutError: String?
+    @State private var isLoggingOut: Bool = false
 
     var body: some View {
         AppBackground {
@@ -11,15 +12,26 @@ struct AccountView: View {
                     Circle()
                         .fill(Color.gray.opacity(0.35))
                         .frame(width: 94, height: 94)
-                    Text("Emmie Watson")
+                    Text(appState.currentUser?.name ?? "Loading...")
                         .font(.system(size: 30, weight: .bold, design: .rounded))
                         .foregroundStyle(AppDesign.text)
-                    Text("emmie1709@gmail.com")
+                    Text(appState.currentUser?.email ?? "-")
                         .font(.system(size: 18, weight: .regular, design: .rounded))
                         .foregroundStyle(AppDesign.muted)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.bottom, 8)
+
+                if appState.isProfileLoading {
+                    ProgressView("Loading account...")
+                        .frame(maxWidth: .infinity)
+                }
+
+                if let profileError = appState.profileErrorMessage {
+                    Text(profileError)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                }
 
                 Group {
                     Text("My Account")
@@ -48,20 +60,23 @@ struct AccountView: View {
                     accountRow(icon: "info.circle", text: "Help Center")
 
                     Button {
+                        isLoggingOut = true
                         appState.logout { result in
+                            isLoggingOut = false
                             if case let .failure(error) = result {
-                                logoutError = error.localizedDescription
+                                logoutError = appState.userFriendlyAuthError(error)
                             }
                         }
                     } label: {
                         HStack(spacing: 10) {
                             Image(systemName: "arrow.right.square")
                                 .foregroundStyle(.red)
-                            Text("Log Out")
+                            Text(isLoggingOut ? "Logging out..." : "Log Out")
                                 .font(.system(size: 18, weight: .medium, design: .rounded))
                                 .foregroundStyle(AppDesign.text)
                         }
                     }
+                    .disabled(isLoggingOut)
                 }
 
                 if let logoutError {
