@@ -3,6 +3,34 @@ import Foundation
 /// Simple manual smoke tests for backend services.
 /// These tests are intentionally straightforward for beginner debugging.
 enum BackendSmokeTests {
+    private enum SmokeLogger {
+        static var totalChecks: Int = 0
+        static var passedChecks: Int = 0
+
+        static func start() {
+            totalChecks = 0
+            passedChecks = 0
+            print("=== Backend Smoke Tests: Start ===")
+        }
+
+        static func pass(_ message: String) {
+            totalChecks += 1
+            passedChecks += 1
+            print("[PASS] \(message)")
+        }
+
+        static func fail(_ message: String, error: Error) {
+            totalChecks += 1
+            print("[FAIL] \(message) => \(error.localizedDescription)")
+        }
+
+        static func end() {
+            let failedChecks = totalChecks - passedChecks
+            print("=== Backend Smoke Tests: End ===")
+            print("Summary: \(passedChecks)/\(totalChecks) checks passed, \(failedChecks) failed")
+        }
+    }
+
     /// One-call entry point for manual checks.
     /// Uses a unique test email each run to avoid duplicate-account errors.
     static func runAll() {
@@ -21,28 +49,30 @@ enum BackendSmokeTests {
         let bookingService = BookingService()
         let productService = ProductService()
 
-        print("=== Backend Smoke Tests: Start ===")
+        SmokeLogger.start()
 
         runAuthSmokeTest(authService: authService, email: testEmail, password: testPassword) { authResult in
             switch authResult {
             case let .success(userId):
-                print("Auth smoke: success, userId =>", userId)
+                SmokeLogger.pass("Auth flow completed, userId => \(userId)")
 
                 let user = User(id: userId, name: fullName, email: testEmail)
                 runUserSmokeTest(userService: userService, user: user) {
                     runPetSmokeTest(petService: petService, userId: userId) {
                         runBookingSmokeTest(bookingService: bookingService, userId: userId) {
-                            runProductSmokeTest(productService: productService)
-                            print("=== Backend Smoke Tests: End ===")
+                            runProductSmokeTest(productService: productService) {
+                                SmokeLogger.end()
+                            }
                         }
                     }
                 }
 
             case let .failure(error):
-                print("Auth smoke: failed =>", error.localizedDescription)
+                SmokeLogger.fail("Auth flow", error: error)
                 // Continue to product smoke test at least.
-                runProductSmokeTest(productService: productService)
-                print("=== Backend Smoke Tests: End (Auth failed) ===")
+                runProductSmokeTest(productService: productService) {
+                    SmokeLogger.end()
+                }
             }
         }
     }
@@ -57,27 +87,29 @@ enum BackendSmokeTests {
         authService.signUp(email: email, password: password) { signUpResult in
             switch signUpResult {
             case let .success(uid):
-                print("Auth smoke: signUp success")
+                SmokeLogger.pass("Auth signUp")
                 authService.signOut { _ in
                     authService.signIn(email: email, password: password) { signInResult in
                         switch signInResult {
                         case .success:
-                            print("Auth smoke: signIn success")
+                            SmokeLogger.pass("Auth signIn")
                             authService.signOut { signOutResult in
                                 switch signOutResult {
                                 case .success:
-                                    print("Auth smoke: signOut success")
+                                    SmokeLogger.pass("Auth signOut")
                                 case let .failure(error):
-                                    print("Auth smoke: signOut failed =>", error.localizedDescription)
+                                    SmokeLogger.fail("Auth signOut", error: error)
                                 }
                                 completion(.success(uid))
                             }
                         case let .failure(error):
+                            SmokeLogger.fail("Auth signIn", error: error)
                             completion(.failure(error))
                         }
                     }
                 }
             case let .failure(error):
+                SmokeLogger.fail("Auth signUp", error: error)
                 completion(.failure(error))
             }
         }
@@ -92,18 +124,18 @@ enum BackendSmokeTests {
         userService.createUserProfile(user: user) { createResult in
             switch createResult {
             case .success:
-                print("User smoke: create profile success")
+                SmokeLogger.pass("User create profile")
                 userService.fetchCurrentUser(userId: user.id) { fetchResult in
                     switch fetchResult {
                     case let .success(fetched):
-                        print("User smoke: fetch profile success =>", fetched)
+                        SmokeLogger.pass("User fetch profile => \(fetched.id)")
                     case let .failure(error):
-                        print("User smoke: fetch profile failed =>", error.localizedDescription)
+                        SmokeLogger.fail("User fetch profile", error: error)
                     }
                     completion()
                 }
             case let .failure(error):
-                print("User smoke: create profile failed =>", error.localizedDescription)
+                SmokeLogger.fail("User create profile", error: error)
                 completion()
             }
         }
@@ -116,42 +148,42 @@ enum BackendSmokeTests {
         completion: @escaping () -> Void
     ) {
         let petId = "pet_smoke_\(UUID().uuidString)"
-        let pet = Pet(id: petId, userId: userId, name: "Milo", breed: "Persian")
+        let pet = Pet(id: petId, userId: userId, name: "Milo", breed: "Persian", age: 2)
 
         petService.addPet(pet) { addResult in
             switch addResult {
             case .success:
-                print("Pet smoke: add success")
+                SmokeLogger.pass("Pet add")
                 petService.listPets(userId: userId) { listResult in
                     switch listResult {
                     case let .success(pets):
-                        print("Pet smoke: list success count =>", pets.count)
+                        SmokeLogger.pass("Pet list count => \(pets.count)")
                     case let .failure(error):
-                        print("Pet smoke: list failed =>", error.localizedDescription)
+                        SmokeLogger.fail("Pet list", error: error)
                     }
 
-                    let updatedPet = Pet(id: pet.id, userId: pet.userId, name: "Milo Updated", breed: pet.breed)
+                    let updatedPet = Pet(id: pet.id, userId: pet.userId, name: "Milo Updated", breed: pet.breed, age: 3)
                     petService.updatePet(updatedPet) { updateResult in
                         switch updateResult {
                         case .success:
-                            print("Pet smoke: update success")
+                            SmokeLogger.pass("Pet update")
                         case let .failure(error):
-                            print("Pet smoke: update failed =>", error.localizedDescription)
+                            SmokeLogger.fail("Pet update", error: error)
                         }
 
                         petService.deletePet(petId: pet.id) { deleteResult in
                             switch deleteResult {
                             case .success:
-                                print("Pet smoke: delete success")
+                                SmokeLogger.pass("Pet delete")
                             case let .failure(error):
-                                print("Pet smoke: delete failed =>", error.localizedDescription)
+                                SmokeLogger.fail("Pet delete", error: error)
                             }
                             completion()
                         }
                     }
                 }
             case let .failure(error):
-                print("Pet smoke: add failed =>", error.localizedDescription)
+                SmokeLogger.fail("Pet add", error: error)
                 completion()
             }
         }
@@ -177,45 +209,46 @@ enum BackendSmokeTests {
         bookingService.createBooking(booking) { createResult in
             switch createResult {
             case .success:
-                print("Booking smoke: create success")
+                SmokeLogger.pass("Booking create")
 
                 bookingService.listBookingsByUser(userId: userId) { listResult in
                     switch listResult {
                     case let .success(bookings):
-                        print("Booking smoke: list by user success count =>", bookings.count)
+                        SmokeLogger.pass("Booking list by user count => \(bookings.count)")
                     case let .failure(error):
-                        print("Booking smoke: list by user failed =>", error.localizedDescription)
+                        SmokeLogger.fail("Booking list by user", error: error)
                     }
 
                     bookingService.updateBookingStatus(bookingId: bookingId, status: .confirmed) { updateResult in
                         switch updateResult {
                         case .success:
-                            print("Booking smoke: update status success")
+                            SmokeLogger.pass("Booking update status")
                         case let .failure(error):
-                            print("Booking smoke: update status failed =>", error.localizedDescription)
+                            SmokeLogger.fail("Booking update status", error: error)
                         }
                         completion()
                     }
                 }
             case let .failure(error):
-                print("Booking smoke: create failed =>", error.localizedDescription)
+                SmokeLogger.fail("Booking create", error: error)
                 completion()
             }
         }
     }
 
     /// Product fetch smoke test (Firestore first, local fallback).
-    static func runProductSmokeTest(productService: ProductService) {
+    static func runProductSmokeTest(productService: ProductService, completion: @escaping () -> Void) {
         productService.fetchProducts { result in
             switch result {
             case let .success(products):
-                print("Product smoke: load success count =>", products.count)
+                SmokeLogger.pass("Product fetch count => \(products.count)")
                 if let first = products.first {
-                    print("Product smoke: first product =>", first)
+                    print("[INFO] Product sample => \(first.name)")
                 }
             case let .failure(error):
-                print("Product smoke: load failed =>", error.localizedDescription)
+                SmokeLogger.fail("Product fetch", error: error)
             }
+            completion()
         }
     }
 }

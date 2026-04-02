@@ -8,7 +8,7 @@ struct ForgotPasswordView: View {
     @State private var emailError: String?
     @State private var isLoading: Bool = false
     @State private var message: String?
-    @State private var goToOTP: Bool = false
+    @State private var isSuccessMessage: Bool = false
 
     var body: some View {
         AppBackground {
@@ -50,7 +50,7 @@ struct ForgotPasswordView: View {
                 if let message {
                     Text(message)
                         .font(.footnote)
-                        .foregroundStyle(message.contains("sent") ? .green : .red)
+                        .foregroundStyle(isSuccessMessage ? .green : .red)
                 }
 
                 Button(isLoading ? "Sending..." : "Confirm") {
@@ -58,9 +58,6 @@ struct ForgotPasswordView: View {
                 }
                 .buttonStyle(FilledPrimaryButtonStyle(disabled: isLoading))
                 .disabled(isLoading)
-
-                NavigationLink("", destination: VerifyOTPView(), isActive: $goToOTP)
-                    .hidden()
 
                 if isLoading {
                     ProgressView()
@@ -77,6 +74,7 @@ struct ForgotPasswordView: View {
     private func sendReset() {
         emailError = nil
         message = nil
+        isSuccessMessage = false
 
         let cleanedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
         if cleanedEmail.isEmpty {
@@ -90,10 +88,11 @@ struct ForgotPasswordView: View {
                 isLoading = false
                 switch result {
                 case .success:
-                    message = "Password reset email sent."
-                    goToOTP = true
+                    isSuccessMessage = true
+                    message = "Password reset email sent. Please check your inbox."
                 case let .failure(error):
-                    message = error.localizedDescription
+                    isSuccessMessage = false
+                    message = appState.userFriendlyAuthError(error)
                     return
                 }
             }
