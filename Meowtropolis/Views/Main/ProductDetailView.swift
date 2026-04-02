@@ -1,8 +1,11 @@
 import SwiftUI
 
 struct ProductDetailView: View {
+    @EnvironmentObject private var cartState: CartState
+
     let product: Product
     @State private var quantity: Int = 1
+    @State private var successMessage: String?
 
     var body: some View {
         AppBackground {
@@ -87,7 +90,21 @@ struct ProductDetailView: View {
                         }
                     }
 
-                    Text("MVP mode: browsing only (checkout and payment are not included).")
+                    if let successMessage {
+                        Text(successMessage)
+                            .font(.footnote)
+                            .foregroundStyle(.green)
+                            .accessibilityIdentifier("productDetailAddToCartSuccessMessage")
+                    }
+
+                    Button("Add to Cart") {
+                        cartState.addToCart(product: product, quantity: quantity)
+                        successMessage = "Added to cart"
+                    }
+                    .buttonStyle(FilledPrimaryButtonStyle())
+                    .accessibilityIdentifier("productDetailAddToCartButton")
+
+                    Text("MVP mode: checkout is demo-only and does not process real payment.")
                         .font(.system(size: 14, weight: .medium, design: .rounded))
                         .foregroundStyle(AppDesign.muted)
                         .padding(.top, 8)
@@ -99,6 +116,20 @@ struct ProductDetailView: View {
         }
         .navigationTitle("Product")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink(destination: CartView()) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "cart")
+                        if cartState.totalItemCount > 0 {
+                            Text("\(cartState.totalItemCount)")
+                                .font(.caption)
+                        }
+                    }
+                }
+                .accessibilityIdentifier("productDetailCartButton")
+            }
+        }
     }
 }
 
@@ -113,5 +144,6 @@ struct ProductDetailView: View {
                 imageURL: ""
             )
         )
+        .environmentObject(CartState())
     }
 }

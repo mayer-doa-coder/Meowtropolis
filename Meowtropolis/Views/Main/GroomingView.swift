@@ -2,9 +2,11 @@ import SwiftUI
 
 struct GroomingView: View {
     @EnvironmentObject private var appState: AppState
+    @AppStorage(ReminderService.preferenceKey) private var remindersEnabled: Bool = false
 
     private let bookingService: BookingService
     private let petService: PetService
+    private let reminderService: ReminderService
 
     @State private var pets: [Pet] = []
     @State private var bookings: [Booking] = []
@@ -22,9 +24,14 @@ struct GroomingView: View {
     private let serviceTypes: [String] = ["grooming", "bathing", "nail trimming"]
     private let statusOptions: [BookingStatus] = [.pending, .confirmed, .completed, .cancelled]
 
-    init(bookingService: BookingService = BookingService(), petService: PetService = PetService()) {
+    init(
+        bookingService: BookingService = BookingService(),
+        petService: PetService = PetService(),
+        reminderService: ReminderService = ReminderService()
+    ) {
         self.bookingService = bookingService
         self.petService = petService
+        self.reminderService = reminderService
     }
 
     var body: some View {
@@ -269,6 +276,9 @@ struct GroomingView: View {
 
                 switch result {
                 case .success:
+                    if remindersEnabled {
+                        reminderService.scheduleBookingReminder(booking)
+                    }
                     successMessage = "Booking created successfully."
                     loadBookings()
                 case let .failure(error):

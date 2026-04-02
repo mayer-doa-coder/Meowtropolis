@@ -1,9 +1,15 @@
 import SwiftUI
+import UserNotifications
 
 struct AccountView: View {
     @EnvironmentObject private var appState: AppState
+    @AppStorage(ReminderService.preferenceKey) private var remindersEnabled: Bool = false
+
     @State private var logoutError: String?
     @State private var isLoggingOut: Bool = false
+    @State private var permissionStatusText: String = "Permission: Unknown"
+
+    private let reminderService = ReminderService()
 
     var body: some View {
         AppBackground {
@@ -44,15 +50,18 @@ struct AccountView: View {
                 Group {
                     Text("Notifications")
                     HStack {
-                        accountRow(icon: "bell", text: "Push Notifications")
+                        accountRow(icon: "bell", text: "Enable Reminders")
                         Spacer()
-                        Toggle("", isOn: .constant(true)).labelsHidden()
+                        Toggle("", isOn: $remindersEnabled)
+                            .labelsHidden()
+                            .onChange(of: remindersEnabled) { enabled in
+                                handleReminderToggle(enabled: enabled)
+                            }
                     }
-                    HStack {
-                        accountRow(icon: "bell", text: "Promotional Notifications")
-                        Spacer()
-                        Toggle("", isOn: .constant(false)).labelsHidden()
-                    }
+
+                    Text(permissionStatusText)
+                        .font(.footnote)
+                        .foregroundStyle(AppDesign.muted)
                 }
 
                 Group {
@@ -93,6 +102,9 @@ struct AccountView: View {
         }
         .navigationTitle("Account")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            refreshPermissionStatus()
+        }
     }
 
     private func accountRow(icon: String, text: String, trailing: String? = nil) -> some View {
@@ -109,6 +121,41 @@ struct AccountView: View {
                 Text(trailing)
                     .font(.system(size: 18, weight: .regular, design: .rounded))
                     .foregroundStyle(AppDesign.muted)
+            }
+        }
+    }
+
+    private func handleReminderToggle(enabled: Bool) {
+        if !enabled {
+            permissionStatusText = "Permission: Reminders disabled"
+            return
+        }
+
+        reminderService.requestPermission { granted in
+            DispatchQueue.main.async {
+                if granted {
+                    permissionStatusText = "Permission: Allowed"
+                } else {
+                    remindersEnabled = false
+                    permissionStatusText = "Permission: Denied (enable in iPhone Settings)"
+                }
+            }
+        }
+    }
+
+    private func refreshPermissionStatus() {
+        reminderService.getPermissionStatus { status in
+            DispatchQueue.main.async {
+                switch status {
+                case .authorized, .provisional, .ephemeral:
+                    permissionStatusText = remindersEnabled ? "Permission: Allowed" : "Permission: Reminders disabled"
+                case .denied:
+                    permissionStatusText = "Permission: Denied (enable in iPhone Settings)"
+                case .notDetermined:
+                    permissionStatusText = "Permission: Not requested"
+                @unknown default:
+                    permissionStatusText = "Permission: Unknown"
+                }
             }
         }
     }

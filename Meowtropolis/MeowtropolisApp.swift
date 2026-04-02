@@ -17,6 +17,7 @@ struct MeowtropolisApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     private let authService: any AuthService
     @StateObject private var appState: AppState
+    @StateObject private var cartState = CartState()
 
     init() {
         let service = FirebaseAuthService()
@@ -28,6 +29,7 @@ struct MeowtropolisApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(appState)
+                .environmentObject(cartState)
                 .onAppear {
                     // Check Firebase session when app starts.
                     appState.checkSession()

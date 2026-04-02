@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct MarketplaceView: View {
+    @EnvironmentObject private var cartState: CartState
+
     private let productService: ProductService
 
     @State private var query: String = ""
@@ -60,8 +62,10 @@ struct MarketplaceView: View {
                             NavigationLink(destination: ProductDetailView(product: product)) {
                                 productRow(product)
                             }
+                            .accessibilityIdentifier("marketplaceProductRow_\(product.id)")
                         }
                     }
+                    .accessibilityIdentifier("marketplaceProductList")
                     .scrollContentBackground(.hidden)
                     .background(Color.clear)
                 }
@@ -69,6 +73,21 @@ struct MarketplaceView: View {
         }
         .navigationTitle("Store")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink(destination: CartView()) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "cart")
+                        if cartState.totalItemCount > 0 {
+                            Text("\(cartState.totalItemCount)")
+                                .font(.caption)
+                        }
+                    }
+                    .foregroundStyle(AppDesign.text)
+                }
+                .accessibilityIdentifier("marketplaceCartButton")
+            }
+        }
         .task {
             loadProducts()
         }
@@ -140,5 +159,6 @@ struct MarketplaceView: View {
 #Preview {
     NavigationStack {
         MarketplaceView()
+            .environmentObject(CartState())
     }
 }
