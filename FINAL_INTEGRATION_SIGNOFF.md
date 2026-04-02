@@ -21,11 +21,12 @@ We focus on:
 ## 2) Backend Smoke Test Plan
 
 Use `BackendSmokeTests.runAll()` to test all core services in sequence:
-- AuthService: signup, login, logout
+- AuthService: signup, login, logout, session-restore login
 - UserService: create profile, fetch profile
 - PetService: add, list, update, delete
 - BookingService: create, list, update status
 - ProductService: Firestore first, then local JSON fallback
+- LocalProductService: direct bundle JSON load and decode check
 
 Smoke logger format is now standardized:
 - `[PASS] <step>`
@@ -146,6 +147,7 @@ Do not change these signatures after sign-off.
 [PASS] Auth signUp
 [PASS] Auth signIn
 [PASS] Auth signOut
+[PASS] Auth signIn (session restore)
 [PASS] Auth flow completed, userId => abc123
 [PASS] User create profile
 [PASS] User fetch profile => abc123
@@ -157,9 +159,11 @@ Do not change these signatures after sign-off.
 [PASS] Booking list by user count => 1
 [PASS] Booking update status
 [ProductService] Source: Firestore. Products loaded: 3
+[ProductService] Loaded from Firestore
 [PASS] Product fetch count => 3
+[PASS] Local product load count => 3
 === Backend Smoke Tests: End ===
-Summary: 14/14 checks passed, 0 failed
+Summary: 16/16 checks passed, 0 failed
 ```
 
 Fallback example:
