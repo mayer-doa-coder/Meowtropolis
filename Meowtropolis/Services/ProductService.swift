@@ -2,6 +2,11 @@ import Foundation
 
 /// Main product service with Firestore-first strategy and local JSON fallback.
 final class ProductService {
+    enum ProductDataSource: String {
+        case firestore = "Firestore"
+        case local = "Local JSON"
+    }
+
     private let firestoreService: FirestoreProductService
     private let localService: LocalProductService
 
@@ -23,14 +28,39 @@ final class ProductService {
 
             switch firestoreResult {
             case let .success(products) where !products.isEmpty:
+                self.logLoadedSource(.firestore, count: products.count)
                 completion(.success(products))
 
-            case .success, .failure:
-                self.localService.loadProducts { localResult in
-                    completion(localResult)
-                }
+            case .success:
+                self.logFallbackReason("Firestore returned empty product list")
+                self.loadLocalProducts(completion: completion)
+
+            case let .failure(error):
+                self.logFallbackReason("Firestore request failed: \(error.localizedDescription)")
+                self.loadLocalProducts(completion: completion)
             }
         }
+    }
+
+    private func loadLocalProducts(completion: @escaping (Result<[Product], Error>) -> Void) {
+        localService.loadProducts { localResult in
+            switch localResult {
+            case let .success(products):
+                self.logLoadedSource(.local, count: products.count)
+                completion(.success(products))
+            case let .failure(error):
+                print("[ProductService] Local fallback failed: \(error.localizedDescription)")
+                completion(.failure(error))
+            }
+        }
+    }
+
+    private func logLoadedSource(_ source: ProductDataSource, count: Int) {
+        print("[ProductService] Source: \(source.rawValue). Products loaded: \(count)")
+    }
+
+    private func logFallbackReason(_ reason: String) {
+        print("[ProductService] Falling back to local data. Reason: \(reason)")
     }
 }
 

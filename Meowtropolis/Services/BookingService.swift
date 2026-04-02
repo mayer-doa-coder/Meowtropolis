@@ -44,7 +44,7 @@ final class BookingService {
 
                 do {
                     let bookings = try documents.map { document in
-                        try FirestoreModelCoder.decode(Booking.self, from: document.data())
+                        try self.decodeBooking(document)
                     }
                     completion(.success(bookings))
                 } catch {
@@ -70,7 +70,7 @@ final class BookingService {
 
                 do {
                     let bookings = try documents.map { document in
-                        try FirestoreModelCoder.decode(Booking.self, from: document.data())
+                        try self.decodeBooking(document)
                     }
                     completion(.success(bookings))
                 } catch {
@@ -90,6 +90,41 @@ final class BookingService {
                 }
                 completion(.success(()))
             }
+    }
+
+    /// Decodes booking safely and supports legacy docs where id may be missing from the payload.
+    private func decodeBooking(_ document: QueryDocumentSnapshot) throws -> Booking {
+        let data = document.data()
+
+        let id = (data["id"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let userId = (data["userId"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let petId = (data["petId"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let serviceType = (data["serviceType"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let date = (data["date"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let statusRaw = (data["status"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        let resolvedId = (id?.isEmpty == false ? id! : document.documentID)
+
+        guard let resolvedUserId = userId, !resolvedUserId.isEmpty,
+              let resolvedPetId = petId, !resolvedPetId.isEmpty,
+              let resolvedServiceType = serviceType, !resolvedServiceType.isEmpty,
+              let resolvedDate = date, !resolvedDate.isEmpty,
+              let statusRaw, let resolvedStatus = BookingStatus(rawValue: statusRaw) else {
+            throw NSError(
+                domain: "BookingService",
+                code: 422,
+                userInfo: [NSLocalizedDescriptionKey: "Invalid booking data found in database."]
+            )
+        }
+
+        return Booking(
+            id: resolvedId,
+            userId: resolvedUserId,
+            petId: resolvedPetId,
+            serviceType: resolvedServiceType,
+            date: resolvedDate,
+            status: resolvedStatus
+        )
     }
 }
 

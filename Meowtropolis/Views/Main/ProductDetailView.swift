@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ProductDetailView: View {
+    let product: Product
     @State private var quantity: Int = 1
 
     var body: some View {
@@ -8,29 +9,52 @@ struct ProductDetailView: View {
             VStack(spacing: 0) {
                 RoundedRectangle(cornerRadius: 28)
                     .fill(Color.gray.opacity(0.45))
-                    .frame(height: 360)
+                    .frame(height: 280)
                     .padding(.horizontal, 20)
                     .padding(.top, 12)
+                    .overlay {
+                        if let url = URL(string: product.imageURL), !product.imageURL.isEmpty {
+                            AsyncImage(url: url) { phase in
+                                switch phase {
+                                case let .success(image):
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                        .clipShape(RoundedRectangle(cornerRadius: 28))
+                                        .padding(.horizontal, 20)
+                                        .padding(.top, 12)
+                                case .failure:
+                                    Image(systemName: "photo")
+                                        .font(.system(size: 40))
+                                        .foregroundStyle(AppDesign.muted)
+                                case .empty:
+                                    ProgressView()
+                                @unknown default:
+                                    EmptyView()
+                                }
+                            }
+                        }
+                    }
 
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("Josi Dog Master Mix - 900g")
-                        .font(.system(size: 38, weight: .bold, design: .rounded))
+                    Text(product.name)
+                        .font(.system(size: 34, weight: .bold, design: .rounded))
                         .foregroundStyle(AppDesign.text)
 
-                    Text("Brand: Josera")
+                    Text("Category: \(product.category.capitalized)")
                         .font(.system(size: 17, weight: .regular, design: .rounded))
                         .foregroundStyle(AppDesign.muted)
 
-                    Text("4.4 (99+)")
-                        .font(.system(size: 20, weight: .medium, design: .rounded))
-                        .foregroundStyle(AppDesign.muted)
+                    Text(String(format: "Price: $%.2f", product.price))
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppDesign.primary)
 
                     Text("About")
                         .font(.system(size: 30, weight: .bold, design: .rounded))
                         .foregroundStyle(AppDesign.text)
                         .padding(.top, 8)
 
-                    Text("Brighten your pet's bowl with a complete and balanced meal packed with vitamins and protein for adult dogs of all sizes.")
+                    Text("This product is available in the marketplace and loaded from Firestore or local fallback data.")
                         .font(.system(size: 17, weight: .regular, design: .rounded))
                         .foregroundStyle(AppDesign.muted)
 
@@ -79,6 +103,14 @@ struct ProductDetailView: View {
 
 #Preview {
     NavigationStack {
-        ProductDetailView()
+        ProductDetailView(
+            product: Product(
+                id: "preview_001",
+                name: "Preview Cat Food",
+                price: 12.99,
+                category: "food",
+                imageURL: ""
+            )
+        )
     }
 }
