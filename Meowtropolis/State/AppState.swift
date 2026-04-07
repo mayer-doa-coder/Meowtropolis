@@ -126,7 +126,7 @@ final class AppState: ObservableObject {
     ) {
         guard let currentUserId,
               let currentUser else {
-            completion(.failure(NSError(domain: "AppState", code: 401, userInfo: [NSLocalizedDescriptionKey: "You must be logged in to update profile."])))
+                        completion(.failure(NSError(domain: "AppState", code: 401, userInfo: [NSLocalizedDescriptionKey: localizedText(english: "You must be logged in to update profile.", bangla: "প্রোফাইল আপডেট করতে লগ ইন করতে হবে।")])))
             return
         }
 
@@ -134,12 +134,12 @@ final class AppState: ObservableObject {
         let cleanedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !cleanedName.isEmpty else {
-            completion(.failure(NSError(domain: "AppState", code: 422, userInfo: [NSLocalizedDescriptionKey: "Name is required."])))
+            completion(.failure(NSError(domain: "AppState", code: 422, userInfo: [NSLocalizedDescriptionKey: localizedText(english: "Name is required.", bangla: "নাম প্রয়োজন।")])))
             return
         }
 
         guard isValidEmail(cleanedEmail) else {
-            completion(.failure(NSError(domain: "AppState", code: 422, userInfo: [NSLocalizedDescriptionKey: "Please enter a valid email address."])))
+            completion(.failure(NSError(domain: "AppState", code: 422, userInfo: [NSLocalizedDescriptionKey: localizedText(english: "Please enter a valid email address.", bangla: "দয়া করে একটি সঠিক ইমেইল ঠিকানা দিন।")])))
             return
         }
 
@@ -160,9 +160,18 @@ final class AppState: ObservableObject {
                 DispatchQueue.main.async {
                     switch result {
                     case .success:
-                        self.currentUser = updatedUser
-                        UserDefaults.standard.set(preferredLanguageCode, forKey: self.appLanguageDefaultsKey)
-                        completion(.success(()))
+                        self.userService.fetchCurrentUser(userId: currentUserId) { fetchResult in
+                            DispatchQueue.main.async {
+                                switch fetchResult {
+                                case let .success(freshUser):
+                                    self.currentUser = freshUser
+                                    UserDefaults.standard.set(preferredLanguageCode, forKey: self.appLanguageDefaultsKey)
+                                    completion(.success(()))
+                                case let .failure(error):
+                                    completion(.failure(error))
+                                }
+                            }
+                        }
                     case let .failure(error):
                         completion(.failure(error))
                     }
@@ -173,7 +182,7 @@ final class AppState: ObservableObject {
         if cleanedEmail.caseInsensitiveCompare(currentUser.email) != .orderedSame {
             guard let currentPasswordForEmailChange,
                   !currentPasswordForEmailChange.isEmpty else {
-                completion(.failure(NSError(domain: "AppState", code: 422, userInfo: [NSLocalizedDescriptionKey: "Current password is required to change email."])))
+                                completion(.failure(NSError(domain: "AppState", code: 422, userInfo: [NSLocalizedDescriptionKey: localizedText(english: "Current password is required to change email.", bangla: "ইমেইল পরিবর্তন করতে বর্তমান পাসওয়ার্ড প্রয়োজন।")])))
                 return
             }
 
@@ -202,7 +211,7 @@ final class AppState: ObservableObject {
 
     func deleteAccount(currentPassword: String, completion: @escaping (Result<Void, Error>) -> Void) {
         guard let currentUserId else {
-            completion(.failure(NSError(domain: "AppState", code: 401, userInfo: [NSLocalizedDescriptionKey: "No logged-in user found."])))
+            completion(.failure(NSError(domain: "AppState", code: 401, userInfo: [NSLocalizedDescriptionKey: localizedText(english: "No logged-in user found.", bangla: "কোনো লগ ইন করা ব্যবহারকারী পাওয়া যায়নি।")])))
             return
         }
 
@@ -243,7 +252,7 @@ final class AppState: ObservableObject {
             currentUser = nil
             isProfileLoading = false
             profileErrorMessage = nil
-            completion?(.failure(NSError(domain: "AppState", code: 401, userInfo: [NSLocalizedDescriptionKey: "No logged-in user."])))
+            completion?(.failure(NSError(domain: "AppState", code: 401, userInfo: [NSLocalizedDescriptionKey: localizedText(english: "No logged-in user.", bangla: "কোনো লগ ইন করা ব্যবহারকারী নেই।")])))
             return
         }
 
@@ -279,22 +288,22 @@ final class AppState: ObservableObject {
     func userFriendlyAuthError(_ error: Error) -> String {
         guard let authError = error as NSError?,
               let code = AuthErrorCode(rawValue: authError.code) else {
-            return "Authentication failed. Please try again."
+            return localizedText(english: "Authentication failed. Please try again.", bangla: "অথেনটিকেশন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।")
         }
 
         switch code {
         case .wrongPassword:
-            return "Incorrect password"
+            return localizedText(english: "Incorrect password", bangla: "ভুল পাসওয়ার্ড")
         case .userNotFound:
-            return "No account found with this email"
+            return localizedText(english: "No account found with this email", bangla: "এই ইমেইলে কোনো অ্যাকাউন্ট পাওয়া যায়নি")
         case .invalidEmail:
-            return "Invalid email format"
+            return localizedText(english: "Invalid email format", bangla: "ইমেইল ফরম্যাট সঠিক নয়")
         case .emailAlreadyInUse:
-            return "This email is already registered."
+            return localizedText(english: "This email is already registered.", bangla: "এই ইমেইল ইতোমধ্যে নিবন্ধিত।")
         case .weakPassword:
-            return "Password is too weak. Use at least 6 characters."
+            return localizedText(english: "Password is too weak. Use at least 6 characters.", bangla: "পাসওয়ার্ড দুর্বল। কমপক্ষে ৬ অক্ষর ব্যবহার করুন।")
         case .networkError:
-            return "Network error. Please check your internet connection and try again."
+            return localizedText(english: "Network error. Please check your internet connection and try again.", bangla: "নেটওয়ার্ক ত্রুটি। ইন্টারনেট সংযোগ যাচাই করে আবার চেষ্টা করুন।")
         default:
             return authError.localizedDescription
         }
@@ -305,19 +314,24 @@ final class AppState: ObservableObject {
         let nsError = error as NSError
 
         if nsError.domain == NSURLErrorDomain {
-            return "Network error while loading your profile."
+            return localizedText(english: "Network error while loading your profile.", bangla: "প্রোফাইল লোড করার সময় নেটওয়ার্ক ত্রুটি হয়েছে।")
         }
 
         if nsError.code == 404 {
-            return "Profile not found. Please complete signup again."
+            return localizedText(english: "Profile not found. Please complete signup again.", bangla: "প্রোফাইল পাওয়া যায়নি। অনুগ্রহ করে আবার সাইন আপ সম্পন্ন করুন।")
         }
 
-        return "Unable to load profile right now. Please try again."
+        return localizedText(english: "Unable to load profile right now. Please try again.", bangla: "এই মুহূর্তে প্রোফাইল লোড করা যাচ্ছে না। আবার চেষ্টা করুন।")
     }
 
     private func isValidEmail(_ email: String) -> Bool {
         let pattern = "^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
         return NSPredicate(format: "SELF MATCHES %@", pattern).evaluate(with: email)
+    }
+
+    private func localizedText(english: String, bangla: String) -> String {
+        let code = UserDefaults.standard.string(forKey: appLanguageDefaultsKey) ?? AppLanguage.englishUS.rawValue
+        return AppLanguage.from(code: code).text(english: english, bangla: bangla)
     }
 
     private func handleAuthStateChanged(userId: String?) {

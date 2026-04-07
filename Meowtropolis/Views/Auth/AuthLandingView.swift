@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct AuthLandingView: View {
+    @AppStorage(AppLanguage.storageKey) private var appLanguageCode: String = AppLanguage.englishUS.rawValue
+
     var body: some View {
         AppBackground {
             ScrollView {
@@ -24,20 +26,20 @@ struct AuthLandingView: View {
                     AppLogoHeader()
 
                     NavigationLink(destination: LoginView()) {
-                        Text("Log In")
+                        Text(text("Log In", "লগ ইন"))
                     }
                     .buttonStyle(FilledPrimaryButtonStyle())
                     .accessibilityIdentifier("authLandingLoginButton")
 
                     NavigationLink(destination: SignupView()) {
-                        Text("Sign Up")
+                        Text(text("Sign Up", "সাইন আপ"))
                     }
                     .buttonStyle(OutlinedPrimaryButtonStyle())
                     .accessibilityIdentifier("authLandingSignupButton")
 
                     HStack {
                         Rectangle().fill(AppDesign.line).frame(height: 1)
-                        Text("Or")
+                        Text(text("Or", "অথবা"))
                             .font(.system(size: 16, weight: .regular, design: .rounded))
                             .foregroundStyle(AppDesign.muted)
                             .padding(.horizontal, 8)
@@ -45,8 +47,8 @@ struct AuthLandingView: View {
                     }
                     .padding(.top, 4)
 
-                    SocialActionButton(title: "Continue with Google", icon: "g.circle.fill")
-                    SocialActionButton(title: "Continue with Facebook", icon: "f.cursive.circle.fill")
+                    SocialActionButton(title: text("Continue with Google", "গুগল দিয়ে চালিয়ে যান"), icon: "g.circle.fill")
+                    SocialActionButton(title: text("Continue with Facebook", "ফেসবুক দিয়ে চালিয়ে যান"), icon: "f.cursive.circle.fill")
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 24)
@@ -54,6 +56,14 @@ struct AuthLandingView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+    }
+
+    private var currentLanguage: AppLanguage {
+        AppLanguage.from(code: appLanguageCode)
+    }
+
+    private func text(_ english: String, _ bangla: String) -> String {
+        currentLanguage.text(english: english, bangla: bangla)
     }
 }
 

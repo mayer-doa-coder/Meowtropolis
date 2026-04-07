@@ -3,6 +3,7 @@ import SwiftUI
 struct LoginView: View {
     @EnvironmentObject private var appState: AppState
     @Environment(\.dismiss) private var dismiss
+    @AppStorage(AppLanguage.storageKey) private var appLanguageCode: String = AppLanguage.englishUS.rawValue
 
     @State private var email: String = ""
     @State private var password: String = ""
@@ -30,7 +31,7 @@ struct LoginView: View {
 
                         Spacer()
 
-                        Text("Log In")
+                        Text(text("Log In", "লগ ইন"))
                             .font(.system(size: 44, weight: .bold, design: .rounded))
                             .foregroundStyle(AppDesign.text)
 
@@ -39,7 +40,7 @@ struct LoginView: View {
                     }
                     .padding(.bottom, 24)
 
-                    AppInputField(title: "Email", text: $email, fieldIdentifier: "loginEmailField") {
+                    AppInputField(title: text("Email", "ইমেইল"), text: $email, fieldIdentifier: "loginEmailField") {
                         if let emailError {
                             Text(emailError)
                                 .font(.footnote)
@@ -47,7 +48,7 @@ struct LoginView: View {
                         }
                     }
 
-                    AppInputField(title: "Password", text: $password, isSecure: true, fieldIdentifier: "loginPasswordField") {
+                    AppInputField(title: text("Password", "পাসওয়ার্ড"), text: $password, isSecure: true, fieldIdentifier: "loginPasswordField") {
                         if let passwordError {
                             Text(passwordError)
                                 .font(.footnote)
@@ -56,13 +57,13 @@ struct LoginView: View {
                     }
 
                     HStack {
-                        Label("Remember me", systemImage: "checkmark.square.fill")
+                        Label(text("Remember me", "মনে রাখুন"), systemImage: "checkmark.square.fill")
                             .font(.system(size: 17, weight: .medium, design: .rounded))
                             .foregroundStyle(AppDesign.text)
 
                         Spacer()
 
-                        NavigationLink("Forgot password?", destination: ForgotPasswordView())
+                        NavigationLink(text("Forgot password?", "পাসওয়ার্ড ভুলে গেছেন?"), destination: ForgotPasswordView())
                             .font(.system(size: 17, weight: .medium, design: .rounded))
                             .foregroundStyle(AppDesign.muted)
                     }
@@ -79,7 +80,7 @@ struct LoginView: View {
                             .foregroundStyle(.red)
                     }
 
-                    Button(isLoading ? "Logging in..." : "Log In") {
+                    Button(isLoading ? text("Logging in...", "লগ ইন হচ্ছে...") : text("Log In", "লগ ইন")) {
                         loginUser()
                     }
                     .buttonStyle(FilledPrimaryButtonStyle(disabled: isLoading))
@@ -87,13 +88,13 @@ struct LoginView: View {
                     .accessibilityIdentifier("loginSubmitButton")
 
                     if isLoading {
-                        ProgressView("Signing in...")
+                        ProgressView(text("Signing in...", "সাইন ইন হচ্ছে..."))
                             .frame(maxWidth: .infinity)
                     }
 
                     HStack {
                         Rectangle().fill(AppDesign.line).frame(height: 1)
-                        Text("Or")
+                        Text(text("Or", "অথবা"))
                             .font(.system(size: 16, weight: .regular, design: .rounded))
                             .foregroundStyle(AppDesign.muted)
                             .padding(.horizontal, 8)
@@ -101,13 +102,13 @@ struct LoginView: View {
                     }
                     .padding(.top, 8)
 
-                    SocialActionButton(title: "Continue with Google", icon: "g.circle.fill")
-                    SocialActionButton(title: "Continue with Facebook", icon: "f.cursive.circle.fill")
+                    SocialActionButton(title: text("Continue with Google", "গুগল দিয়ে চালিয়ে যান"), icon: "g.circle.fill")
+                    SocialActionButton(title: text("Continue with Facebook", "ফেসবুক দিয়ে চালিয়ে যান"), icon: "f.cursive.circle.fill")
 
                     HStack(spacing: 4) {
-                        Text("Don't have an account?")
+                        Text(text("Don't have an account?", "অ্যাকাউন্ট নেই?"))
                             .foregroundStyle(AppDesign.muted)
-                        NavigationLink("Register", destination: SignupView())
+                        NavigationLink(text("Register", "রেজিস্টার"), destination: SignupView())
                             .foregroundStyle(.blue)
                     }
                     .font(.system(size: 18, weight: .medium, design: .rounded))
@@ -133,7 +134,7 @@ struct LoginView: View {
             appState.isProfileLoading = false
             appState.profileErrorMessage = nil
             appState.isLoggedIn = true
-            successMessage = "Login successful. Redirecting to dashboard..."
+            successMessage = text("Login successful. Redirecting to dashboard...", "লগ ইন সফল। ড্যাশবোর্ডে নেওয়া হচ্ছে...")
             return
         }
 
@@ -147,7 +148,7 @@ struct LoginView: View {
 
                 switch result {
                 case .success:
-                    successMessage = "Login successful. Redirecting to dashboard..."
+                    successMessage = text("Login successful. Redirecting to dashboard...", "লগ ইন সফল। ড্যাশবোর্ডে নেওয়া হচ্ছে...")
                     // RootView observes appState.isLoggedIn and shows DashboardView automatically.
                 case let .failure(error):
                     errorMessage = appState.userFriendlyAuthError(error)
@@ -162,12 +163,12 @@ struct LoginView: View {
         let cleanedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
 
         if cleanedEmail.isEmpty {
-            emailError = "Email is required."
+            emailError = text("Email is required.", "ইমেইল প্রয়োজন।")
             isValid = false
         }
 
         if password.isEmpty {
-            passwordError = "Password is required."
+            passwordError = text("Password is required.", "পাসওয়ার্ড প্রয়োজন।")
             isValid = false
         }
 
@@ -179,6 +180,14 @@ struct LoginView: View {
         passwordError = nil
         errorMessage = nil
         successMessage = nil
+    }
+
+    private var currentLanguage: AppLanguage {
+        AppLanguage.from(code: appLanguageCode)
+    }
+
+    private func text(_ english: String, _ bangla: String) -> String {
+        currentLanguage.text(english: english, bangla: bangla)
     }
 }
 

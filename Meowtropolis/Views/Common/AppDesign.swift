@@ -24,6 +24,8 @@ struct AppBackground<Content: View>: View {
 }
 
 struct AppLogoHeader: View {
+    @AppStorage(AppLanguage.storageKey) private var appLanguageCode: String = AppLanguage.englishUS.rawValue
+
     var body: some View {
         VStack(spacing: 14) {
             ZStack {
@@ -35,11 +37,15 @@ struct AppLogoHeader: View {
                     .foregroundStyle(.white)
             }
 
-            Text("Pet Care")
+            Text(currentLanguage.text(english: "Pet Care", bangla: "পেট কেয়ার"))
                 .font(.system(size: 48, weight: .bold, design: .rounded))
                 .minimumScaleFactor(0.5)
                 .foregroundStyle(AppDesign.primary)
         }
+    }
+
+    private var currentLanguage: AppLanguage {
+        AppLanguage.from(code: appLanguageCode)
     }
 }
 
@@ -99,6 +105,8 @@ struct SocialActionButton: View {
 }
 
 struct AppInputField<Accessory: View>: View {
+    @AppStorage(AppLanguage.storageKey) private var appLanguageCode: String = AppLanguage.englishUS.rawValue
+
     let title: String
     @Binding var text: String
     var isSecure: Bool = false
@@ -121,10 +129,10 @@ struct AppInputField<Accessory: View>: View {
 
             Group {
                 if isSecure {
-                    SecureField("Type your \(title.lowercased())", text: $text)
+                    SecureField(placeholderText, text: $text)
                         .modifier(ConditionalAccessibilityIdentifier(identifier: fieldIdentifier))
                 } else {
-                    TextField("Type your \(title.lowercased())", text: $text)
+                    TextField(placeholderText, text: $text)
                         .modifier(ConditionalAccessibilityIdentifier(identifier: fieldIdentifier))
                 }
             }
@@ -141,6 +149,14 @@ struct AppInputField<Accessory: View>: View {
 
             accessory
         }
+    }
+
+    private var currentLanguage: AppLanguage {
+        AppLanguage.from(code: appLanguageCode)
+    }
+
+    private var placeholderText: String {
+        currentLanguage.text(english: "Type your \(title.lowercased())", bangla: "আপনার \(title) লিখুন")
     }
 }
 
@@ -165,19 +181,19 @@ enum AppImageLibrary {
     static func serviceImageURL(for title: String) -> URL? {
         let key = title.lowercased()
 
-        if key.contains("bath") || key.contains("dry") {
+        if key.contains("bath") || key.contains("dry") || key.contains("বাথ") || key.contains("ড্রাই") {
             return URL(string: "https://loremflickr.com/800/500/dog,bath")
         }
 
-        if key.contains("hair") || key.contains("trim") || key.contains("groom") {
+        if key.contains("hair") || key.contains("trim") || key.contains("groom") || key.contains("হেয়ার") || key.contains("ট্রিম") || key.contains("গ্রুম") {
             return URL(string: "https://loremflickr.com/800/500/pet,grooming")
         }
 
-        if key.contains("checkup") || key.contains("vet") {
+        if key.contains("checkup") || key.contains("vet") || key.contains("চেকআপ") || key.contains("ভেট") {
             return URL(string: "https://loremflickr.com/800/500/veterinary,pet")
         }
 
-        if key.contains("profile") || key.contains("pet") {
+        if key.contains("profile") || key.contains("pet") || key.contains("প্রোফাইল") || key.contains("পেট") {
             return URL(string: "https://loremflickr.com/800/500/cat,dog,rabbit")
         }
 
@@ -191,27 +207,27 @@ enum AppImageLibrary {
     static func petImageURL(forBreed breed: String) -> URL? {
         let key = breed.lowercased()
 
-        if key.contains("cat") || key.contains("kitten") || key.contains("feline") {
+        if key.contains("cat") || key.contains("kitten") || key.contains("feline") || key.contains("বিড়াল") {
             return URL(string: "https://loremflickr.com/700/500/cat,pet")
         }
 
-        if key.contains("dog") || key.contains("puppy") || key.contains("canine") {
+        if key.contains("dog") || key.contains("puppy") || key.contains("canine") || key.contains("কুকুর") {
             return URL(string: "https://loremflickr.com/700/500/dog,pet")
         }
 
-        if key.contains("rabbit") || key.contains("bunny") {
+        if key.contains("rabbit") || key.contains("bunny") || key.contains("খরগোশ") {
             return URL(string: "https://loremflickr.com/700/500/rabbit,pet")
         }
 
-        if key.contains("bird") || key.contains("parrot") {
+        if key.contains("bird") || key.contains("parrot") || key.contains("পাখি") {
             return URL(string: "https://loremflickr.com/700/500/bird,pet")
         }
 
-        if key.contains("fish") {
+        if key.contains("fish") || key.contains("মাছ") {
             return URL(string: "https://loremflickr.com/700/500/fish,aquarium")
         }
 
-        if key.contains("hamster") || key.contains("guinea") {
+        if key.contains("hamster") || key.contains("guinea") || key.contains("হ্যামস্টার") {
             return URL(string: "https://loremflickr.com/700/500/hamster,pet")
         }
 
@@ -272,6 +288,18 @@ enum AppLanguage: String, CaseIterable {
         case .bangla:
             return "Bangla"
         }
+    }
+
+    var takaSymbol: String {
+        "৳"
+    }
+
+    func formatMoney(_ value: Double) -> String {
+        String(format: "\(takaSymbol)%.2f", value)
+    }
+
+    func formatMoney(prefixEnglish: String, prefixBangla: String, value: Double) -> String {
+        "\(text(english: prefixEnglish, bangla: prefixBangla)) \(formatMoney(value))"
     }
 
     func text(english: String, bangla: String) -> String {

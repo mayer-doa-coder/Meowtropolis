@@ -39,7 +39,7 @@ struct AccountView: View {
                         .frame(width: 94, height: 94)
                         .clipShape(Circle())
 
-                        Text(appState.currentUser?.name ?? "Loading...")
+                        Text(appState.currentUser?.name ?? text("Loading...", "লোড হচ্ছে..."))
                             .font(.system(size: 30, weight: .bold, design: .rounded))
                             .foregroundStyle(AppDesign.text)
                         Text(appState.currentUser?.email ?? "-")
@@ -50,7 +50,7 @@ struct AccountView: View {
                     .padding(.bottom, 8)
 
                     if appState.isProfileLoading {
-                        ProgressView("Loading account...")
+                        ProgressView(text("Loading account...", "অ্যাকাউন্ট লোড হচ্ছে..."))
                             .frame(maxWidth: .infinity)
                     }
 

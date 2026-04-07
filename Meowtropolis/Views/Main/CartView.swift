@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CartView: View {
     @EnvironmentObject private var cartState: CartState
+    @AppStorage(AppLanguage.storageKey) private var appLanguageCode: String = AppLanguage.englishUS.rawValue
 
     var body: some View {
         AppBackground {
@@ -9,12 +10,12 @@ struct CartView: View {
                 VStack(spacing: 12) {
                     if cartState.items.isEmpty {
                         VStack(spacing: 10) {
-                            Text("Cart is empty")
+                            Text(text("Cart is empty", "কার্ট খালি"))
                                 .font(.system(size: 24, weight: .bold, design: .rounded))
                                 .foregroundStyle(AppDesign.text)
                                 .accessibilityIdentifier("cartEmptyText")
 
-                            Text("Add products from the store to continue.")
+                            Text(text("Add products from the store to continue.", "চালিয়ে যেতে স্টোর থেকে পণ্য যোগ করুন।"))
                                 .font(.system(size: 16, weight: .regular, design: .rounded))
                                 .foregroundStyle(AppDesign.muted)
                         }
@@ -40,7 +41,7 @@ struct CartView: View {
                 .padding(.bottom, 16)
             }
         }
-        .navigationTitle("My Cart")
+        .navigationTitle(text("My Cart", "আমার কার্ট"))
         .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("cartView")
     }
@@ -51,16 +52,16 @@ struct CartView: View {
                 .font(.system(size: 18, weight: .semibold, design: .rounded))
                 .foregroundStyle(AppDesign.text)
 
-            Text(String(format: "$%.2f", item.price))
+            Text(currentLanguage.formatMoney(item.price))
                 .font(.system(size: 16, weight: .regular, design: .rounded))
                 .foregroundStyle(AppDesign.muted)
 
             HStack {
-                Stepper("Qty: \(item.quantity)", value: bindingForQuantity(item), in: 1...99)
+                Stepper(text("Qty:", "পরিমাণ:") + " \(item.quantity)", value: bindingForQuantity(item), in: 1...99)
 
                 Spacer()
 
-                Button("Remove", role: .destructive) {
+                Button(text("Remove", "অপসারণ"), role: .destructive) {
                     cartState.removeFromCart(productId: item.productId)
                 }
                 .font(.system(size: 14, weight: .medium, design: .rounded))
@@ -71,20 +72,20 @@ struct CartView: View {
 
     private var summaryCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Cart Summary")
+            Text(text("Cart Summary", "কার্ট সারাংশ"))
                 .font(.system(size: 20, weight: .bold, design: .rounded))
                 .foregroundStyle(AppDesign.text)
 
-            Text("Items: \(cartState.totalItemCount)")
+            Text(text("Items:", "আইটেম:") + " \(cartState.totalItemCount)")
                 .font(.system(size: 16, weight: .medium, design: .rounded))
                 .foregroundStyle(AppDesign.muted)
 
-            Text(String(format: "Total: $%.2f", cartState.totalPrice))
+            Text(currentLanguage.formatMoney(prefixEnglish: "Total:", prefixBangla: "মোট:", value: cartState.totalPrice))
                 .font(.system(size: 20, weight: .bold, design: .rounded))
                 .foregroundStyle(AppDesign.primary)
 
             NavigationLink(destination: CheckoutView()) {
-                Text("Proceed to Checkout")
+                Text(text("Proceed to Checkout", "চেকআউটে যান"))
             }
             .buttonStyle(FilledPrimaryButtonStyle(disabled: cartState.items.isEmpty))
             .disabled(cartState.items.isEmpty)
@@ -102,6 +103,14 @@ struct CartView: View {
                 cartState.updateQuantity(productId: item.productId, quantity: newValue)
             }
         )
+    }
+
+    private var currentLanguage: AppLanguage {
+        AppLanguage.from(code: appLanguageCode)
+    }
+
+    private func text(_ english: String, _ bangla: String) -> String {
+        currentLanguage.text(english: english, bangla: bangla)
     }
 }
 

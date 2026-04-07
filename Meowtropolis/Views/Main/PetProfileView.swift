@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PetProfileView: View {
     @EnvironmentObject private var appState: AppState
+    @AppStorage(AppLanguage.storageKey) private var appLanguageCode: String = AppLanguage.englishUS.rawValue
 
     private let petService: PetService
 
@@ -23,18 +24,18 @@ struct PetProfileView: View {
         AppBackground {
             VStack(spacing: 12) {
                 if isLoading {
-                    ProgressView("Loading pets...")
+                    ProgressView(text("Loading pets...", "পোষা প্রাণী লোড হচ্ছে..."))
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if let errorMessage {
                     VStack(spacing: 10) {
-                        Text("Could not load pets")
+                        Text(text("Could not load pets", "পোষা প্রাণীর তথ্য লোড করা যায়নি"))
                             .font(.system(size: 22, weight: .bold, design: .rounded))
                             .foregroundStyle(AppDesign.text)
                         Text(errorMessage)
                             .font(.system(size: 16, weight: .regular, design: .rounded))
                             .foregroundStyle(.red)
                             .multilineTextAlignment(.center)
-                        Button("Try Again") {
+                        Button(text("Try Again", "আবার চেষ্টা করুন")) {
                             loadPets()
                         }
                         .buttonStyle(FilledPrimaryButtonStyle())
@@ -43,10 +44,10 @@ struct PetProfileView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if pets.isEmpty {
                     VStack(spacing: 12) {
-                        Text("No pets found")
+                        Text(text("No pets found", "কোনো পোষা প্রাণী পাওয়া যায়নি"))
                             .font(.system(size: 24, weight: .bold, design: .rounded))
                             .foregroundStyle(AppDesign.text)
-                        Text("Tap Add Pet to create your first pet profile.")
+                        Text(text("Tap Add Pet to create your first pet profile.", "প্রথম পেট প্রোফাইল তৈরি করতে Add Pet চাপুন।"))
                             .font(.system(size: 16, weight: .regular, design: .rounded))
                             .foregroundStyle(AppDesign.muted)
                     }
@@ -82,11 +83,11 @@ struct PetProfileView: View {
                                         .font(.system(size: 20, weight: .bold, design: .rounded))
                                         .foregroundStyle(AppDesign.text)
 
-                                    Text("Breed: \(pet.breed)")
+                                    Text(text("Breed:", "বংশ:") + " \(pet.breed)")
                                         .font(.system(size: 16, weight: .regular, design: .rounded))
                                         .foregroundStyle(AppDesign.muted)
 
-                                    Text("Age: \(pet.age.map { "\($0) years" } ?? "Not set")")
+                                    Text(text("Age:", "বয়স:") + " \(pet.age.map { "\($0) \(text("years", "বছর"))" } ?? text("Not set", "সেট করা হয়নি"))")
                                         .font(.system(size: 16, weight: .regular, design: .rounded))
                                         .foregroundStyle(AppDesign.muted)
                                 }
@@ -95,12 +96,12 @@ struct PetProfileView: View {
                             }
                             .padding(.vertical, 6)
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                Button("Delete", role: .destructive) {
+                                Button(text("Delete", "মুছুন"), role: .destructive) {
                                     petPendingDelete = pet
                                     showingDeleteAlert = true
                                 }
 
-                                Button("Edit") {
+                                Button(text("Edit", "এডিট")) {
                                     editingPet = pet
                                     showingPetForm = true
                                 }
@@ -113,7 +114,7 @@ struct PetProfileView: View {
                 }
             }
         }
-        .navigationTitle("My Pets")
+        .navigationTitle(text("My Pets", "আমার পোষা প্রাণী"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -121,12 +122,12 @@ struct PetProfileView: View {
                     editingPet = nil
                     showingPetForm = true
                 } label: {
-                    Label("Add Pet", systemImage: "plus")
+                    Label(text("Add Pet", "পেট যোগ করুন"), systemImage: "plus")
                 }
             }
         }
         .sheet(isPresented: $showingPetForm) {
-            PetFormView(existingPet: editingPet) { name, breed, age in
+            PetFormView(existingPet: editingPet, language: currentLanguage) { name, breed, age in
                 if let editingPet {
                     updatePet(existingPet: editingPet, name: name, breed: breed, age: age)
                 } else {
@@ -134,15 +135,15 @@ struct PetProfileView: View {
                 }
             }
         }
-        .alert("Delete Pet", isPresented: $showingDeleteAlert, presenting: petPendingDelete) { pet in
-            Button("Delete", role: .destructive) {
+        .alert(text("Delete Pet", "পেট মুছুন"), isPresented: $showingDeleteAlert, presenting: petPendingDelete) { pet in
+            Button(text("Delete", "মুছুন"), role: .destructive) {
                 deletePet(pet)
             }
-            Button("Cancel", role: .cancel) {
+            Button(text("Cancel", "বাতিল"), role: .cancel) {
                 petPendingDelete = nil
             }
         } message: { pet in
-            Text("Are you sure you want to delete \(pet.name)?")
+            Text(text("Are you sure you want to delete", "আপনি কি নিশ্চিতভাবে মুছতে চান") + " \(pet.name)?")
         }
         .task {
             loadPets()
@@ -152,7 +153,7 @@ struct PetProfileView: View {
     private func loadPets() {
         guard let userId = appState.currentUserId else {
             isLoading = false
-            errorMessage = "You must be logged in to view pets."
+            errorMessage = text("You must be logged in to view pets.", "পোষা প্রাণী দেখতে লগ ইন করতে হবে।")
             pets = []
             return
         }
@@ -176,7 +177,7 @@ struct PetProfileView: View {
     private func createPet(name: String, breed: String, age: Int?) {
         guard let userId = appState.currentUserId else {
             isLoading = false
-            errorMessage = "You must be logged in to add a pet."
+            errorMessage = text("You must be logged in to add a pet.", "পেট যোগ করতে লগ ইন করতে হবে।")
             return
         }
 
@@ -236,12 +237,21 @@ struct PetProfileView: View {
             }
         }
     }
+
+    private var currentLanguage: AppLanguage {
+        AppLanguage.from(code: appLanguageCode)
+    }
+
+    private func text(_ english: String, _ bangla: String) -> String {
+        currentLanguage.text(english: english, bangla: bangla)
+    }
 }
 
 private struct PetFormView: View {
     @Environment(\.dismiss) private var dismiss
 
     let existingPet: Pet?
+    let language: AppLanguage
     let onSave: (String, String, Int?) -> Void
 
     @State private var name: String
@@ -249,8 +259,9 @@ private struct PetFormView: View {
     @State private var ageInput: String
     @State private var formError: String?
 
-    init(existingPet: Pet?, onSave: @escaping (String, String, Int?) -> Void) {
+    init(existingPet: Pet?, language: AppLanguage, onSave: @escaping (String, String, Int?) -> Void) {
         self.existingPet = existingPet
+        self.language = language
         self.onSave = onSave
         _name = State(initialValue: existingPet?.name ?? "")
         _breed = State(initialValue: existingPet?.breed ?? "")
@@ -260,10 +271,10 @@ private struct PetFormView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Pet Details") {
-                    TextField("Name", text: $name)
-                    TextField("Breed", text: $breed)
-                    TextField("Age (years)", text: $ageInput)
+                Section(text("Pet Details", "পেটের তথ্য")) {
+                    TextField(text("Name", "নাম"), text: $name)
+                    TextField(text("Breed", "বংশ"), text: $breed)
+                    TextField(text("Age (years)", "বয়স (বছর)"), text: $ageInput)
                         .keyboardType(.numberPad)
                 }
 
@@ -275,17 +286,17 @@ private struct PetFormView: View {
                     }
                 }
             }
-            .navigationTitle(existingPet == nil ? "Add Pet" : "Edit Pet")
+            .navigationTitle(existingPet == nil ? text("Add Pet", "পেট যোগ করুন") : text("Edit Pet", "পেট এডিট করুন"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Cancel") {
+                    Button(text("Cancel", "বাতিল")) {
                         dismiss()
                     }
                 }
 
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Save") {
+                    Button(text("Save", "সেভ")) {
                         savePet()
                     }
                 }
@@ -300,12 +311,12 @@ private struct PetFormView: View {
         let cleanedBreed = breed.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !cleanedName.isEmpty else {
-            formError = "Name is required."
+            formError = text("Name is required.", "নাম প্রয়োজন।")
             return
         }
 
         guard !cleanedBreed.isEmpty else {
-            formError = "Breed is required."
+            formError = text("Breed is required.", "বংশ প্রয়োজন।")
             return
         }
 
@@ -314,13 +325,17 @@ private struct PetFormView: View {
 
         if !cleanedAge.isEmpty {
             guard let parsedAge = Int(cleanedAge), parsedAge >= 0 else {
-                formError = "Age must be a valid positive number."
+                formError = text("Age must be a valid positive number.", "বয়স একটি বৈধ ধনাত্মক সংখ্যা হতে হবে।")
                 return
             }
             age = parsedAge
         }
 
         onSave(cleanedName, cleanedBreed, age)
+    }
+
+    private func text(_ english: String, _ bangla: String) -> String {
+        language.text(english: english, bangla: bangla)
     }
 }
 

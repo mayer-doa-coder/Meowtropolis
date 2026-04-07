@@ -3,6 +3,7 @@ import SwiftUI
 struct CheckoutView: View {
     @EnvironmentObject private var cartState: CartState
     @Environment(\.dismiss) private var dismiss
+    @AppStorage(AppLanguage.storageKey) private var appLanguageCode: String = AppLanguage.englishUS.rawValue
 
     @State private var showConfirmation: Bool = false
 
@@ -10,16 +11,16 @@ struct CheckoutView: View {
         AppBackground {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("Checkout (Demo)")
+                    Text(text("Checkout (Demo)", "চেকআউট (ডেমো)"))
                         .font(.system(size: 32, weight: .bold, design: .rounded))
                         .foregroundStyle(AppDesign.text)
 
                     if cartState.items.isEmpty {
-                        Text("Cart is empty")
+                        Text(text("Cart is empty", "কার্ট খালি"))
                             .font(.system(size: 18, weight: .medium, design: .rounded))
                             .foregroundStyle(AppDesign.muted)
 
-                        Button("Back to Store") {
+                        Button(text("Back to Store", "স্টোরে ফিরে যান")) {
                             dismiss()
                         }
                         .buttonStyle(OutlinedPrimaryButtonStyle())
@@ -32,14 +33,14 @@ struct CheckoutView: View {
                                             .font(.system(size: 17, weight: .semibold, design: .rounded))
                                             .foregroundStyle(AppDesign.text)
 
-                                        Text("Qty: \(item.quantity)")
+                                        Text(text("Qty:", "পরিমাণ:") + " \(item.quantity)")
                                             .font(.system(size: 14, weight: .regular, design: .rounded))
                                             .foregroundStyle(AppDesign.muted)
                                     }
 
                                     Spacer()
 
-                                    Text(String(format: "$%.2f", Double(item.quantity) * item.price))
+                                    Text(currentLanguage.formatMoney(Double(item.quantity) * item.price))
                                         .font(.system(size: 16, weight: .bold, design: .rounded))
                                         .foregroundStyle(AppDesign.primary)
                                 }
@@ -51,15 +52,15 @@ struct CheckoutView: View {
                         }
 
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Items: \(cartState.totalItemCount)")
+                            Text(text("Items:", "আইটেম:") + " \(cartState.totalItemCount)")
                                 .font(.system(size: 16, weight: .medium, design: .rounded))
                                 .foregroundStyle(AppDesign.muted)
 
-                            Text(String(format: "Total: $%.2f", cartState.totalPrice))
+                            Text(currentLanguage.formatMoney(prefixEnglish: "Total:", prefixBangla: "মোট:", value: cartState.totalPrice))
                                 .font(.system(size: 22, weight: .bold, design: .rounded))
                                 .foregroundStyle(AppDesign.primary)
 
-                            Button("Confirm") {
+                            Button(text("Confirm", "নিশ্চিত করুন")) {
                                 cartState.clearCart()
                                 showConfirmation = true
                             }
@@ -75,15 +76,23 @@ struct CheckoutView: View {
                 .padding(.bottom, 16)
             }
         }
-        .navigationTitle("Checkout")
+        .navigationTitle(text("Checkout", "চেকআউট"))
         .navigationBarTitleDisplayMode(.inline)
-        .alert("Order Confirmation", isPresented: $showConfirmation) {
-            Button("Back to Store") {
+        .alert(text("Order Confirmation", "অর্ডার নিশ্চিতকরণ"), isPresented: $showConfirmation) {
+            Button(text("Back to Store", "স্টোরে ফিরে যান")) {
                 dismiss()
             }
         } message: {
-            Text("Order placed successfully (demo only)")
+            Text(text("Order placed successfully (demo only)", "অর্ডার সফলভাবে সম্পন্ন হয়েছে (শুধু ডেমো)।"))
         }
+    }
+
+    private var currentLanguage: AppLanguage {
+        AppLanguage.from(code: appLanguageCode)
+    }
+
+    private func text(_ english: String, _ bangla: String) -> String {
+        currentLanguage.text(english: english, bangla: bangla)
     }
 }
 

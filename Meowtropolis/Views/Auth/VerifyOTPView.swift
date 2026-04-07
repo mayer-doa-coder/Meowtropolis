@@ -2,6 +2,7 @@ import SwiftUI
 
 struct VerifyOTPView: View {
     @Environment(\.dismiss) private var dismiss
+    @AppStorage(AppLanguage.storageKey) private var appLanguageCode: String = AppLanguage.englishUS.rawValue
     @State private var code: String = ""
 
     var body: some View {
@@ -21,7 +22,7 @@ struct VerifyOTPView: View {
 
                     Spacer()
 
-                    Text("Verify OTP")
+                    Text(text("Verify OTP", "ওটিপি যাচাই"))
                         .font(.system(size: 44, weight: .bold, design: .rounded))
                         .foregroundStyle(AppDesign.text)
 
@@ -29,7 +30,7 @@ struct VerifyOTPView: View {
                     Color.clear.frame(width: 34, height: 34)
                 }
 
-                Text("Enter your OTP that has been sent to your email to verify your account.")
+                Text(text("Enter your OTP that has been sent to your email to verify your account.", "আপনার অ্যাকাউন্ট যাচাই করতে ইমেইলে পাঠানো ওটিপি লিখুন।"))
                     .font(.system(size: 17, weight: .regular, design: .rounded))
                     .foregroundStyle(AppDesign.muted)
 
@@ -42,17 +43,17 @@ struct VerifyOTPView: View {
                         Rectangle().fill(AppDesign.line).frame(height: 1)
                     }
 
-                Text("A code has been sent to your phone")
+                Text(text("A code has been sent to your phone", "আপনার ফোনে একটি কোড পাঠানো হয়েছে"))
                     .font(.system(size: 17, weight: .regular, design: .rounded))
                     .foregroundStyle(AppDesign.muted)
                     .frame(maxWidth: .infinity, alignment: .center)
 
-                Text("Resend in 00:57")
+                Text(text("Resend in 00:57", "০০:৫৭ পরে আবার পাঠান"))
                     .font(.system(size: 30, weight: .medium, design: .rounded))
                     .foregroundStyle(.blue)
                     .frame(maxWidth: .infinity, alignment: .center)
 
-                Button("Confirm") {}
+                Button(text("Confirm", "নিশ্চিত করুন")) {}
                     .buttonStyle(FilledPrimaryButtonStyle())
 
                 Spacer()
@@ -60,6 +61,14 @@ struct VerifyOTPView: View {
             .padding(20)
         }
         .navigationBarBackButtonHidden(true)
+    }
+
+    private var currentLanguage: AppLanguage {
+        AppLanguage.from(code: appLanguageCode)
+    }
+
+    private func text(_ english: String, _ bangla: String) -> String {
+        currentLanguage.text(english: english, bangla: bangla)
     }
 }
 

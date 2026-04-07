@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RootView: View {
     @EnvironmentObject private var appState: AppState
+    @AppStorage(AppLanguage.storageKey) private var appLanguageCode: String = AppLanguage.englishUS.rawValue
     @State private var showSplash: Bool = !ProcessInfo.processInfo.arguments.contains("-uiTestSkipSplash")
     @State private var showOnboarding: Bool = !ProcessInfo.processInfo.arguments.contains("-uiTestSkipOnboarding")
 
@@ -39,7 +40,7 @@ struct RootView: View {
         AppBackground {
             VStack(spacing: 12) {
                 ProgressView()
-                Text("Loading your profile...")
+                Text(text("Loading your profile...", "আপনার প্রোফাইল লোড হচ্ছে..."))
                     .font(.system(size: 17, weight: .medium, design: .rounded))
                     .foregroundStyle(AppDesign.muted)
             }
@@ -50,7 +51,7 @@ struct RootView: View {
     private func profileErrorView(_ message: String) -> some View {
         AppBackground {
             VStack(spacing: 16) {
-                Text("Could not load profile")
+                Text(text("Could not load profile", "প্রোফাইল লোড করা যায়নি"))
                     .font(.system(size: 24, weight: .bold, design: .rounded))
                     .foregroundStyle(AppDesign.text)
 
@@ -59,18 +60,26 @@ struct RootView: View {
                     .foregroundStyle(.red)
                     .multilineTextAlignment(.center)
 
-                Button("Try Again") {
+                Button(text("Try Again", "আবার চেষ্টা করুন")) {
                     appState.loadCurrentUserProfile()
                 }
                 .buttonStyle(FilledPrimaryButtonStyle())
 
-                Button("Logout") {
+                Button(text("Logout", "লগ আউট")) {
                     appState.logout()
                 }
                 .buttonStyle(OutlinedPrimaryButtonStyle())
             }
             .padding(20)
         }
+    }
+
+    private var currentLanguage: AppLanguage {
+        AppLanguage.from(code: appLanguageCode)
+    }
+
+    private func text(_ english: String, _ bangla: String) -> String {
+        currentLanguage.text(english: english, bangla: bangla)
     }
 }
 

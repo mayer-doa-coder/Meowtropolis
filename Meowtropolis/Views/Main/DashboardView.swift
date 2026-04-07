@@ -2,25 +2,26 @@ import SwiftUI
 
 struct DashboardView: View {
     @EnvironmentObject private var appState: AppState
+    @AppStorage(AppLanguage.storageKey) private var appLanguageCode: String = AppLanguage.englishUS.rawValue
     @State private var sessionErrorMessage: String?
     @State private var selectedTab: Int = 0
 
     var body: some View {
         TabView(selection: $selectedTab) {
             HomeTabView()
-                .tabItem { Label("Home", systemImage: "house") }
+                .tabItem { Label(text("Home", "হোম"), systemImage: "house") }
                 .tag(0)
 
             MarketplaceView()
-                .tabItem { Label("Shop", systemImage: "cart") }
+                .tabItem { Label(text("Shop", "শপ"), systemImage: "cart") }
                 .tag(1)
 
             VetView()
-                .tabItem { Label("Message", systemImage: "bubble.left") }
+                .tabItem { Label(text("Message", "বার্তা"), systemImage: "bubble.left") }
                 .tag(2)
 
             AccountView()
-                .tabItem { Label("Account", systemImage: "person") }
+                .tabItem { Label(text("Account", "অ্যাকাউন্ট"), systemImage: "person") }
                 .tag(3)
         }
         .accessibilityIdentifier("dashboardTabView")
@@ -28,7 +29,7 @@ struct DashboardView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Logout") {
+                Button(text("Logout", "লগ আউট")) {
                     appState.logout { result in
                         if case let .failure(error) = result {
                             sessionErrorMessage = error.localizedDescription
@@ -38,16 +39,25 @@ struct DashboardView: View {
                 .foregroundStyle(.red)
             }
         }
-        .alert("Session", isPresented: .constant(sessionErrorMessage != nil)) {
-            Button("OK") { sessionErrorMessage = nil }
+        .alert(text("Session", "সেশন"), isPresented: .constant(sessionErrorMessage != nil)) {
+            Button(text("OK", "ঠিক আছে")) { sessionErrorMessage = nil }
         } message: {
             Text(sessionErrorMessage ?? "")
         }
+    }
+
+    private var currentLanguage: AppLanguage {
+        AppLanguage.from(code: appLanguageCode)
+    }
+
+    private func text(_ english: String, _ bangla: String) -> String {
+        currentLanguage.text(english: english, bangla: bangla)
     }
 }
 
 private struct HomeTabView: View {
     @EnvironmentObject private var appState: AppState
+    @AppStorage(AppLanguage.storageKey) private var appLanguageCode: String = AppLanguage.englishUS.rawValue
 
     var body: some View {
         AppBackground {
@@ -74,10 +84,10 @@ private struct HomeTabView: View {
                         .clipShape(Circle())
 
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Hello, \(appState.currentUser?.name ?? "Pet Parent")")
+                            Text(text("Hello,", "হ্যালো,") + " \(appState.currentUser?.name ?? text("Pet Parent", "পেট প্যারেন্ট"))")
                                 .font(.system(size: 28, weight: .bold, design: .rounded))
                                 .foregroundStyle(AppDesign.text)
-                            Text("Good Morning!")
+                            Text(text("Good Morning!", "শুভ সকাল!"))
                                 .font(.system(size: 22, weight: .regular, design: .rounded))
                                 .foregroundStyle(AppDesign.muted)
                         }
@@ -110,13 +120,13 @@ private struct HomeTabView: View {
                         )
 
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Adopt A Pet\nComplete The Family")
+                            Text(text("Adopt A Pet\nComplete The Family", "একটি পোষা প্রাণী নিন\nপরিবার পূর্ণ করুন"))
                                 .font(.system(size: 20, weight: .bold, design: .rounded))
                                 .foregroundStyle(.white)
-                            Text("Up to 30% off")
+                            Text(text("Up to 30% off", "সর্বোচ্চ ৩০% ছাড়"))
                                 .font(.system(size: 16, weight: .bold, design: .rounded))
                                 .foregroundStyle(Color(red: 1.0, green: 0.88, blue: 0.4))
-                            Text("Use code COMBO30")
+                            Text(text("Use code COMBO30", "কোড ব্যবহার করুন COMBO30"))
                                 .font(.system(size: 15, weight: .medium, design: .rounded))
                                 .foregroundStyle(Color.white.opacity(0.95))
                         }
@@ -125,22 +135,22 @@ private struct HomeTabView: View {
                     .frame(height: 150)
                     .clipShape(RoundedRectangle(cornerRadius: 14))
 
-                    sectionTitle("Our Services")
+                    sectionTitle(text("Our Services", "আমাদের সেবাসমূহ"))
 
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 10) {
-                            chip("All", selected: true)
-                            chip("Cat")
-                            chip("Dog")
-                            chip("Bird")
+                            chip(text("All", "সব"), selected: true)
+                            chip(text("Cat", "বিড়াল"))
+                            chip(text("Dog", "কুকুর"))
+                            chip(text("Bird", "পাখি"))
                         }
                     }
 
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
-                        serviceCard(title: "Bathing & Drying", destination: GroomingView())
-                        serviceCard(title: "Hair Triming", destination: GroomingView())
-                        serviceCard(title: "Pet Checkup", destination: VetView())
-                        serviceCard(title: "Pet Profile", destination: PetProfileView())
+                        serviceCard(title: text("Bathing & Drying", "বাথিং ও ড্রাইং"), destination: GroomingView())
+                        serviceCard(title: text("Hair Triming", "হেয়ার ট্রিমিং"), destination: GroomingView())
+                        serviceCard(title: text("Pet Checkup", "পেট চেকআপ"), destination: VetView())
+                        serviceCard(title: text("Pet Profile", "পেট প্রোফাইল"), destination: PetProfileView())
                     }
                 }
                 .padding(20)
@@ -154,7 +164,7 @@ private struct HomeTabView: View {
                 .font(.system(size: 34, weight: .bold, design: .rounded))
                 .foregroundStyle(AppDesign.text)
             Spacer()
-            Text("See All")
+            Text(text("See All", "সব দেখুন"))
                 .font(.system(size: 18, weight: .medium, design: .rounded))
                 .foregroundStyle(.blue)
         }
@@ -212,6 +222,14 @@ private struct HomeTabView: View {
             .clipShape(RoundedRectangle(cornerRadius: 14))
             .shadow(color: .black.opacity(0.06), radius: 8, y: 4)
         }
+    }
+
+    private var currentLanguage: AppLanguage {
+        AppLanguage.from(code: appLanguageCode)
+    }
+
+    private func text(_ english: String, _ bangla: String) -> String {
+        currentLanguage.text(english: english, bangla: bangla)
     }
 }
 
