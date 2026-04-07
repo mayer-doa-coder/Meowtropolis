@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ProductDetailView: View {
     @EnvironmentObject private var cartState: CartState
+    @AppStorage(AppLanguage.storageKey) private var appLanguageCode: String = AppLanguage.englishUS.rawValue
 
     let product: Product
     @State private var quantity: Int = 1
@@ -16,7 +17,7 @@ struct ProductDetailView: View {
                     .padding(.horizontal, 20)
                     .padding(.top, 12)
                     .overlay {
-                        if let url = URL(string: product.imageURL), !product.imageURL.isEmpty {
+                        if let url = AppImageLibrary.productImageURL(for: product) {
                             AsyncImage(url: url) { phase in
                                 switch phase {
                                 case let .success(image):
@@ -44,25 +45,25 @@ struct ProductDetailView: View {
                         .font(.system(size: 34, weight: .bold, design: .rounded))
                         .foregroundStyle(AppDesign.text)
 
-                    Text("Category: \(product.category.capitalized)")
+                    Text(text("Category:", "ক্যাটাগরি:") + " \(product.category.capitalized)")
                         .font(.system(size: 17, weight: .regular, design: .rounded))
                         .foregroundStyle(AppDesign.muted)
 
-                    Text(String(format: "Price: $%.2f", product.price))
+                    Text(currentLanguage.formatMoney(prefixEnglish: "Price:", prefixBangla: "দাম:", value: product.price))
                         .font(.system(size: 20, weight: .bold, design: .rounded))
                         .foregroundStyle(AppDesign.primary)
 
-                    Text("About")
+                    Text(text("About", "বিস্তারিত"))
                         .font(.system(size: 30, weight: .bold, design: .rounded))
                         .foregroundStyle(AppDesign.text)
                         .padding(.top, 8)
 
-                    Text("This product is available in the marketplace and loaded from Firestore or local fallback data.")
+                    Text(text("This product is available in the marketplace and loaded from Firestore or local fallback data.", "এই পণ্যটি মার্কেটপ্লেসে উপলব্ধ এবং Firestore অথবা লোকাল ডাটা থেকে লোড হয়।"))
                         .font(.system(size: 17, weight: .regular, design: .rounded))
                         .foregroundStyle(AppDesign.muted)
 
                     HStack {
-                        Text("Quantity")
+                        Text(text("Quantity", "পরিমাণ"))
                             .font(.system(size: 30, weight: .bold, design: .rounded))
                             .foregroundStyle(AppDesign.text)
 
@@ -97,14 +98,14 @@ struct ProductDetailView: View {
                             .accessibilityIdentifier("productDetailAddToCartSuccessMessage")
                     }
 
-                    Button("Add to Cart") {
+                    Button(text("Add to Cart", "কার্টে যোগ করুন")) {
                         cartState.addToCart(product: product, quantity: quantity)
-                        successMessage = "Added to cart"
+                        successMessage = text("Added to cart", "কার্টে যোগ করা হয়েছে")
                     }
                     .buttonStyle(FilledPrimaryButtonStyle())
                     .accessibilityIdentifier("productDetailAddToCartButton")
 
-                    Text("MVP mode: checkout is demo-only and does not process real payment.")
+                    Text(text("MVP mode: checkout is demo-only and does not process real payment.", "MVP মোড: চেকআউট ডেমো-ভিত্তিক এবং বাস্তব পেমেন্ট প্রক্রিয়া করে না।"))
                         .font(.system(size: 14, weight: .medium, design: .rounded))
                         .foregroundStyle(AppDesign.muted)
                         .padding(.top, 8)
@@ -114,7 +115,7 @@ struct ProductDetailView: View {
                 Spacer()
             }
         }
-        .navigationTitle("Product")
+        .navigationTitle(text("Product", "পণ্য"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -130,6 +131,14 @@ struct ProductDetailView: View {
                 .accessibilityIdentifier("productDetailCartButton")
             }
         }
+    }
+
+    private var currentLanguage: AppLanguage {
+        AppLanguage.from(code: appLanguageCode)
+    }
+
+    private func text(_ english: String, _ bangla: String) -> String {
+        currentLanguage.text(english: english, bangla: bangla)
     }
 }
 

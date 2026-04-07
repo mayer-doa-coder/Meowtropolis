@@ -3,6 +3,7 @@ import SwiftUI
 struct GroomingView: View {
     @EnvironmentObject private var appState: AppState
     @AppStorage(ReminderService.preferenceKey) private var remindersEnabled: Bool = false
+    @AppStorage(AppLanguage.storageKey) private var appLanguageCode: String = AppLanguage.englishUS.rawValue
 
     private let bookingService: BookingService
     private let petService: PetService
@@ -38,7 +39,7 @@ struct GroomingView: View {
         AppBackground {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("Book Grooming")
+                    Text(text("Book Grooming", "গ্রুমিং বুক করুন"))
                         .font(.system(size: 34, weight: .bold, design: .rounded))
                         .foregroundStyle(AppDesign.text)
 
@@ -58,18 +59,18 @@ struct GroomingView: View {
 
                     Divider()
 
-                    Text("My Bookings")
+                    Text(text("My Bookings", "আমার বুকিং"))
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundStyle(AppDesign.text)
 
                     filterCard
 
                     if isLoading {
-                        ProgressView("Loading...")
+                        ProgressView(text("Loading...", "লোড হচ্ছে..."))
                             .frame(maxWidth: .infinity)
                             .padding(.top, 10)
                     } else if bookings.isEmpty {
-                        Text("No bookings found")
+                        Text(text("No bookings found", "কোনো বুকিং পাওয়া যায়নি"))
                             .font(.system(size: 16, weight: .medium, design: .rounded))
                             .foregroundStyle(AppDesign.muted)
                             .frame(maxWidth: .infinity, alignment: .center)
@@ -83,7 +84,7 @@ struct GroomingView: View {
                 .padding(20)
             }
         }
-        .navigationTitle("Grooming")
+        .navigationTitle(text("Grooming", "গ্রুমিং"))
         .navigationBarTitleDisplayMode(.inline)
         .task {
             loadInitialData()
@@ -92,37 +93,59 @@ struct GroomingView: View {
 
     private var bookingFormCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Create Booking")
+            Text(text("Create Booking", "বুকিং তৈরি করুন"))
                 .font(.system(size: 20, weight: .bold, design: .rounded))
                 .foregroundStyle(AppDesign.text)
 
-            Text("Pet")
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.gray.opacity(0.2))
+
+                if let serviceImageURL = AppImageLibrary.groomingServiceImageURL(for: selectedServiceType) {
+                    AsyncImage(url: serviceImageURL) { phase in
+                        switch phase {
+                        case let .success(image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        default:
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 24))
+                                .foregroundStyle(AppDesign.muted)
+                        }
+                    }
+                }
+            }
+            .frame(height: 130)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+
+            Text(text("Pet", "পোষা প্রাণী"))
                 .font(.system(size: 15, weight: .medium, design: .rounded))
                 .foregroundStyle(AppDesign.muted)
 
-            Picker("Pet", selection: $selectedPetIdForCreate) {
-                Text("Select a pet").tag("")
+            Picker(text("Pet", "পোষা প্রাণী"), selection: $selectedPetIdForCreate) {
+                Text(text("Select a pet", "একটি পোষা প্রাণী বাছুন")).tag("")
                 ForEach(pets, id: \.id) { pet in
                     Text(pet.name).tag(pet.id)
                 }
             }
             .pickerStyle(.menu)
 
-            Text("Service Type")
+            Text(text("Service Type", "সেবার ধরন"))
                 .font(.system(size: 15, weight: .medium, design: .rounded))
                 .foregroundStyle(AppDesign.muted)
 
-            Picker("Service Type", selection: $selectedServiceType) {
+            Picker(text("Service Type", "সেবার ধরন"), selection: $selectedServiceType) {
                 ForEach(serviceTypes, id: \.self) { type in
-                    Text(type.capitalized).tag(type)
+                    Text(serviceTypeLabel(type)).tag(type)
                 }
             }
             .pickerStyle(.segmented)
 
-            DatePicker("Date & Time", selection: $selectedDate, displayedComponents: [.date, .hourAndMinute])
+            DatePicker(text("Date & Time", "তারিখ ও সময়"), selection: $selectedDate, displayedComponents: [.date, .hourAndMinute])
                 .datePickerStyle(.compact)
 
-            Button("Create Booking") {
+            Button(text("Create Booking", "বুকিং তৈরি করুন")) {
                 createBooking()
             }
             .buttonStyle(FilledPrimaryButtonStyle(disabled: isLoading || pets.isEmpty))
@@ -135,12 +158,12 @@ struct GroomingView: View {
 
     private var filterCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Filter by Pet (Optional)")
+            Text(text("Filter by Pet (Optional)", "পোষা প্রাণী অনুযায়ী ফিল্টার (ঐচ্ছিক)"))
                 .font(.system(size: 15, weight: .medium, design: .rounded))
                 .foregroundStyle(AppDesign.muted)
 
-            Picker("Filter by Pet", selection: $selectedPetIdFilter) {
-                Text("All pets").tag("all")
+            Picker(text("Filter by Pet", "পোষা প্রাণী অনুযায়ী ফিল্টার"), selection: $selectedPetIdFilter) {
+                Text(text("All pets", "সব পোষা প্রাণী")).tag("all")
                 ForEach(pets, id: \.id) { pet in
                     Text(pet.name).tag(pet.id)
                 }
@@ -157,25 +180,46 @@ struct GroomingView: View {
 
     private func bookingRow(_ booking: Booking) -> some View {
         VStack(alignment: .leading, spacing: 10) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.gray.opacity(0.18))
+
+                if let serviceImageURL = AppImageLibrary.groomingServiceImageURL(for: booking.serviceType) {
+                    AsyncImage(url: serviceImageURL) { phase in
+                        switch phase {
+                        case let .success(image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        default:
+                            Image(systemName: "photo")
+                                .foregroundStyle(AppDesign.muted)
+                        }
+                    }
+                }
+            }
+            .frame(height: 96)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+
             Text(petDisplayName(for: booking.petId))
                 .font(.system(size: 18, weight: .bold, design: .rounded))
                 .foregroundStyle(AppDesign.text)
 
-            Text("Service: \(booking.serviceType.capitalized)")
+            Text(text("Service:", "সেবা:") + " \(serviceTypeLabel(booking.serviceType))")
                 .font(.system(size: 15, weight: .regular, design: .rounded))
                 .foregroundStyle(AppDesign.muted)
 
-            Text("Date: \(displayDate(from: booking.date))")
+            Text(text("Date:", "তারিখ:") + " \(displayDate(from: booking.date))")
                 .font(.system(size: 15, weight: .regular, design: .rounded))
                 .foregroundStyle(AppDesign.muted)
 
-            Text("Status: \(booking.status.label)")
+            Text(text("Status:", "স্ট্যাটাস:") + " \(booking.status.localizedLabel(language: currentLanguage))")
                 .font(.system(size: 15, weight: .medium, design: .rounded))
                 .foregroundStyle(AppDesign.primary)
 
-            Picker("Update Status", selection: bindingForStatus(booking)) {
+            Picker(text("Update Status", "স্ট্যাটাস আপডেট"), selection: bindingForStatus(booking)) {
                 ForEach(statusOptions, id: \.rawValue) { status in
-                    Text(status.label).tag(status)
+                    Text(status.localizedLabel(language: currentLanguage)).tag(status)
                 }
             }
             .pickerStyle(.menu)
@@ -188,7 +232,7 @@ struct GroomingView: View {
     private func loadInitialData() {
         guard let userId = appState.currentUserId else {
             isLoading = false
-            errorMessage = "You need to log in before creating bookings."
+            errorMessage = text("You need to log in before creating bookings.", "বুকিং তৈরি করতে লগ ইন করতে হবে।")
             return
         }
 
@@ -216,7 +260,7 @@ struct GroomingView: View {
     private func loadBookings() {
         guard let userId = appState.currentUserId else {
             isLoading = false
-            errorMessage = "You need to log in before viewing bookings."
+            errorMessage = text("You need to log in before viewing bookings.", "বুকিং দেখতে লগ ইন করতে হবে।")
             bookings = []
             return
         }
@@ -248,12 +292,12 @@ struct GroomingView: View {
     private func createBooking() {
         guard let userId = appState.currentUserId else {
             isLoading = false
-            errorMessage = "You need to log in before creating bookings."
+            errorMessage = text("You need to log in before creating bookings.", "বুকিং তৈরি করতে লগ ইন করতে হবে।")
             return
         }
 
         guard !selectedPetIdForCreate.isEmpty else {
-            errorMessage = "Please select a pet."
+            errorMessage = text("Please select a pet.", "দয়া করে একটি পোষা প্রাণী নির্বাচন করুন।")
             return
         }
 
@@ -279,7 +323,7 @@ struct GroomingView: View {
                     if remindersEnabled {
                         reminderService.scheduleBookingReminder(booking)
                     }
-                    successMessage = "Booking created successfully."
+                    successMessage = text("Booking created successfully.", "বুকিং সফলভাবে তৈরি হয়েছে।")
                     loadBookings()
                 case let .failure(error):
                     errorMessage = error.localizedDescription
@@ -310,7 +354,7 @@ struct GroomingView: View {
                             status: status
                         )
                     }
-                    successMessage = "Booking status updated."
+                    successMessage = text("Booking status updated.", "বুকিং স্ট্যাটাস আপডেট হয়েছে।")
                 case let .failure(error):
                     errorMessage = error.localizedDescription
                 }
@@ -333,7 +377,7 @@ struct GroomingView: View {
         if let pet = pets.first(where: { $0.id == petId }) {
             return pet.name
         }
-        return "Pet ID: \(petId)"
+        return text("Pet ID:", "পেট আইডি:") + " \(petId)"
     }
 
     private func displayDate(from isoString: String) -> String {
@@ -348,19 +392,40 @@ struct GroomingView: View {
         outputFormatter.timeStyle = .short
         return outputFormatter.string(from: date)
     }
+
+    private func serviceTypeLabel(_ rawType: String) -> String {
+        switch rawType.lowercased() {
+        case "grooming":
+            return text("Grooming", "গ্রুমিং")
+        case "bathing":
+            return text("Bathing", "বাথিং")
+        case "nail trimming":
+            return text("Nail Trimming", "নখ ট্রিমিং")
+        default:
+            return rawType.capitalized
+        }
+    }
+
+    private var currentLanguage: AppLanguage {
+        AppLanguage.from(code: appLanguageCode)
+    }
+
+    private func text(_ english: String, _ bangla: String) -> String {
+        currentLanguage.text(english: english, bangla: bangla)
+    }
 }
 
 private extension BookingStatus {
-    var label: String {
+    func localizedLabel(language: AppLanguage) -> String {
         switch self {
         case .pending:
-            return "Pending"
+            return language.text(english: "Pending", bangla: "অপেক্ষমাণ")
         case .confirmed:
-            return "Confirmed"
+            return language.text(english: "Confirmed", bangla: "নিশ্চিত")
         case .completed:
-            return "Completed"
+            return language.text(english: "Completed", bangla: "সম্পন্ন")
         case .cancelled:
-            return "Cancelled"
+            return language.text(english: "Cancelled", bangla: "বাতিল")
         }
     }
 }

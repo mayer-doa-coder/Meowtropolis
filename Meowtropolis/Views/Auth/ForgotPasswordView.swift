@@ -3,6 +3,7 @@ import SwiftUI
 struct ForgotPasswordView: View {
     @EnvironmentObject private var appState: AppState
     @Environment(\.dismiss) private var dismiss
+    @AppStorage(AppLanguage.storageKey) private var appLanguageCode: String = AppLanguage.englishUS.rawValue
 
     @State private var email: String = ""
     @State private var emailError: String?
@@ -27,7 +28,7 @@ struct ForgotPasswordView: View {
 
                     Spacer()
 
-                    Text("Forgot Password")
+                    Text(text("Forgot Password", "পাসওয়ার্ড ভুলে গেছেন"))
                         .font(.system(size: 40, weight: .bold, design: .rounded))
                         .foregroundStyle(AppDesign.text)
 
@@ -35,11 +36,11 @@ struct ForgotPasswordView: View {
                     Color.clear.frame(width: 34, height: 34)
                 }
 
-                Text("Enter the email associated with your account and we'll send a reset password email.")
+                Text(text("Enter the email associated with your account and we'll send a reset password email.", "আপনার অ্যাকাউন্টের ইমেইল দিন, আমরা পাসওয়ার্ড রিসেটের ইমেইল পাঠাব।"))
                     .font(.system(size: 16, weight: .regular, design: .rounded))
                     .foregroundStyle(AppDesign.muted)
 
-                AppInputField(title: "Email", text: $email) {
+                AppInputField(title: text("Email", "ইমেইল"), text: $email) {
                     if let emailError {
                         Text(emailError)
                             .font(.footnote)
@@ -53,7 +54,7 @@ struct ForgotPasswordView: View {
                         .foregroundStyle(isSuccessMessage ? .green : .red)
                 }
 
-                Button(isLoading ? "Sending..." : "Confirm") {
+                Button(isLoading ? text("Sending...", "পাঠানো হচ্ছে...") : text("Confirm", "নিশ্চিত করুন")) {
                     sendReset()
                 }
                 .buttonStyle(FilledPrimaryButtonStyle(disabled: isLoading))
@@ -78,7 +79,7 @@ struct ForgotPasswordView: View {
 
         let cleanedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
         if cleanedEmail.isEmpty {
-            emailError = "Email is required."
+            emailError = text("Email is required.", "ইমেইল প্রয়োজন।")
             return
         }
 
@@ -89,7 +90,7 @@ struct ForgotPasswordView: View {
                 switch result {
                 case .success:
                     isSuccessMessage = true
-                    message = "Password reset email sent. Please check your inbox."
+                    message = text("Password reset email sent. Please check your inbox.", "পাসওয়ার্ড রিসেট ইমেইল পাঠানো হয়েছে। ইনবক্স দেখুন।")
                 case let .failure(error):
                     isSuccessMessage = false
                     message = appState.userFriendlyAuthError(error)
@@ -97,6 +98,14 @@ struct ForgotPasswordView: View {
                 }
             }
         }
+    }
+
+    private var currentLanguage: AppLanguage {
+        AppLanguage.from(code: appLanguageCode)
+    }
+
+    private func text(_ english: String, _ bangla: String) -> String {
+        currentLanguage.text(english: english, bangla: bangla)
     }
 }
 

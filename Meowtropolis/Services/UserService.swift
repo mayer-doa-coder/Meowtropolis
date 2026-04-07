@@ -50,4 +50,22 @@ final class UserService {
                 }
             }
     }
+
+    /// Updates user profile document using full User payload.
+    func updateUserProfile(user: User, completion: @escaping (Result<Void, Error>) -> Void) {
+        createUserProfile(user: user, completion: completion)
+    }
+
+    /// Deletes user profile document by user id.
+    func deleteUserProfile(userId: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        db.collection(FirestoreCollections.users)
+            .document(userId)
+            .delete { error in
+                if let error {
+                    completion(.failure(error))
+                    return
+                }
+                completion(.success(()))
+            }
+    }
 }

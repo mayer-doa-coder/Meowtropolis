@@ -2,6 +2,7 @@ import SwiftUI
 
 struct VetView: View {
     @EnvironmentObject private var appState: AppState
+    @AppStorage(AppLanguage.storageKey) private var appLanguageCode: String = AppLanguage.englishUS.rawValue
 
     private let vetService: VetService
 
@@ -21,7 +22,7 @@ struct VetView: View {
         AppBackground {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    Text("Vet Requests")
+                    Text(text("Vet Requests", "ভেট রিকোয়েস্ট"))
                         .font(.system(size: 36, weight: .bold, design: .rounded))
                         .foregroundStyle(AppDesign.text)
 
@@ -41,7 +42,7 @@ struct VetView: View {
 
                     Divider()
 
-                    Text("My Requests")
+                    Text(text("My Requests", "আমার রিকোয়েস্ট"))
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundStyle(AppDesign.text)
 
@@ -51,7 +52,7 @@ struct VetView: View {
                 .padding(20)
             }
         }
-        .navigationTitle("Vet")
+        .navigationTitle(text("Vet", "ভেট"))
         .navigationBarTitleDisplayMode(.inline)
         .task {
             loadRequests()
@@ -60,7 +61,7 @@ struct VetView: View {
 
     private var requestFormCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Describe your pet issue")
+            Text(text("Describe your pet issue", "আপনার পোষা প্রাণীর সমস্যাটি লিখুন"))
                 .font(.system(size: 18, weight: .semibold, design: .rounded))
                 .foregroundStyle(AppDesign.text)
 
@@ -73,11 +74,11 @@ struct VetView: View {
                         .stroke(AppDesign.line, lineWidth: 1)
                 }
 
-            Text("Keep it short and clear (for example: cat not eating since morning)")
+            Text(text("Keep it short and clear (for example: cat not eating since morning)", "সংক্ষেপে ও পরিষ্কারভাবে লিখুন (যেমন: সকাল থেকে বিড়াল খাচ্ছে না)"))
                 .font(.system(size: 16, weight: .regular, design: .rounded))
                 .foregroundStyle(AppDesign.muted)
 
-            Button(isSubmitting ? "Submitting..." : "Submit Request") {
+            Button(isSubmitting ? text("Submitting...", "জমা হচ্ছে...") : text("Submit Request", "রিকোয়েস্ট জমা দিন")) {
                 submitRequest()
             }
             .buttonStyle(FilledPrimaryButtonStyle(disabled: isSubmitting || isLoading))
@@ -91,11 +92,11 @@ struct VetView: View {
     @ViewBuilder
     private var requestListSection: some View {
         if isLoading {
-            ProgressView("Loading requests...")
+            ProgressView(text("Loading requests...", "রিকোয়েস্ট লোড হচ্ছে..."))
                 .frame(maxWidth: .infinity)
                 .padding(.top, 10)
         } else if requests.isEmpty {
-            Text("No requests yet")
+            Text(text("No requests yet", "এখনো কোনো রিকোয়েস্ট নেই"))
                 .font(.system(size: 16, weight: .medium, design: .rounded))
                 .foregroundStyle(AppDesign.muted)
                 .frame(maxWidth: .infinity, alignment: .center)
@@ -113,11 +114,11 @@ struct VetView: View {
                 .font(.system(size: 18, weight: .semibold, design: .rounded))
                 .foregroundStyle(AppDesign.text)
 
-            Text("Status: \(request.status.label)")
+            Text(text("Status:", "স্ট্যাটাস:") + " \(request.status.localizedLabel(language: currentLanguage))")
                 .font(.system(size: 14, weight: .medium, design: .rounded))
                 .foregroundStyle(AppDesign.primary)
 
-            Text("Created: \(displayDate(from: request.createdAt))")
+            Text(text("Created:", "তৈরি হয়েছে:") + " \(displayDate(from: request.createdAt))")
                 .font(.system(size: 14, weight: .regular, design: .rounded))
                 .foregroundStyle(AppDesign.muted)
         }
@@ -130,12 +131,12 @@ struct VetView: View {
         let cleanedIssue = issueDescription.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard let userId = appState.currentUserId else {
-            errorMessage = "You need to log in before creating a vet request."
+            errorMessage = text("You need to log in before creating a vet request.", "ভেট রিকোয়েস্ট তৈরি করতে লগ ইন করতে হবে।")
             return
         }
 
         guard !cleanedIssue.isEmpty else {
-            errorMessage = "Please describe the issue before submitting."
+            errorMessage = text("Please describe the issue before submitting.", "জমা দেওয়ার আগে সমস্যাটি লিখুন।")
             return
         }
 
@@ -159,7 +160,7 @@ struct VetView: View {
                 switch result {
                 case .success:
                     issueDescription = ""
-                    successMessage = "Vet request submitted successfully."
+                    successMessage = text("Vet request submitted successfully.", "ভেট রিকোয়েস্ট সফলভাবে জমা হয়েছে।")
                     loadRequests()
                 case let .failure(error):
                     errorMessage = error.localizedDescription
@@ -172,7 +173,7 @@ struct VetView: View {
         guard let userId = appState.currentUserId else {
             isLoading = false
             requests = []
-            errorMessage = "You need to log in before viewing vet requests."
+            errorMessage = text("You need to log in before viewing vet requests.", "ভেট রিকোয়েস্ট দেখতে লগ ইন করতে হবে।")
             return
         }
 
@@ -206,15 +207,23 @@ struct VetView: View {
         outputFormatter.timeStyle = .short
         return outputFormatter.string(from: date)
     }
+
+    private var currentLanguage: AppLanguage {
+        AppLanguage.from(code: appLanguageCode)
+    }
+
+    private func text(_ english: String, _ bangla: String) -> String {
+        currentLanguage.text(english: english, bangla: bangla)
+    }
 }
 
 private extension VetRequestStatus {
-    var label: String {
+    func localizedLabel(language: AppLanguage) -> String {
         switch self {
         case .pending:
-            return "Pending"
+            return language.text(english: "Pending", bangla: "অপেক্ষমাণ")
         case .resolved:
-            return "Resolved"
+            return language.text(english: "Resolved", bangla: "সমাধান হয়েছে")
         }
     }
 }
