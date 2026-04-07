@@ -4,20 +4,20 @@
     "name": "Premium Salmon Cat Food",
     "price": 18.99,
     "category": "food",
-    "imageURL": "https://images.meowtropolis.app/products/premium-salmon-cat-food.png"
+    "imageURL": "https://loremflickr.com/900/700/cat,food"
   },
   {
     "id": "product_002",
     "name": "Feather Teaser Wand Toy",
     "price": 7.49,
     "category": "toys",
-    "imageURL": "https://images.meowtropolis.app/products/feather-teaser-wand-toy.png"
+    "imageURL": "https://loremflickr.com/900/700/cat,toy"
   },
   {
     "id": "product_003",
     "name": "Comfort Padded Cat Harness",
     "price": 14.25,
     "category": "accessories",
-    "imageURL": "https://images.meowtropolis.app/products/comfort-padded-cat-harness.png"
+    "imageURL": "https://loremflickr.com/900/700/cat,harness"
   }
 ]

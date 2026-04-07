@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 enum AppDesign {
     static let bg = Color(red: 0.95, green: 0.95, blue: 0.95)
@@ -151,5 +152,99 @@ private struct ConditionalAccessibilityIdentifier: ViewModifier {
         } else {
             content
         }
+    }
+}
+
+enum AppImageLibrary {
+    static let onboardingHeroURL = URL(string: "https://loremflickr.com/1200/800/pets,home")
+    static let authHeroURL = URL(string: "https://loremflickr.com/1000/600/cat,dog")
+    static let adoptionBannerURL = URL(string: "https://loremflickr.com/1200/500/adopt,pet")
+    static let userAvatarURL = URL(string: "https://loremflickr.com/300/300/pet,owner")
+
+    static func serviceImageURL(for title: String) -> URL? {
+        let key = title.lowercased()
+
+        if key.contains("bath") || key.contains("dry") {
+            return URL(string: "https://loremflickr.com/800/500/dog,bath")
+        }
+
+        if key.contains("hair") || key.contains("trim") || key.contains("groom") {
+            return URL(string: "https://loremflickr.com/800/500/pet,grooming")
+        }
+
+        if key.contains("checkup") || key.contains("vet") {
+            return URL(string: "https://loremflickr.com/800/500/veterinary,pet")
+        }
+
+        if key.contains("profile") || key.contains("pet") {
+            return URL(string: "https://loremflickr.com/800/500/cat,dog,rabbit")
+        }
+
+        return URL(string: "https://loremflickr.com/800/500/pet,care")
+    }
+
+    static func groomingServiceImageURL(for serviceType: String) -> URL? {
+        serviceImageURL(for: serviceType)
+    }
+
+    static func petImageURL(forBreed breed: String) -> URL? {
+        let key = breed.lowercased()
+
+        if key.contains("cat") || key.contains("kitten") || key.contains("feline") {
+            return URL(string: "https://loremflickr.com/700/500/cat,pet")
+        }
+
+        if key.contains("dog") || key.contains("puppy") || key.contains("canine") {
+            return URL(string: "https://loremflickr.com/700/500/dog,pet")
+        }
+
+        if key.contains("rabbit") || key.contains("bunny") {
+            return URL(string: "https://loremflickr.com/700/500/rabbit,pet")
+        }
+
+        if key.contains("bird") || key.contains("parrot") {
+            return URL(string: "https://loremflickr.com/700/500/bird,pet")
+        }
+
+        if key.contains("fish") {
+            return URL(string: "https://loremflickr.com/700/500/fish,aquarium")
+        }
+
+        if key.contains("hamster") || key.contains("guinea") {
+            return URL(string: "https://loremflickr.com/700/500/hamster,pet")
+        }
+
+        if key.contains("turtle") || key.contains("reptile") || key.contains("lizard") || key.contains("snake") {
+            return URL(string: "https://loremflickr.com/700/500/reptile,pet")
+        }
+
+        return URL(string: "https://loremflickr.com/700/500/pets,animal")
+    }
+
+    static func productImageURL(for product: Product) -> URL? {
+        let rawURL = product.imageURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !rawURL.isEmpty, !rawURL.contains("images.meowtropolis.app"), let url = URL(string: rawURL) {
+            return url
+        }
+
+        let key = "\(product.name) \(product.category)".lowercased()
+
+        if key.contains("food") || key.contains("salmon") || key.contains("treat") {
+            return URL(string: "https://loremflickr.com/800/600/pet,food")
+        }
+
+        if key.contains("toy") || key.contains("teaser") {
+            return URL(string: "https://loremflickr.com/800/600/pet,toy")
+        }
+
+        if key.contains("harness") || key.contains("accessor") || key.contains("collar") {
+            return URL(string: "https://loremflickr.com/800/600/pet,accessory")
+        }
+
+        if key.contains("groom") || key.contains("shampoo") {
+            return URL(string: "https://loremflickr.com/800/600/pet,grooming")
+        }
+
+        return URL(string: "https://loremflickr.com/800/600/pet,products")
     }
 }

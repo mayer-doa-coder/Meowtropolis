@@ -126,15 +126,29 @@ struct MarketplaceView: View {
 
     private func productRow(_ product: Product) -> some View {
         HStack(spacing: 12) {
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color.gray.opacity(0.4))
-                .frame(width: 72, height: 72)
-                .overlay {
-                    if !product.imageURL.isEmpty {
-                        Image(systemName: "photo")
-                            .foregroundStyle(AppDesign.muted)
+            ZStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.gray.opacity(0.4))
+
+                if let imageURL = AppImageLibrary.productImageURL(for: product) {
+                    AsyncImage(url: imageURL) { phase in
+                        switch phase {
+                        case let .success(image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        default:
+                            Image(systemName: "photo")
+                                .foregroundStyle(AppDesign.muted)
+                        }
                     }
+                } else {
+                    Image(systemName: "photo")
+                        .foregroundStyle(AppDesign.muted)
                 }
+            }
+            .frame(width: 72, height: 72)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
 
             VStack(alignment: .leading, spacing: 5) {
                 Text(product.name)

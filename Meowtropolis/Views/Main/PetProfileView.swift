@@ -55,18 +55,43 @@ struct PetProfileView: View {
                 } else {
                     List {
                         ForEach(pets, id: \.id) { pet in
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(pet.name)
-                                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                                    .foregroundStyle(AppDesign.text)
+                            HStack(spacing: 12) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color.gray.opacity(0.25))
 
-                                Text("Breed: \(pet.breed)")
-                                    .font(.system(size: 16, weight: .regular, design: .rounded))
-                                    .foregroundStyle(AppDesign.muted)
+                                    if let imageURL = AppImageLibrary.petImageURL(forBreed: pet.breed) {
+                                        AsyncImage(url: imageURL) { phase in
+                                            switch phase {
+                                            case let .success(image):
+                                                image
+                                                    .resizable()
+                                                    .scaledToFill()
+                                            default:
+                                                Image(systemName: "pawprint.fill")
+                                                    .foregroundStyle(AppDesign.muted)
+                                            }
+                                        }
+                                    }
+                                }
+                                .frame(width: 72, height: 72)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
 
-                                Text("Age: \(pet.age.map { "\($0) years" } ?? "Not set")")
-                                    .font(.system(size: 16, weight: .regular, design: .rounded))
-                                    .foregroundStyle(AppDesign.muted)
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text(pet.name)
+                                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                                        .foregroundStyle(AppDesign.text)
+
+                                    Text("Breed: \(pet.breed)")
+                                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                                        .foregroundStyle(AppDesign.muted)
+
+                                    Text("Age: \(pet.age.map { "\($0) years" } ?? "Not set")")
+                                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                                        .foregroundStyle(AppDesign.muted)
+                                }
+
+                                Spacer()
                             }
                             .padding(.vertical, 6)
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {

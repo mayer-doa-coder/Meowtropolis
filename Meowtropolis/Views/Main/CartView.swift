@@ -5,34 +5,40 @@ struct CartView: View {
 
     var body: some View {
         AppBackground {
-            VStack(spacing: 12) {
-                if cartState.items.isEmpty {
-                    VStack(spacing: 10) {
-                        Text("Cart is empty")
-                            .font(.system(size: 24, weight: .bold, design: .rounded))
-                            .foregroundStyle(AppDesign.text)
-                            .accessibilityIdentifier("cartEmptyText")
+            ScrollView {
+                VStack(spacing: 12) {
+                    if cartState.items.isEmpty {
+                        VStack(spacing: 10) {
+                            Text("Cart is empty")
+                                .font(.system(size: 24, weight: .bold, design: .rounded))
+                                .foregroundStyle(AppDesign.text)
+                                .accessibilityIdentifier("cartEmptyText")
 
-                        Text("Add products from the store to continue.")
-                            .font(.system(size: 16, weight: .regular, design: .rounded))
-                            .foregroundStyle(AppDesign.muted)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    List {
-                        ForEach(cartState.items) { item in
-                            cartRow(item)
+                            Text("Add products from the store to continue.")
+                                .font(.system(size: 16, weight: .regular, design: .rounded))
+                                .foregroundStyle(AppDesign.muted)
                         }
-                    }
-                    .accessibilityIdentifier("cartItemsList")
-                    .scrollContentBackground(.hidden)
-                    .background(Color.clear)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 30)
+                    } else {
+                        LazyVStack(spacing: 10) {
+                            ForEach(cartState.items) { item in
+                                cartRow(item)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(Color.white.opacity(0.65))
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+                        }
+                        .accessibilityIdentifier("cartItemsList")
 
-                    summaryCard
+                        summaryCard
+                    }
                 }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 16)
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
         }
         .navigationTitle("My Cart")
         .navigationBarTitleDisplayMode(.inline)

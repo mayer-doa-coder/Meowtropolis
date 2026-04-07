@@ -96,6 +96,28 @@ struct GroomingView: View {
                 .font(.system(size: 20, weight: .bold, design: .rounded))
                 .foregroundStyle(AppDesign.text)
 
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.gray.opacity(0.2))
+
+                if let serviceImageURL = AppImageLibrary.groomingServiceImageURL(for: selectedServiceType) {
+                    AsyncImage(url: serviceImageURL) { phase in
+                        switch phase {
+                        case let .success(image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        default:
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 24))
+                                .foregroundStyle(AppDesign.muted)
+                        }
+                    }
+                }
+            }
+            .frame(height: 130)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+
             Text("Pet")
                 .font(.system(size: 15, weight: .medium, design: .rounded))
                 .foregroundStyle(AppDesign.muted)
@@ -157,6 +179,27 @@ struct GroomingView: View {
 
     private func bookingRow(_ booking: Booking) -> some View {
         VStack(alignment: .leading, spacing: 10) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.gray.opacity(0.18))
+
+                if let serviceImageURL = AppImageLibrary.groomingServiceImageURL(for: booking.serviceType) {
+                    AsyncImage(url: serviceImageURL) { phase in
+                        switch phase {
+                        case let .success(image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        default:
+                            Image(systemName: "photo")
+                                .foregroundStyle(AppDesign.muted)
+                        }
+                    }
+                }
+            }
+            .frame(height: 96)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+
             Text(petDisplayName(for: booking.petId))
                 .font(.system(size: 18, weight: .bold, design: .rounded))
                 .foregroundStyle(AppDesign.text)

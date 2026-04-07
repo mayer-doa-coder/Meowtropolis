@@ -16,7 +16,7 @@ struct ProductDetailView: View {
                     .padding(.horizontal, 20)
                     .padding(.top, 12)
                     .overlay {
-                        if let url = URL(string: product.imageURL), !product.imageURL.isEmpty {
+                        if let url = AppImageLibrary.productImageURL(for: product) {
                             AsyncImage(url: url) { phase in
                                 switch phase {
                                 case let .success(image):

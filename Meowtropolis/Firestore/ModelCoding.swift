@@ -47,7 +47,7 @@ enum ProductCodingExample {
             name: "Premium Salmon Cat Food",
             price: 18.99,
             category: "food",
-            imageURL: "https://images.meowtropolis.app/products/premium-salmon-cat-food.png"
+            imageURL: "https://loremflickr.com/900/700/cat,food"
         )
 
         let firestoreData = try product.toFirestoreData()

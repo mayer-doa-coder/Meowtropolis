@@ -54,9 +54,18 @@ private struct HomeTabView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     HStack {
-                        Circle()
-                            .fill(Color.gray.opacity(0.35))
-                            .frame(width: 56, height: 56)
+                        AsyncImage(url: AppImageLibrary.userAvatarURL) { phase in
+                            switch phase {
+                            case let .success(image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                            default:
+                                Circle().fill(Color.gray.opacity(0.35))
+                            }
+                        }
+                        .frame(width: 56, height: 56)
+                        .clipShape(Circle())
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Hello, \(appState.currentUser?.name ?? "Pet Parent")")
@@ -73,23 +82,42 @@ private struct HomeTabView: View {
                             .font(.system(size: 20, weight: .medium))
                     }
 
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(Color(red: 0.78, green: 0.86, blue: 0.95))
-                        .frame(height: 150)
-                        .overlay(alignment: .leading) {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text("Adopt A Pet\nComplete The Family")
-                                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                                    .foregroundStyle(Color(red: 0.07, green: 0.22, blue: 0.35))
-                                Text("Up to 30% off")
-                                    .font(.system(size: 16, weight: .bold, design: .rounded))
-                                    .foregroundStyle(.red)
-                                Text("Use code COMBO30")
-                                    .font(.system(size: 15, weight: .medium, design: .rounded))
-                                    .foregroundStyle(.red)
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color(red: 0.78, green: 0.86, blue: 0.95))
+
+                        AsyncImage(url: AppImageLibrary.adoptionBannerURL) { phase in
+                            switch phase {
+                            case let .success(image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                            default:
+                                Color.clear
                             }
-                            .padding(.leading, 18)
                         }
+
+                        LinearGradient(
+                            colors: [Color.black.opacity(0.45), Color.black.opacity(0.12)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Adopt A Pet\nComplete The Family")
+                                .font(.system(size: 20, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white)
+                            Text("Up to 30% off")
+                                .font(.system(size: 16, weight: .bold, design: .rounded))
+                                .foregroundStyle(Color(red: 1.0, green: 0.88, blue: 0.4))
+                            Text("Use code COMBO30")
+                                .font(.system(size: 15, weight: .medium, design: .rounded))
+                                .foregroundStyle(Color.white.opacity(0.95))
+                        }
+                        .padding(.leading, 18)
+                    }
+                    .frame(height: 150)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
 
                     sectionTitle("Our Services")
 
@@ -147,9 +175,27 @@ private struct HomeTabView: View {
     private func serviceCard<Destination: View>(title: String, destination: Destination) -> some View {
         NavigationLink(destination: destination) {
             VStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.gray.opacity(0.4))
-                    .frame(height: 100)
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.gray.opacity(0.4))
+
+                    if let imageURL = AppImageLibrary.serviceImageURL(for: title) {
+                        AsyncImage(url: imageURL) { phase in
+                            switch phase {
+                            case let .success(image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                            default:
+                                Image(systemName: "photo")
+                                    .font(.system(size: 28))
+                                    .foregroundStyle(AppDesign.muted)
+                            }
+                        }
+                    }
+                }
+                .frame(height: 100)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
                 Text(title)
                     .font(.system(size: 18, weight: .semibold, design: .rounded))
                     .foregroundStyle(AppDesign.text)
