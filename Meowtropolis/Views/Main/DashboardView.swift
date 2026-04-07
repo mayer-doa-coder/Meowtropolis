@@ -54,14 +54,20 @@ private struct HomeTabView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     HStack {
-                        AsyncImage(url: AppImageLibrary.userAvatarURL) { phase in
-                            switch phase {
-                            case let .success(image):
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                            default:
-                                Circle().fill(Color.gray.opacity(0.35))
+                        if let profileImage = AppImageLibrary.profileImage(fromBase64: appState.currentUser?.profileImageBase64) {
+                            Image(uiImage: profileImage)
+                                .resizable()
+                                .scaledToFill()
+                        } else {
+                            AsyncImage(url: AppImageLibrary.userAvatarURL) { phase in
+                                switch phase {
+                                case let .success(image):
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                default:
+                                    Circle().fill(Color.gray.opacity(0.35))
+                                }
                             }
                         }
                         .frame(width: 56, height: 56)

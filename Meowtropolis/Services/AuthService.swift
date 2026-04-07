@@ -24,4 +24,13 @@ protocol AuthService {
 
     /// Send password reset email.
     func resetPassword(email: String, completion: @escaping (Result<Void, Error>) -> Void)
+
+    /// Update signed-in user email after re-authentication with current password.
+    func updateEmail(currentPassword: String, newEmail: String, completion: @escaping (Result<Void, Error>) -> Void)
+
+    /// Update signed-in user password after re-authentication with current password.
+    func updatePassword(currentPassword: String, newPassword: String, completion: @escaping (Result<Void, Error>) -> Void)
+
+    /// Permanently delete signed-in user after re-authentication with current password.
+    func deleteCurrentUser(currentPassword: String, completion: @escaping (Result<Void, Error>) -> Void)
 }

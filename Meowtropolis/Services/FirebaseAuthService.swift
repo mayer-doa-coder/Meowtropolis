@@ -65,4 +65,75 @@ final class FirebaseAuthService: AuthService {
             completion(.success(()))
         }
     }
+
+    func updateEmail(currentPassword: String, newEmail: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        reauthenticate(currentPassword: currentPassword) { result in
+            switch result {
+            case let .failure(error):
+                completion(.failure(error))
+
+            case let .success(user):
+                user.updateEmail(to: newEmail) { error in
+                    if let error {
+                        completion(.failure(error))
+                        return
+                    }
+                    completion(.success(()))
+                }
+            }
+        }
+    }
+
+    func updatePassword(currentPassword: String, newPassword: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        reauthenticate(currentPassword: currentPassword) { result in
+            switch result {
+            case let .failure(error):
+                completion(.failure(error))
+
+            case let .success(user):
+                user.updatePassword(to: newPassword) { error in
+                    if let error {
+                        completion(.failure(error))
+                        return
+                    }
+                    completion(.success(()))
+                }
+            }
+        }
+    }
+
+    func deleteCurrentUser(currentPassword: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        reauthenticate(currentPassword: currentPassword) { result in
+            switch result {
+            case let .failure(error):
+                completion(.failure(error))
+
+            case let .success(user):
+                user.delete { error in
+                    if let error {
+                        completion(.failure(error))
+                        return
+                    }
+                    completion(.success(()))
+                }
+            }
+        }
+    }
+
+    private func reauthenticate(currentPassword: String, completion: @escaping (Result<FirebaseAuth.User, Error>) -> Void) {
+        guard let user = Auth.auth().currentUser,
+              let email = user.email else {
+            completion(.failure(NSError(domain: "AuthService", code: -2, userInfo: [NSLocalizedDescriptionKey: "No signed-in user found."])))
+            return
+        }
+
+        let credential = EmailAuthProvider.credential(withEmail: email, password: currentPassword)
+        user.reauthenticate(with: credential) { _, error in
+            if let error {
+                completion(.failure(error))
+                return
+            }
+            completion(.success(user))
+        }
+    }
 }

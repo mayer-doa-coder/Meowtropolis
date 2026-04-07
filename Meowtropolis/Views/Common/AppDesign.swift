@@ -1,5 +1,6 @@
 import SwiftUI
 import Foundation
+import UIKit
 
 enum AppDesign {
     static let bg = Color(red: 0.95, green: 0.95, blue: 0.95)
@@ -246,5 +247,43 @@ enum AppImageLibrary {
         }
 
         return URL(string: "https://loremflickr.com/800/600/pet,products")
+    }
+
+    static func profileImage(fromBase64 base64: String?) -> UIImage? {
+        guard let base64,
+              let data = Data(base64Encoded: base64),
+              let image = UIImage(data: data) else {
+            return nil
+        }
+        return image
+    }
+}
+
+enum AppLanguage: String, CaseIterable {
+    case englishUS = "en-US"
+    case bangla = "bn-BD"
+
+    static let storageKey = "appLanguageCode"
+
+    var displayTitle: String {
+        switch self {
+        case .englishUS:
+            return "English (US)"
+        case .bangla:
+            return "Bangla"
+        }
+    }
+
+    func text(english: String, bangla: String) -> String {
+        switch self {
+        case .englishUS:
+            return english
+        case .bangla:
+            return bangla
+        }
+    }
+
+    static func from(code: String) -> AppLanguage {
+        AppLanguage(rawValue: code) ?? .englishUS
     }
 }

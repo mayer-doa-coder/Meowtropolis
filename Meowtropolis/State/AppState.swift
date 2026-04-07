@@ -14,6 +14,8 @@ final class AppState: ObservableObject {
     private let userService: UserService
     private var authListenerHandle: NSObjectProtocol?
 
+    private let appLanguageDefaultsKey = "appLanguageCode"
+
     init(authService: any AuthService = FirebaseAuthService(), userService: UserService = UserService()) {
         self.authService = authService
         self.userService = userService
@@ -66,7 +68,12 @@ final class AppState: ObservableObject {
                 }
 
             case let .success(uid):
-                let user = User(id: uid, name: fullName, email: email)
+                let user = User(
+                    id: uid,
+                    name: fullName,
+                    email: email,
+                    preferredLanguageCode: UserDefaults.standard.string(forKey: appLanguageDefaultsKey)
+                )
 
                 userService.createUserProfile(user: user) { profileResult in
                     DispatchQueue.main.async {
@@ -109,6 +116,127 @@ final class AppState: ObservableObject {
         }
     }
 
+    func updatePersonalInformation(
+        fullName: String,
+        email: String,
+        preferredLanguageCode: String,
+        profileImageBase64: String?,
+        currentPasswordForEmailChange: String?,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        guard let currentUserId,
+              let currentUser else {
+            completion(.failure(NSError(domain: "AppState", code: 401, userInfo: [NSLocalizedDescriptionKey: "You must be logged in to update profile."])))
+            return
+        }
+
+        let cleanedName = fullName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !cleanedName.isEmpty else {
+            completion(.failure(NSError(domain: "AppState", code: 422, userInfo: [NSLocalizedDescriptionKey: "Name is required."])))
+            return
+        }
+
+        guard isValidEmail(cleanedEmail) else {
+            completion(.failure(NSError(domain: "AppState", code: 422, userInfo: [NSLocalizedDescriptionKey: "Please enter a valid email address."])))
+            return
+        }
+
+        let updatedUser = User(
+            id: currentUserId,
+            name: cleanedName,
+            email: cleanedEmail,
+            preferredLanguageCode: preferredLanguageCode,
+            profileImageBase64: profileImageBase64
+        )
+
+        let saveProfile: () -> Void = { [weak self] in
+            guard let self else {
+                return
+            }
+
+            self.userService.updateUserProfile(user: updatedUser) { result in
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success:
+                        self.currentUser = updatedUser
+                        UserDefaults.standard.set(preferredLanguageCode, forKey: self.appLanguageDefaultsKey)
+                        completion(.success(()))
+                    case let .failure(error):
+                        completion(.failure(error))
+                    }
+                }
+            }
+        }
+
+        if cleanedEmail.caseInsensitiveCompare(currentUser.email) != .orderedSame {
+            guard let currentPasswordForEmailChange,
+                  !currentPasswordForEmailChange.isEmpty else {
+                completion(.failure(NSError(domain: "AppState", code: 422, userInfo: [NSLocalizedDescriptionKey: "Current password is required to change email."])))
+                return
+            }
+
+            authService.updateEmail(currentPassword: currentPasswordForEmailChange, newEmail: cleanedEmail) { result in
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success:
+                        saveProfile()
+                    case let .failure(error):
+                        completion(.failure(error))
+                    }
+                }
+            }
+        } else {
+            saveProfile()
+        }
+    }
+
+    func changePassword(currentPassword: String, newPassword: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        authService.updatePassword(currentPassword: currentPassword, newPassword: newPassword) { result in
+            DispatchQueue.main.async {
+                completion(result)
+            }
+        }
+    }
+
+    func deleteAccount(currentPassword: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let currentUserId else {
+            completion(.failure(NSError(domain: "AppState", code: 401, userInfo: [NSLocalizedDescriptionKey: "No logged-in user found."])))
+            return
+        }
+
+        userService.deleteUserProfile(userId: currentUserId) { [weak self] profileDeletionResult in
+            guard let self else {
+                return
+            }
+
+            switch profileDeletionResult {
+            case let .failure(error):
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
+
+            case .success:
+                self.authService.deleteCurrentUser(currentPassword: currentPassword) { authDeletionResult in
+                    DispatchQueue.main.async {
+                        switch authDeletionResult {
+                        case .success:
+                            self.isLoggedIn = false
+                            self.currentUserId = nil
+                            self.currentUser = nil
+                            self.isProfileLoading = false
+                            self.profileErrorMessage = nil
+                            completion(.success(()))
+                        case let .failure(error):
+                            completion(.failure(error))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /// Loads profile after login to make user data available app-wide.
     func loadCurrentUserProfile(completion: ((Result<User, Error>) -> Void)? = nil) {
         guard let userId = currentUserId else {
@@ -133,6 +261,9 @@ final class AppState: ObservableObject {
                 switch result {
                 case let .success(user):
                     self.currentUser = user
+                    if let code = user.preferredLanguageCode, !code.isEmpty {
+                        UserDefaults.standard.set(code, forKey: self.appLanguageDefaultsKey)
+                    }
                     self.profileErrorMessage = nil
                     completion?(.success(user))
                 case let .failure(error):
@@ -182,6 +313,11 @@ final class AppState: ObservableObject {
         }
 
         return "Unable to load profile right now. Please try again."
+    }
+
+    private func isValidEmail(_ email: String) -> Bool {
+        let pattern = "^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+        return NSPredicate(format: "SELF MATCHES %@", pattern).evaluate(with: email)
     }
 
     private func handleAuthStateChanged(userId: String?) {

@@ -16,6 +16,24 @@ struct User: Codable {
     let name: String
     /// Email used for login and communication.
     let email: String
+    /// Optional language code preference for UI.
+    let preferredLanguageCode: String?
+    /// Optional base64 image data used as profile avatar.
+    let profileImageBase64: String?
+
+    init(
+        id: String,
+        name: String,
+        email: String,
+        preferredLanguageCode: String? = nil,
+        profileImageBase64: String? = nil
+    ) {
+        self.id = id
+        self.name = name
+        self.email = email
+        self.preferredLanguageCode = preferredLanguageCode
+        self.profileImageBase64 = profileImageBase64
+    }
 }
 
 /// Basic pet profile linked to a user.
