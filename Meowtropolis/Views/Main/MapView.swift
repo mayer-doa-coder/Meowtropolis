@@ -125,6 +125,10 @@ struct MapView: View {
                             state: mapState.permissionState,
                             language: currentLanguage,
                             onAllowLocation: {
+                                UserHistoryService.shared.recordCurrentUser(
+                                    category: .map,
+                                    action: "Requested location permission"
+                                )
                                 mapState.requestLocationPermission()
                             },
                             onOpenSettings: openLocationSettings
@@ -141,6 +145,10 @@ struct MapView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             print("[Navigation] Map tab opened")
+            UserHistoryService.shared.recordCurrentUser(
+                category: .map,
+                action: "Opened map screen"
+            )
             if let initialCategory {
                 print("[MapView] Initial category: \(initialCategory)")
             }
@@ -226,6 +234,10 @@ struct MapView: View {
                 retryAccessibilityIdentifier: "retryButton",
                 onRetry: {
                     print("[MapView] Retry tapped")
+                    UserHistoryService.shared.recordCurrentUser(
+                        category: .map,
+                        action: "Tapped retry on map error"
+                    )
 
                     if isUITestScenarioActive {
                         uiTestRetryTapCount += 1
@@ -257,6 +269,10 @@ struct MapView: View {
 
             Button(text("Retry", "আবার চেষ্টা করুন")) {
                 let retryQuery = mapState.lastQuery.isEmpty ? selectedCategory.query : mapState.lastQuery
+                UserHistoryService.shared.recordCurrentUser(
+                    category: .map,
+                    action: "Tapped retry on map empty state"
+                )
 
                 if isUITestScenarioActive {
                     print("[MapView] Retry tapped")
@@ -323,6 +339,11 @@ struct MapView: View {
 
     private func handleCategorySelection(_ category: MapCategory) {
         selectedCategory = category
+        UserHistoryService.shared.recordCurrentUser(
+            category: .map,
+            action: "Selected map category",
+            details: category.rawValue
+        )
         triggerSearch(for: category)
     }
 
@@ -340,6 +361,10 @@ struct MapView: View {
             return
         }
 
+        UserHistoryService.shared.recordCurrentUser(
+            category: .map,
+            action: "Opened location settings"
+        )
         openURL(settingsURL)
     }
 }

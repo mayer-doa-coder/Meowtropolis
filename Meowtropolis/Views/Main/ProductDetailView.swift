@@ -18,27 +18,10 @@ struct ProductDetailView: View {
                         .padding(.horizontal, 20)
                         .padding(.top, 12)
                         .overlay {
-                            if let url = AppImageLibrary.productImageURL(for: product) {
-                                AsyncImage(url: url) { phase in
-                                    switch phase {
-                                    case let .success(image):
-                                        image
-                                            .resizable()
-                                            .scaledToFill()
-                                            .clipShape(RoundedRectangle(cornerRadius: 28))
-                                            .padding(.horizontal, 20)
-                                            .padding(.top, 12)
-                                    case .failure:
-                                        Image(systemName: "photo")
-                                            .font(.system(size: 40))
-                                            .foregroundStyle(AppDesign.muted)
-                                    case .empty:
-                                        ProgressView()
-                                    @unknown default:
-                                        EmptyView()
-                                    }
-                                }
-                            }
+                            AppPlaceholderImageView(cornerRadius: 28, iconSize: 40)
+                                .clipShape(RoundedRectangle(cornerRadius: 28))
+                                .padding(.horizontal, 20)
+                                .padding(.top, 12)
                         }
 
                     CardView {
@@ -72,6 +55,11 @@ struct ProductDetailView: View {
 
                             Button {
                                 quantity = max(1, quantity - 1)
+                                UserHistoryService.shared.recordCurrentUser(
+                                    category: .shop,
+                                    action: "Decreased product quantity",
+                                    details: product.name
+                                )
                             } label: {
                                 Image(systemName: "minus")
                                     .frame(width: 28, height: 28)
@@ -83,6 +71,11 @@ struct ProductDetailView: View {
 
                             Button {
                                 quantity += 1
+                                UserHistoryService.shared.recordCurrentUser(
+                                    category: .shop,
+                                    action: "Increased product quantity",
+                                    details: product.name
+                                )
                             } label: {
                                 Image(systemName: "plus")
                                     .frame(width: 28, height: 28)
@@ -102,6 +95,11 @@ struct ProductDetailView: View {
                         Button(text("Add to Cart", "কার্টে যোগ করুন")) {
                             cartState.addToCart(product: product, quantity: quantity)
                             successMessage = text("Added to cart successfully.", "কার্টে সফলভাবে যোগ করা হয়েছে।")
+                            UserHistoryService.shared.recordCurrentUser(
+                                category: .shop,
+                                action: "Tapped add to cart",
+                                details: "\(product.name) x\(quantity)"
+                            )
                         }
                         .buttonStyle(FilledPrimaryButtonStyle())
                         .accessibilityIdentifier("productDetailAddToCartButton")
@@ -129,7 +127,23 @@ struct ProductDetailView: View {
                     }
                 }
                 .accessibilityIdentifier("productDetailCartButton")
+                .simultaneousGesture(
+                    TapGesture().onEnded {
+                        UserHistoryService.shared.recordCurrentUser(
+                            category: .shop,
+                            action: "Opened cart from product details",
+                            details: product.name
+                        )
+                    }
+                )
             }
+        }
+        .onAppear {
+            UserHistoryService.shared.recordCurrentUser(
+                category: .shop,
+                action: "Viewed product details",
+                details: product.name
+            )
         }
     }
 

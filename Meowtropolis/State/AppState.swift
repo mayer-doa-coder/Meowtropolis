@@ -12,13 +12,19 @@ final class AppState: ObservableObject {
 
     private let authService: any AuthService
     private let userService: UserService
+    private let userHistoryService: UserHistoryService
     private var authListenerHandle: NSObjectProtocol?
 
     private let appLanguageDefaultsKey = "appLanguageCode"
 
-    init(authService: any AuthService = FirebaseAuthService(), userService: UserService = UserService()) {
+    init(
+        authService: any AuthService = FirebaseAuthService(),
+        userService: UserService = UserService(),
+        userHistoryService: UserHistoryService = .shared
+    ) {
         self.authService = authService
         self.userService = userService
+        self.userHistoryService = userHistoryService
 
         // Set initial state immediately when app starts.
         checkSession()
@@ -50,6 +56,13 @@ final class AppState: ObservableObject {
                 case .success:
                     print("[Auth] login success")
                     self?.handleAuthStateChanged(userId: self?.authService.currentUserId)
+                    if let userId = self?.authService.currentUserId {
+                        self?.userHistoryService.record(
+                            userId: userId,
+                            category: .auth,
+                            action: "Logged in"
+                        )
+                    }
                     completion(.success(()))
                 case let .failure(error):
                     print("[Auth] login error: \(error.localizedDescription)")
@@ -88,6 +101,11 @@ final class AppState: ObservableObject {
                         case .success:
                             print("[Auth] profile created for uid: \(uid)")
                             self.handleAuthStateChanged(userId: uid)
+                            self.userHistoryService.record(
+                                userId: uid,
+                                category: .auth,
+                                action: "Created account"
+                            )
                             completion(.success(()))
                         case let .failure(error):
                             print("[Auth] profile creation error: \(error.localizedDescription)")
@@ -101,11 +119,19 @@ final class AppState: ObservableObject {
 
     func logout(completion: ((Result<Void, Error>) -> Void)? = nil) {
         print("[Auth] logout requested")
+        let userIdBeforeLogout = currentUserId
         authService.signOut { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success:
                     print("[Auth] logout success")
+                    if let userIdBeforeLogout {
+                        self?.userHistoryService.record(
+                            userId: userIdBeforeLogout,
+                            category: .auth,
+                            action: "Logged out"
+                        )
+                    }
                     self?.isLoggedIn = false
                     self?.currentUserId = nil
                     self?.currentUser = nil
@@ -178,6 +204,11 @@ final class AppState: ObservableObject {
                                 case let .success(freshUser):
                                     self.currentUser = freshUser
                                     UserDefaults.standard.set(preferredLanguageCode, forKey: self.appLanguageDefaultsKey)
+                                    self.userHistoryService.record(
+                                        userId: currentUserId,
+                                        category: .account,
+                                        action: "Updated personal information"
+                                    )
                                     completion(.success(()))
                                 case let .failure(error):
                                     completion(.failure(error))
@@ -216,6 +247,13 @@ final class AppState: ObservableObject {
     func changePassword(currentPassword: String, newPassword: String, completion: @escaping (Result<Void, Error>) -> Void) {
         authService.updatePassword(currentPassword: currentPassword, newPassword: newPassword) { result in
             DispatchQueue.main.async {
+                if case .success = result, let userId = self.currentUserId {
+                    self.userHistoryService.record(
+                        userId: userId,
+                        category: .account,
+                        action: "Changed password"
+                    )
+                }
                 completion(result)
             }
         }
@@ -243,6 +281,11 @@ final class AppState: ObservableObject {
                     DispatchQueue.main.async {
                         switch authDeletionResult {
                         case .success:
+                            self.userHistoryService.record(
+                                userId: currentUserId,
+                                category: .account,
+                                action: "Deleted account"
+                            )
                             self.isLoggedIn = false
                             self.currentUserId = nil
                             self.currentUser = nil
@@ -350,6 +393,7 @@ final class AppState: ObservableObject {
         print("[Auth] auth state changed. userId present: \(userId != nil)")
         isLoggedIn = (userId != nil)
         currentUserId = userId
+        userHistoryService.setActiveUserId(userId)
 
         guard userId != nil else {
             currentUser = nil

@@ -34,6 +34,10 @@ struct VetView: View {
                     .simultaneousGesture(
                         TapGesture().onEnded {
                             print("[Navigation] Open Map from Vet (category: vet)")
+                            UserHistoryService.shared.recordCurrentUser(
+                                category: .vet,
+                                action: "Opened map from vet"
+                            )
                         }
                     )
 
@@ -55,7 +59,13 @@ struct VetView: View {
                             messageAccessibilityIdentifier: "vetErrorMessage",
                             retryTitle: text("Retry", "আবার চেষ্টা করুন"),
                             retryAccessibilityIdentifier: "vetRetryButton",
-                            onRetry: loadRequests
+                            onRetry: {
+                                UserHistoryService.shared.recordCurrentUser(
+                                    category: .vet,
+                                    action: "Tapped retry in vet"
+                                )
+                                loadRequests()
+                            }
                         )
                     }
 
@@ -71,6 +81,12 @@ struct VetView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task {
             loadRequests()
+        }
+        .onAppear {
+            UserHistoryService.shared.recordCurrentUser(
+                category: .vet,
+                action: "Opened vet screen"
+            )
         }
     }
 
@@ -169,6 +185,11 @@ struct VetView: View {
                 switch result {
                 case .success:
                     issueDescription = ""
+                    UserHistoryService.shared.recordCurrentUser(
+                        category: .vet,
+                        action: "Requested vet consultation",
+                        details: cleanedIssue
+                    )
                     successMessage = text("Vet consultation request sent successfully.", "ভেট পরামর্শের অনুরোধ সফলভাবে পাঠানো হয়েছে।")
                     loadRequests()
                 case let .failure(error):

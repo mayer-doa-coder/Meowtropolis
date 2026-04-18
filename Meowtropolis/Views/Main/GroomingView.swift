@@ -51,6 +51,10 @@ struct GroomingView: View {
                     .simultaneousGesture(
                         TapGesture().onEnded {
                             print("[Navigation] Open Map from Grooming (category: grooming)")
+                            UserHistoryService.shared.recordCurrentUser(
+                                category: .grooming,
+                                action: "Opened map from grooming"
+                            )
                         }
                     )
 
@@ -72,7 +76,13 @@ struct GroomingView: View {
                             messageAccessibilityIdentifier: "groomingErrorMessage",
                             retryTitle: text("Retry", "আবার চেষ্টা করুন"),
                             retryAccessibilityIdentifier: "groomingRetryButton",
-                            onRetry: loadBookings
+                            onRetry: {
+                                UserHistoryService.shared.recordCurrentUser(
+                                    category: .grooming,
+                                    action: "Tapped retry in grooming"
+                                )
+                                loadBookings()
+                            }
                         )
                     }
 
@@ -102,6 +112,12 @@ struct GroomingView: View {
         .task {
             loadInitialData()
         }
+        .onAppear {
+            UserHistoryService.shared.recordCurrentUser(
+                category: .grooming,
+                action: "Opened grooming screen"
+            )
+        }
     }
 
     private var bookingFormCard: some View {
@@ -114,20 +130,7 @@ struct GroomingView: View {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color.gray.opacity(0.2))
 
-                if let serviceImageURL = AppImageLibrary.groomingServiceImageURL(for: selectedServiceType) {
-                    AsyncImage(url: serviceImageURL) { phase in
-                        switch phase {
-                        case let .success(image):
-                            image
-                                .resizable()
-                                .scaledToFill()
-                        default:
-                            Image(systemName: "sparkles")
-                                .font(.system(size: 24))
-                                .foregroundStyle(AppDesign.muted)
-                        }
-                    }
-                }
+                AppPlaceholderImageView(cornerRadius: 12, iconSize: 24)
             }
             .frame(height: 130)
             .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -182,6 +185,11 @@ struct GroomingView: View {
             .accessibilityIdentifier("groomingFilterPicker")
             .pickerStyle(.menu)
             .onChange(of: selectedPetIdFilter) { _ in
+                UserHistoryService.shared.recordCurrentUser(
+                    category: .grooming,
+                    action: "Changed grooming filter",
+                    details: selectedPetIdFilter
+                )
                 loadBookings()
             }
         }
@@ -193,19 +201,7 @@ struct GroomingView: View {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color.gray.opacity(0.18))
 
-                if let serviceImageURL = AppImageLibrary.groomingServiceImageURL(for: booking.serviceType) {
-                    AsyncImage(url: serviceImageURL) { phase in
-                        switch phase {
-                        case let .success(image):
-                            image
-                                .resizable()
-                                .scaledToFill()
-                        default:
-                            Image(systemName: "photo")
-                                .foregroundStyle(AppDesign.muted)
-                        }
-                    }
-                }
+                AppPlaceholderImageView(cornerRadius: 10, iconSize: 22)
             }
             .frame(height: 96)
             .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -329,6 +325,11 @@ struct GroomingView: View {
                     if remindersEnabled {
                         reminderService.scheduleBookingReminder(booking)
                     }
+                    UserHistoryService.shared.recordCurrentUser(
+                        category: .grooming,
+                        action: "Created grooming booking",
+                        details: serviceTypeLabel(booking.serviceType)
+                    )
                     successMessage = text("Grooming booked successfully.", "গ্রুমিং সফলভাবে বুক হয়েছে।")
                     loadBookings()
                 case let .failure(error):
@@ -360,6 +361,11 @@ struct GroomingView: View {
                             status: status
                         )
                     }
+                    UserHistoryService.shared.recordCurrentUser(
+                        category: .grooming,
+                        action: "Updated booking status",
+                        details: status.localizedLabel(language: currentLanguage)
+                    )
                     successMessage = text("Booking status updated.", "বুকিং স্ট্যাটাস আপডেট হয়েছে।")
                 case let .failure(error):
                     errorMessage = error.localizedDescription

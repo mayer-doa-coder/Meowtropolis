@@ -3,6 +3,61 @@ import PhotosUI
 import UserNotifications
 import UIKit
 
+private enum UserHistoryFilter: String, CaseIterable, Identifiable {
+    case all
+    case auth
+    case pets
+    case grooming
+    case vet
+    case shop
+    case map
+    case account
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .all:
+            return "All"
+        case .auth:
+            return "Auth"
+        case .pets:
+            return "Pets"
+        case .grooming:
+            return "Grooming"
+        case .vet:
+            return "Vet"
+        case .shop:
+            return "Shop"
+        case .map:
+            return "Map"
+        case .account:
+            return "Account"
+        }
+    }
+
+    var category: UserHistoryCategory? {
+        switch self {
+        case .all:
+            return nil
+        case .auth:
+            return .auth
+        case .pets:
+            return .pets
+        case .grooming:
+            return .grooming
+        case .vet:
+            return .vet
+        case .shop:
+            return .shop
+        case .map:
+            return .map
+        case .account:
+            return .account
+        }
+    }
+}
+
 struct AccountView: View {
     @EnvironmentObject private var appState: AppState
     @AppStorage(ReminderService.preferenceKey) private var remindersEnabled: Bool = false
@@ -12,8 +67,11 @@ struct AccountView: View {
     @State private var isLoggingOut: Bool = false
     @State private var permissionStatusText: String = ""
     @State private var languageUpdateMessage: String?
+    @State private var historyEntries: [UserHistoryEntry] = []
+    @State private var selectedHistoryFilter: UserHistoryFilter = .all
 
     private let reminderService = ReminderService()
+    private let userHistoryService = UserHistoryService.shared
 
     var body: some View {
         AppBackground {
@@ -26,16 +84,7 @@ struct AccountView: View {
                                     .resizable()
                                     .scaledToFill()
                             } else {
-                                AsyncImage(url: AppImageLibrary.userAvatarURL) { phase in
-                                    switch phase {
-                                    case let .success(image):
-                                        image
-                                            .resizable()
-                                            .scaledToFill()
-                                    default:
-                                        Circle().fill(Color.gray.opacity(0.35))
-                                    }
-                                }
+                                AppPlaceholderImageView(cornerRadius: 47, iconSize: 28)
                             }
                             .frame(width: 94, height: 94)
                             .clipShape(Circle())
@@ -133,6 +182,77 @@ struct AccountView: View {
                     }
 
                     CardView {
+                        HStack {
+                            Text(text("User History", "ব্যবহারকারীর ইতিহাস"))
+                                .font(TextStyles.subtitle)
+                                .foregroundStyle(AppDesign.text)
+                            Spacer()
+                            Button(text("Clear", "মুছুন")) {
+                                userHistoryService.clear(for: appState.currentUserId)
+                                loadHistoryEntries()
+                            }
+                            .font(TextStyles.caption)
+                            .foregroundStyle(.red)
+                        }
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(UserHistoryFilter.allCases) { filter in
+                                    Button {
+                                        selectedHistoryFilter = filter
+                                    } label: {
+                                        Text(filter.title)
+                                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                            .foregroundStyle(selectedHistoryFilter == filter ? Color.white : AppDesign.text)
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 8)
+                                            .background(selectedHistoryFilter == filter ? AppDesign.primary : Color.white.opacity(0.85))
+                                            .clipShape(Capsule())
+                                            .overlay {
+                                                Capsule()
+                                                    .stroke(AppDesign.line, lineWidth: selectedHistoryFilter == filter ? 0 : 1)
+                                            }
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                        }
+
+                        if filteredHistoryEntries.isEmpty {
+                            Text(text("No user activity yet.", "এখনও কোনো ব্যবহারকারী কার্যকলাপ নেই।"))
+                                .font(TextStyles.caption)
+                                .foregroundStyle(AppDesign.muted)
+                        } else {
+                            ForEach(filteredHistoryEntries.prefix(20)) { entry in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    HStack {
+                                        Text(entry.action)
+                                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                            .foregroundStyle(AppDesign.text)
+                                        Spacer()
+                                        Text(entry.category.displayTitle)
+                                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                                            .foregroundStyle(AppDesign.muted)
+                                    }
+
+                                    if let details = entry.details, !details.isEmpty {
+                                        Text(details)
+                                            .font(TextStyles.caption)
+                                            .foregroundStyle(AppDesign.muted)
+                                    }
+
+                                    Text(relativeDate(entry.timestamp))
+                                        .font(.system(size: 12, weight: .regular, design: .rounded))
+                                        .foregroundStyle(AppDesign.muted)
+                                }
+                                .padding(12)
+                                .background(Color.white.opacity(0.65))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+                        }
+                    }
+
+                    CardView {
                         Text(text("More", "আরও"))
                             .font(TextStyles.subtitle)
                             .foregroundStyle(AppDesign.text)
@@ -176,9 +296,24 @@ struct AccountView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             refreshPermissionStatus()
+            loadHistoryEntries()
+            userHistoryService.recordCurrentUser(
+                category: .account,
+                action: "Opened account screen"
+            )
         }
         .onChange(of: appLanguageCode) { _ in
             refreshPermissionStatus()
+        }
+        .onChange(of: appState.currentUserId) { _ in
+            loadHistoryEntries()
+        }
+        .onChange(of: selectedHistoryFilter) { filter in
+            userHistoryService.recordCurrentUser(
+                category: .account,
+                action: "Changed history filter",
+                details: filter.title
+            )
         }
     }
 
@@ -240,6 +375,11 @@ struct AccountView: View {
         ) { result in
             switch result {
             case .success:
+                userHistoryService.recordCurrentUser(
+                    category: .account,
+                    action: "Changed app language",
+                    details: language.displayTitle
+                )
                 languageUpdateMessage = text("Language updated.", "ভাষা আপডেট হয়েছে।")
             case .failure:
                 appLanguageCode = oldValue
@@ -250,6 +390,10 @@ struct AccountView: View {
 
     private func handleReminderToggle(enabled: Bool) {
         if !enabled {
+            userHistoryService.recordCurrentUser(
+                category: .account,
+                action: "Disabled reminders"
+            )
             permissionStatusText = text("Permission: Reminders disabled", "অনুমতি: রিমাইন্ডার বন্ধ")
             return
         }
@@ -257,9 +401,17 @@ struct AccountView: View {
         reminderService.requestPermission { granted in
             DispatchQueue.main.async {
                 if granted {
+                    userHistoryService.recordCurrentUser(
+                        category: .account,
+                        action: "Enabled reminders"
+                    )
                     permissionStatusText = text("Permission: Allowed", "অনুমতি: অনুমোদিত")
                 } else {
                     remindersEnabled = false
+                    userHistoryService.recordCurrentUser(
+                        category: .account,
+                        action: "Reminder permission denied"
+                    )
                     permissionStatusText = text("Permission: Denied (enable in iPhone Settings)", "অনুমতি: প্রত্যাখ্যাত (iPhone Settings থেকে চালু করুন)")
                 }
             }
@@ -283,6 +435,22 @@ struct AccountView: View {
                 }
             }
         }
+    }
+
+    private var filteredHistoryEntries: [UserHistoryEntry] {
+        guard let category = selectedHistoryFilter.category else {
+            return historyEntries
+        }
+
+        return historyEntries.filter { $0.category == category }
+    }
+
+    private func loadHistoryEntries() {
+        historyEntries = userHistoryService.entries(for: appState.currentUserId)
+    }
+
+    private func relativeDate(_ date: Date) -> String {
+        RelativeDateTimeFormatter().localizedString(for: date, relativeTo: Date())
     }
 }
 
@@ -385,16 +553,7 @@ private struct PersonalInformationView: View {
                     .resizable()
                     .scaledToFill()
             } else {
-                AsyncImage(url: AppImageLibrary.userAvatarURL) { phase in
-                    switch phase {
-                    case let .success(image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    default:
-                        Circle().fill(Color.gray.opacity(0.3))
-                    }
-                }
+                AppPlaceholderImageView(cornerRadius: 45, iconSize: 24)
             }
         }
         .frame(width: 90, height: 90)

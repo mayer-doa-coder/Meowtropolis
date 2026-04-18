@@ -21,6 +21,10 @@ struct CheckoutView: View {
                             .foregroundStyle(AppDesign.muted)
 
                         Button(text("Back to Store", "স্টোরে ফিরে যান")) {
+                            UserHistoryService.shared.recordCurrentUser(
+                                category: .shop,
+                                action: "Returned to store from checkout"
+                            )
                             dismiss()
                         }
                         .buttonStyle(OutlinedPrimaryButtonStyle())
@@ -61,7 +65,14 @@ struct CheckoutView: View {
                                 .foregroundStyle(AppDesign.primary)
 
                             Button(text("Place Order", "অর্ডার দিন")) {
+                                let totalItems = cartState.totalItemCount
+                                let totalPrice = cartState.totalPrice
                                 cartState.clearCart()
+                                UserHistoryService.shared.recordCurrentUser(
+                                    category: .shop,
+                                    action: "Placed order",
+                                    details: "\(totalItems) item(s), total \(String(format: "%.2f", totalPrice))"
+                                )
                                 showConfirmation = true
                             }
                             .buttonStyle(FilledPrimaryButtonStyle())
@@ -78,8 +89,18 @@ struct CheckoutView: View {
         }
         .navigationTitle(text("Checkout", "চেকআউট"))
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            UserHistoryService.shared.recordCurrentUser(
+                category: .shop,
+                action: "Opened checkout screen"
+            )
+        }
         .alert(text("Order Confirmation", "অর্ডার নিশ্চিতকরণ"), isPresented: $showConfirmation) {
             Button(text("Back to Store", "স্টোরে ফিরে যান")) {
+                UserHistoryService.shared.recordCurrentUser(
+                    category: .shop,
+                    action: "Closed order confirmation"
+                )
                 dismiss()
             }
         } message: {

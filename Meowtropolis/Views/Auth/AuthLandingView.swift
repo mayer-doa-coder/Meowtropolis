@@ -7,21 +7,9 @@ struct AuthLandingView: View {
         AppBackground {
             ScrollView {
                 VStack(spacing: 24) {
-                    if let heroURL = AppImageLibrary.authHeroURL {
-                        AsyncImage(url: heroURL) { phase in
-                            switch phase {
-                            case let .success(image):
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                            default:
-                                RoundedRectangle(cornerRadius: 18)
-                                    .fill(Color.gray.opacity(0.2))
-                            }
-                        }
+                    AppPlaceholderImageView(cornerRadius: 18, iconSize: 34)
                         .frame(height: 180)
                         .clipShape(RoundedRectangle(cornerRadius: 18))
-                    }
 
                     AppLogoHeader()
 

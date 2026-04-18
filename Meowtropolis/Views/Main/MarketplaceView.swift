@@ -26,6 +26,17 @@ struct MarketplaceView: View {
                             .accessibilityIdentifier("marketplaceSearchField")
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
+                            .onSubmit {
+                                let cleanedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+                                guard !cleanedQuery.isEmpty else {
+                                    return
+                                }
+                                UserHistoryService.shared.recordCurrentUser(
+                                    category: .shop,
+                                    action: "Submitted store search",
+                                    details: cleanedQuery
+                                )
+                            }
                     }
                     .padding(.horizontal, 4)
                     .frame(height: 44)
@@ -45,7 +56,13 @@ struct MarketplaceView: View {
                         messageAccessibilityIdentifier: "marketplaceErrorMessage",
                         retryTitle: text("Retry", "আবার চেষ্টা করুন"),
                         retryAccessibilityIdentifier: "marketplaceRetryButton",
-                        onRetry: loadProducts
+                        onRetry: {
+                            UserHistoryService.shared.recordCurrentUser(
+                                category: .shop,
+                                action: "Tapped retry in marketplace"
+                            )
+                            loadProducts()
+                        }
                     )
                     .padding(20)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -64,6 +81,15 @@ struct MarketplaceView: View {
                                 productRow(product)
                             }
                             .accessibilityIdentifier("marketplaceProductRow_\(product.id)")
+                            .simultaneousGesture(
+                                TapGesture().onEnded {
+                                    UserHistoryService.shared.recordCurrentUser(
+                                        category: .shop,
+                                        action: "Opened product from list",
+                                        details: product.name
+                                    )
+                                }
+                            )
                         }
                     }
                     .accessibilityIdentifier("marketplaceProductList")
@@ -87,10 +113,24 @@ struct MarketplaceView: View {
                     .foregroundStyle(AppDesign.text)
                 }
                 .accessibilityIdentifier("marketplaceCartButton")
+                .simultaneousGesture(
+                    TapGesture().onEnded {
+                        UserHistoryService.shared.recordCurrentUser(
+                            category: .shop,
+                            action: "Opened cart from marketplace"
+                        )
+                    }
+                )
             }
         }
         .task {
             loadProducts()
+        }
+        .onAppear {
+            UserHistoryService.shared.recordCurrentUser(
+                category: .shop,
+                action: "Opened marketplace"
+            )
         }
     }
 
@@ -132,22 +172,7 @@ struct MarketplaceView: View {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(Color.gray.opacity(0.4))
 
-                    if let imageURL = AppImageLibrary.productImageURL(for: product) {
-                        AsyncImage(url: imageURL) { phase in
-                            switch phase {
-                            case let .success(image):
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                            default:
-                                Image(systemName: "photo")
-                                    .foregroundStyle(AppDesign.muted)
-                            }
-                        }
-                    } else {
-                        Image(systemName: "photo")
-                            .foregroundStyle(AppDesign.muted)
-                    }
+                    AppPlaceholderImageView(cornerRadius: 10, iconSize: 24)
                 }
                 .frame(width: 72, height: 72)
                 .clipShape(RoundedRectangle(cornerRadius: 10))

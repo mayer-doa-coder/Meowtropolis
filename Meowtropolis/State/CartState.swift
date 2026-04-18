@@ -1,4 +1,5 @@
 import Foundation
+import Combine 
 
 /// Shared in-memory cart for MVP flows.
 final class CartState: ObservableObject {
@@ -18,6 +19,11 @@ final class CartState: ObservableObject {
 
         if let index = items.firstIndex(where: { $0.productId == product.id }) {
             items[index].quantity += safeQuantity
+            UserHistoryService.shared.recordCurrentUser(
+                category: .shop,
+                action: "Updated cart quantity",
+                details: "\(product.name): +\(safeQuantity)"
+            )
             return
         }
 
@@ -30,10 +36,21 @@ final class CartState: ObservableObject {
         )
 
         items.append(newItem)
+        UserHistoryService.shared.recordCurrentUser(
+            category: .shop,
+            action: "Added item to cart",
+            details: "\(product.name) x\(safeQuantity)"
+        )
     }
 
     func removeFromCart(productId: String) {
+        let itemName = items.first(where: { $0.productId == productId })?.name ?? productId
         items.removeAll { $0.productId == productId }
+        UserHistoryService.shared.recordCurrentUser(
+            category: .shop,
+            action: "Removed item from cart",
+            details: itemName
+        )
     }
 
     func updateQuantity(productId: String, quantity: Int) {
@@ -45,10 +62,19 @@ final class CartState: ObservableObject {
             removeFromCart(productId: productId)
         } else {
             items[index].quantity = quantity
+            UserHistoryService.shared.recordCurrentUser(
+                category: .shop,
+                action: "Changed cart quantity",
+                details: "\(items[index].name): \(quantity)"
+            )
         }
     }
 
     func clearCart() {
         items = []
+        UserHistoryService.shared.recordCurrentUser(
+            category: .shop,
+            action: "Cleared cart"
+        )
     }
 }

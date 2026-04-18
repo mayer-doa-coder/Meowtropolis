@@ -44,6 +44,12 @@ struct CartView: View {
         .navigationTitle(text("My Cart", "আমার কার্ট"))
         .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("cartView")
+        .onAppear {
+            UserHistoryService.shared.recordCurrentUser(
+                category: .shop,
+                action: "Opened cart"
+            )
+        }
     }
 
     private func cartRow(_ item: CartItem) -> some View {
@@ -89,6 +95,14 @@ struct CartView: View {
             }
             .buttonStyle(FilledPrimaryButtonStyle(disabled: cartState.items.isEmpty))
             .disabled(cartState.items.isEmpty)
+            .simultaneousGesture(
+                TapGesture().onEnded {
+                    UserHistoryService.shared.recordCurrentUser(
+                        category: .shop,
+                        action: "Opened checkout"
+                    )
+                }
+            )
         }
         .padding(14)
         .background(Color.white.opacity(0.7))
