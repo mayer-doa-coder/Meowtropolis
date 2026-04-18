@@ -15,24 +15,24 @@ private enum UserHistoryFilter: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var title: String {
+    func title(language: AppLanguage) -> String {
         switch self {
         case .all:
-            return "All"
+            return language.text(english: "All", bangla: "সব")
         case .auth:
-            return "Auth"
+            return language.text(english: "Auth", bangla: "লগইন")
         case .pets:
-            return "Pets"
+            return language.text(english: "Pets", bangla: "পোষা প্রাণী")
         case .grooming:
-            return "Grooming"
+            return language.text(english: "Grooming", bangla: "গ্রুমিং")
         case .vet:
-            return "Vet"
+            return language.text(english: "Vet", bangla: "ভেট")
         case .shop:
-            return "Shop"
+            return language.text(english: "Shop", bangla: "শপ")
         case .map:
-            return "Map"
+            return language.text(english: "Map", bangla: "ম্যাপ")
         case .account:
-            return "Account"
+            return language.text(english: "Account", bangla: "অ্যাকাউন্ট")
         }
     }
 
@@ -109,7 +109,7 @@ struct AccountView: View {
                             title: text("Couldn't load your account.", "আপনার অ্যাকাউন্ট লোড করা যায়নি।"),
                             message: text(
                                 "Please check your internet connection. Tap Retry to try again.",
-                                "দয়া করে ইন্টারনেট সংযোগ যাচাই করুন। আবার চেষ্টা করতে Retry চাপুন।"
+                                "দয়া করে ইন্টারনেট সংযোগ যাচাই করুন। আবার চেষ্টা করতে পুনরায় চেষ্টা বোতাম চাপুন।"
                             ) + "\n\n" + profileError,
                             messageAccessibilityIdentifier: "accountProfileErrorMessage",
                             retryTitle: text("Retry", "আবার চেষ্টা করুন"),
@@ -136,14 +136,14 @@ struct AccountView: View {
                                     updateLanguage(language)
                                 } label: {
                                     if language.rawValue == currentLanguage.rawValue {
-                                        Label(language.displayTitle, systemImage: "checkmark")
+                                        Label(language.displayTitle(in: currentLanguage), systemImage: "checkmark")
                                     } else {
-                                        Text(language.displayTitle)
+                                        Text(language.displayTitle(in: currentLanguage))
                                     }
                                 }
                             }
                         } label: {
-                            accountRow(icon: "globe", text: text("Language", "ভাষা"), trailing: currentLanguage.displayTitle)
+                            accountRow(icon: "globe", text: text("Language", "ভাষা"), trailing: currentLanguage.displayTitle(in: currentLanguage))
                         }
                         .buttonStyle(.plain)
 
@@ -201,7 +201,7 @@ struct AccountView: View {
                                     Button {
                                         selectedHistoryFilter = filter
                                     } label: {
-                                        Text(filter.title)
+                                        Text(filter.title(language: currentLanguage))
                                             .font(.system(size: 14, weight: .semibold, design: .rounded))
                                             .foregroundStyle(selectedHistoryFilter == filter ? Color.white : AppDesign.text)
                                             .padding(.horizontal, 12)
@@ -226,17 +226,17 @@ struct AccountView: View {
                             ForEach(filteredHistoryEntries.prefix(20)) { entry in
                                 VStack(alignment: .leading, spacing: 4) {
                                     HStack {
-                                        Text(entry.action)
+                                        Text(localizedHistoryAction(entry.action))
                                             .font(.system(size: 16, weight: .semibold, design: .rounded))
                                             .foregroundStyle(AppDesign.text)
                                         Spacer()
-                                        Text(entry.category.displayTitle)
+                                        Text(entry.category.displayTitle(language: currentLanguage))
                                             .font(.system(size: 12, weight: .medium, design: .rounded))
                                             .foregroundStyle(AppDesign.muted)
                                     }
 
                                     if let details = entry.details, !details.isEmpty {
-                                        Text(details)
+                                        Text(localizedHistoryDetails(details))
                                             .font(TextStyles.caption)
                                             .foregroundStyle(AppDesign.muted)
                                     }
@@ -279,7 +279,7 @@ struct AccountView: View {
                             title: text("Couldn't log you out.", "আপনাকে লগ আউট করা যায়নি।"),
                             message: text(
                                 "Please check your internet connection and tap Retry, or tap Logout again.",
-                                "দয়া করে ইন্টারনেট সংযোগ যাচাই করে Retry চাপুন, অথবা আবার Logout চাপুন।"
+                                "দয়া করে ইন্টারনেট সংযোগ যাচাই করে পুনরায় চেষ্টা বোতাম চাপুন, অথবা আবার লগ আউট চাপুন।"
                             ) + "\n\n" + logoutError,
                             messageAccessibilityIdentifier: "accountLogoutErrorMessage",
                             retryTitle: text("Retry", "আবার চেষ্টা করুন"),
@@ -312,7 +312,7 @@ struct AccountView: View {
             userHistoryService.recordCurrentUser(
                 category: .account,
                 action: "Changed history filter",
-                details: filter.title
+                details: filter.title(language: currentLanguage)
             )
         }
     }
@@ -378,7 +378,7 @@ struct AccountView: View {
                 userHistoryService.recordCurrentUser(
                     category: .account,
                     action: "Changed app language",
-                    details: language.displayTitle
+                    details: language.displayTitle(in: currentLanguage)
                 )
                 languageUpdateMessage = text("Language updated.", "ভাষা আপডেট হয়েছে।")
             case .failure:
@@ -412,7 +412,7 @@ struct AccountView: View {
                         category: .account,
                         action: "Reminder permission denied"
                     )
-                    permissionStatusText = text("Permission: Denied (enable in iPhone Settings)", "অনুমতি: প্রত্যাখ্যাত (iPhone Settings থেকে চালু করুন)")
+                    permissionStatusText = text("Permission: Denied (enable in iPhone Settings)", "অনুমতি: প্রত্যাখ্যাত (আইফোন সেটিংস থেকে চালু করুন)")
                 }
             }
         }
@@ -427,7 +427,7 @@ struct AccountView: View {
                         ? text("Permission: Allowed", "অনুমতি: অনুমোদিত")
                         : text("Permission: Reminders disabled", "অনুমতি: রিমাইন্ডার বন্ধ")
                 case .denied:
-                    permissionStatusText = text("Permission: Denied (enable in iPhone Settings)", "অনুমতি: প্রত্যাখ্যাত (iPhone Settings থেকে চালু করুন)")
+                    permissionStatusText = text("Permission: Denied (enable in iPhone Settings)", "অনুমতি: প্রত্যাখ্যাত (আইফোন সেটিংস থেকে চালু করুন)")
                 case .notDetermined:
                     permissionStatusText = text("Permission: Not requested", "অনুমতি: এখনো চাওয়া হয়নি")
                 @unknown default:
@@ -450,7 +450,65 @@ struct AccountView: View {
     }
 
     private func relativeDate(_ date: Date) -> String {
-        RelativeDateTimeFormatter().localizedString(for: date, relativeTo: Date())
+        let formatter = RelativeDateTimeFormatter()
+        formatter.locale = Locale(identifier: currentLanguage == .bangla ? "bn_BD" : "en_US")
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
+
+    private func localizedHistoryAction(_ action: String) -> String {
+        guard currentLanguage == .bangla else {
+            return action
+        }
+
+        let localizedActions: [String: String] = [
+            "Opened account screen": "অ্যাকাউন্ট স্ক্রিন খোলা হয়েছে",
+            "Changed history filter": "ইতিহাসের ফিল্টার পরিবর্তন করা হয়েছে",
+            "Changed app language": "অ্যাপের ভাষা পরিবর্তন করা হয়েছে",
+            "Disabled reminders": "রিমাইন্ডার বন্ধ করা হয়েছে",
+            "Enabled reminders": "রিমাইন্ডার চালু করা হয়েছে",
+            "Reminder permission denied": "রিমাইন্ডার অনুমতি প্রত্যাখ্যাত হয়েছে",
+            "Opened map screen": "ম্যাপ স্ক্রিন খোলা হয়েছে",
+            "Tapped retry on map error": "ম্যাপ ত্রুটি থেকে আবার চেষ্টা করা হয়েছে",
+            "Tapped retry on map empty state": "খালি ম্যাপ অবস্থা থেকে আবার চেষ্টা করা হয়েছে",
+            "Selected map category": "ম্যাপ ক্যাটাগরি নির্বাচন করা হয়েছে",
+            "Opened location settings": "লোকেশন সেটিংস খোলা হয়েছে",
+            "Opened marketplace": "মার্কেটপ্লেস খোলা হয়েছে",
+            "Opened product from list": "পণ্যের তালিকা থেকে পৃষ্ঠা খোলা হয়েছে",
+            "Opened cart from marketplace": "মার্কেটপ্লেস থেকে কার্ট খোলা হয়েছে",
+            "Opened cart": "কার্ট খোলা হয়েছে",
+            "Opened checkout": "চেকআউট খোলা হয়েছে",
+            "Opened checkout screen": "চেকআউট স্ক্রিন খোলা হয়েছে",
+            "Placed order": "অর্ডার সম্পন্ন হয়েছে",
+            "Order placement failed": "অর্ডার সম্পন্ন করা যায়নি",
+            "Closed order confirmation": "অর্ডার নিশ্চিতকরণ বন্ধ করা হয়েছে",
+            "Tapped add to cart": "কার্টে যোগ করুন চাপা হয়েছে",
+            "Viewed product details": "পণ্যের বিস্তারিত দেখা হয়েছে",
+            "Decreased product quantity": "পণ্যের পরিমাণ কমানো হয়েছে",
+            "Increased product quantity": "পণ্যের পরিমাণ বাড়ানো হয়েছে",
+            "Changed marketplace sort": "মার্কেটপ্লেস সাজানো পরিবর্তন করা হয়েছে",
+            "Changed marketplace animal filter": "মার্কেটপ্লেস প্রাণী ফিল্টার পরিবর্তন করা হয়েছে",
+            "Changed stock filter": "স্টক ফিল্টার পরিবর্তন করা হয়েছে",
+            "Submitted store search": "স্টোরে খোঁজ জমা দেওয়া হয়েছে",
+            "Tapped retry in marketplace": "মার্কেটপ্লেসে আবার চেষ্টা চাপা হয়েছে"
+        ]
+
+        return localizedActions[action] ?? action
+    }
+
+    private func localizedHistoryDetails(_ details: String) -> String {
+        guard currentLanguage == .bangla else {
+            return details
+        }
+
+        let lowered = details.lowercased()
+        if lowered == "enabled" {
+            return "চালু"
+        }
+        if lowered == "disabled" {
+            return "বন্ধ"
+        }
+
+        return details
     }
 }
 

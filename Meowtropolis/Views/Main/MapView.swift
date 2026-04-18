@@ -103,6 +103,7 @@ struct MapView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     MapHeaderView(
+                        language: currentLanguage,
                         englishTitle: "Nearby Pet Services",
                         banglaTitle: "কাছাকাছি পোষা প্রাণীর সেবা"
                     )
@@ -227,7 +228,7 @@ struct MapView: View {
                 title: text("Could not load nearby places.", "কাছাকাছি সেবা লোড করা যায়নি।"),
                 message: text(
                     "Please check your internet connection. Tap Retry to try again.",
-                    "দয়া করে ইন্টারনেট সংযোগ যাচাই করুন। আবার চেষ্টা করতে Retry চাপুন।"
+                    "দয়া করে ইন্টারনেট সংযোগ যাচাই করুন। আবার চেষ্টা করতে পুনরায় চেষ্টা বোতাম চাপুন।"
                 ) + "\n\n" + message,
                 messageAccessibilityIdentifier: "errorMessage",
                 retryTitle: text("Retry", "আবার চেষ্টা করুন"),
@@ -263,7 +264,7 @@ struct MapView: View {
             EmptyStateView(
                 icon: "map",
                 title: text("No nearby services found.", "কাছাকাছি কোনো সেবা পাওয়া যায়নি।"),
-                message: text("Try another category, then tap Retry.", "অন্য বিভাগ বেছে নিয়ে Retry চাপুন।")
+                message: text("Try another category, then tap Retry.", "অন্য বিভাগ বেছে নিয়ে পুনরায় চেষ্টা বোতাম চাপুন।")
             )
             .accessibilityIdentifier("noResultsMessage")
 
@@ -370,18 +371,15 @@ struct MapView: View {
 }
 
 private struct MapHeaderView: View {
+    let language: AppLanguage
     let englishTitle: String
     let banglaTitle: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(englishTitle)
+            Text(language.text(english: englishTitle, bangla: banglaTitle))
                 .font(TextStyles.title)
                 .foregroundStyle(AppDesign.text)
-
-            Text(banglaTitle)
-                .font(TextStyles.body)
-                .foregroundStyle(AppDesign.muted)
         }
     }
 }

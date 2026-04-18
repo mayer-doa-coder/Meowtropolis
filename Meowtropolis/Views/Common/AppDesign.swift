@@ -267,11 +267,15 @@ enum AppLanguage: String, CaseIterable {
     static let storageKey = "appLanguageCode"
 
     var displayTitle: String {
+        displayTitle(in: .englishUS)
+    }
+
+    func displayTitle(in language: AppLanguage) -> String {
         switch self {
         case .englishUS:
-            return "English (US)"
+            return language.text(english: "English (US)", bangla: "ইংরেজি (ইউএস)")
         case .bangla:
-            return "Bangla"
+            return language.text(english: "Bangla", bangla: "বাংলা")
         }
     }
 

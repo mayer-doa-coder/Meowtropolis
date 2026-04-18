@@ -27,6 +27,7 @@ struct MarketplaceView: View {
     @State private var errorMessage: String?
     @State private var selectedSortOption: MarketplaceSortOption = .lowToHigh
     @State private var selectedAnimalFilter: MarketplaceAnimalFilter = .all
+    @State private var showInStockOnly: Bool = false
 
     init(productService: ProductService = ProductService()) {
         self.productService = productService
@@ -100,6 +101,20 @@ struct MarketplaceView: View {
                                 )
                             }
                         }
+
+                        Toggle(isOn: $showInStockOnly) {
+                            Text(text("In Stock Only", "শুধু স্টকে আছে"))
+                                .font(TextStyles.caption)
+                                .foregroundStyle(AppDesign.muted)
+                        }
+                        .toggleStyle(.switch)
+                        .onChange(of: showInStockOnly) { enabled in
+                            UserHistoryService.shared.recordCurrentUser(
+                                category: .shop,
+                                action: "Changed stock filter",
+                                details: enabled ? "enabled" : "disabled"
+                            )
+                        }
                     }
                 }
                 .padding(.horizontal, Spacing.medium)
@@ -112,7 +127,7 @@ struct MarketplaceView: View {
                         title: text("Couldn't load products.", "পণ্য লোড করা যায়নি।"),
                         message: text(
                             "Please check your internet connection. Tap Retry to try again.",
-                            "দয়া করে ইন্টারনেট সংযোগ যাচাই করুন। আবার চেষ্টা করতে Retry চাপুন।"
+                            "দয়া করে ইন্টারনেট সংযোগ যাচাই করুন। আবার চেষ্টা করতে পুনরায় চেষ্টা বোতাম চাপুন।"
                         ) + "\n\n" + errorMessage,
                         messageAccessibilityIdentifier: "marketplaceErrorMessage",
                         retryTitle: text("Retry", "আবার চেষ্টা করুন"),
@@ -212,11 +227,18 @@ struct MarketplaceView: View {
             }
         }
 
+        let stockFilteredProducts: [Product]
+        if showInStockOnly {
+            stockFilteredProducts = queryFilteredProducts.filter { $0.stock > 0 }
+        } else {
+            stockFilteredProducts = queryFilteredProducts
+        }
+
         switch selectedSortOption {
         case .lowToHigh:
-            return queryFilteredProducts.sorted { $0.price < $1.price }
+            return stockFilteredProducts.sorted { $0.price < $1.price }
         case .highToLow:
-            return queryFilteredProducts.sorted { $0.price > $1.price }
+            return stockFilteredProducts.sorted { $0.price > $1.price }
         }
     }
 
@@ -250,6 +272,7 @@ struct MarketplaceView: View {
                 switch result {
                 case let .success(loadedProducts):
                     products = loadedProducts.sorted { $0.name.lowercased() < $1.name.lowercased() }
+                    cartState.syncStock(with: products)
                 case let .failure(error):
                     products = []
                     errorMessage = error.localizedDescription
@@ -282,6 +305,10 @@ struct MarketplaceView: View {
                     Text(currentLanguage.formatMoney(product.price))
                         .font(TextStyles.subtitle)
                         .foregroundStyle(AppDesign.primary)
+
+                    Text(stockLabel(for: product.stock))
+                        .font(TextStyles.caption)
+                        .foregroundStyle(product.stock > 0 ? AppDesign.muted : .red)
                 }
 
                 Spacer()
@@ -296,6 +323,13 @@ struct MarketplaceView: View {
 
     private func text(_ english: String, _ bangla: String) -> String {
         currentLanguage.text(english: english, bangla: bangla)
+    }
+
+    private func stockLabel(for stock: Int) -> String {
+        if stock <= 0 {
+            return text("Out of stock", "স্টক শেষ")
+        }
+        return text("Stock: \(stock)", "স্টক: \(stock)")
     }
 }
 

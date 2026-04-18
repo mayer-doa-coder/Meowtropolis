@@ -20,23 +20,27 @@ enum UserHistoryCategory: String, CaseIterable, Codable {
     case system
 
     var displayTitle: String {
+        displayTitle(language: .englishUS)
+    }
+
+    func displayTitle(language: AppLanguage) -> String {
         switch self {
         case .auth:
-            return "Auth"
+            return language.text(english: "Auth", bangla: "লগইন")
         case .pets:
-            return "Pets"
+            return language.text(english: "Pets", bangla: "পোষা প্রাণী")
         case .grooming:
-            return "Grooming"
+            return language.text(english: "Grooming", bangla: "গ্রুমিং")
         case .vet:
-            return "Vet"
+            return language.text(english: "Vet", bangla: "ভেট")
         case .shop:
-            return "Shop"
+            return language.text(english: "Shop", bangla: "শপ")
         case .map:
-            return "Map"
+            return language.text(english: "Map", bangla: "ম্যাপ")
         case .account:
-            return "Account"
+            return language.text(english: "Account", bangla: "অ্যাকাউন্ট")
         case .system:
-            return "System"
+            return language.text(english: "System", bangla: "সিস্টেম")
         }
     }
 }

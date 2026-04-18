@@ -16,9 +16,21 @@ final class CartState: ObservableObject {
     /// Adds one quantity of a product by default.
     func addToCart(product: Product, quantity: Int = 1) {
         let safeQuantity = max(1, quantity)
+        let safeStock = max(0, product.stock)
+
+        guard safeStock > 0 else {
+            UserHistoryService.shared.recordCurrentUser(
+                category: .shop,
+                action: "Attempted add on out-of-stock product",
+                details: product.name
+            )
+            return
+        }
 
         if let index = items.firstIndex(where: { $0.productId == product.id }) {
-            items[index].quantity += safeQuantity
+            let maxAllowed = max(0, items[index].availableStock)
+            items[index].quantity = min(maxAllowed, items[index].quantity + safeQuantity)
+            items[index].availableStock = safeStock
             UserHistoryService.shared.recordCurrentUser(
                 category: .shop,
                 action: "Updated cart quantity",
@@ -32,7 +44,10 @@ final class CartState: ObservableObject {
             productId: product.id,
             name: product.name,
             price: product.price,
-            quantity: safeQuantity
+            category: product.category,
+            imageURL: product.imageURL,
+            availableStock: safeStock,
+            quantity: min(safeQuantity, safeStock)
         )
 
         items.append(newItem)
@@ -61,12 +76,27 @@ final class CartState: ObservableObject {
         if quantity <= 0 {
             removeFromCart(productId: productId)
         } else {
-            items[index].quantity = quantity
+            items[index].quantity = min(quantity, max(1, items[index].availableStock))
             UserHistoryService.shared.recordCurrentUser(
                 category: .shop,
                 action: "Changed cart quantity",
                 details: "\(items[index].name): \(quantity)"
             )
+        }
+    }
+
+    func syncStock(with products: [Product]) {
+        let stockById = Dictionary(uniqueKeysWithValues: products.map { ($0.id, max(0, $0.stock)) })
+
+        items = items.compactMap { item in
+            guard let updatedStock = stockById[item.productId], updatedStock > 0 else {
+                return nil
+            }
+
+            var updatedItem = item
+            updatedItem.availableStock = updatedStock
+            updatedItem.quantity = min(item.quantity, updatedStock)
+            return updatedItem
         }
     }
 

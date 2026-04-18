@@ -37,6 +37,10 @@ struct ProductDetailView: View {
                             .font(TextStyles.subtitle)
                             .foregroundStyle(AppDesign.primary)
 
+                        Text(stockText)
+                            .font(TextStyles.caption)
+                            .foregroundStyle(product.stock > 0 ? AppDesign.muted : .red)
+
                         DividerWithText(text: text("Product Details", "পণ্যের তথ্য"))
 
                         Text(text("Check product details and choose quantity before adding to cart.", "কার্টে যোগ করার আগে পণ্যের তথ্য দেখে পরিমাণ বেছে নিন।"))
@@ -70,7 +74,7 @@ struct ProductDetailView: View {
                                 .frame(minWidth: 40)
 
                             Button {
-                                quantity += 1
+                                quantity = min(max(1, product.stock), quantity + 1)
                                 UserHistoryService.shared.recordCurrentUser(
                                     category: .shop,
                                     action: "Increased product quantity",
@@ -83,6 +87,7 @@ struct ProductDetailView: View {
                                     .background(AppDesign.primary)
                                     .clipShape(RoundedRectangle(cornerRadius: 6))
                             }
+                                    .disabled(product.stock == 0 || quantity >= product.stock)
                         }
 
                         if let successMessage {
@@ -101,7 +106,8 @@ struct ProductDetailView: View {
                                 details: "\(product.name) x\(quantity)"
                             )
                         }
-                        .buttonStyle(FilledPrimaryButtonStyle())
+                        .buttonStyle(FilledPrimaryButtonStyle(disabled: product.stock == 0))
+                        .disabled(product.stock == 0)
                         .accessibilityIdentifier("productDetailAddToCartButton")
 
                         Text(text("Demo note: Checkout does not process real payments yet.", "ডেমো নোট: চেকআউট এখনো বাস্তব পেমেন্ট প্রক্রিয়া করে না।"))
@@ -139,6 +145,7 @@ struct ProductDetailView: View {
             }
         }
         .onAppear {
+            quantity = max(1, min(quantity, max(1, product.stock)))
             UserHistoryService.shared.recordCurrentUser(
                 category: .shop,
                 action: "Viewed product details",
@@ -153,6 +160,14 @@ struct ProductDetailView: View {
 
     private func text(_ english: String, _ bangla: String) -> String {
         currentLanguage.text(english: english, bangla: bangla)
+    }
+
+    private var stockText: String {
+        if product.stock <= 0 {
+            return text("Out of stock", "স্টক শেষ")
+        }
+
+        return text("Available stock: \(product.stock)", "স্টক আছে: \(product.stock)")
     }
 }
 

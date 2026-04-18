@@ -62,8 +62,16 @@ struct CartView: View {
                 .font(.system(size: 16, weight: .regular, design: .rounded))
                 .foregroundStyle(AppDesign.muted)
 
+            Text(stockText(for: item.availableStock))
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundStyle(item.availableStock > 0 ? AppDesign.muted : .red)
+
             HStack {
-                Stepper(text("Qty:", "পরিমাণ:") + " \(item.quantity)", value: bindingForQuantity(item), in: 1...99)
+                Stepper(
+                    text("Qty:", "পরিমাণ:") + " \(item.quantity)",
+                    value: bindingForQuantity(item),
+                    in: 1...max(1, item.availableStock)
+                )
 
                 Spacer()
 
@@ -117,6 +125,13 @@ struct CartView: View {
                 cartState.updateQuantity(productId: item.productId, quantity: newValue)
             }
         )
+    }
+
+    private func stockText(for stock: Int) -> String {
+        if stock <= 0 {
+            return text("Out of stock", "স্টক শেষ")
+        }
+        return text("Stock: \(stock)", "স্টক: \(stock)")
     }
 
     private var currentLanguage: AppLanguage {
