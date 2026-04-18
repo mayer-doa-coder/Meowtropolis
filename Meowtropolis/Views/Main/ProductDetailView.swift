@@ -18,7 +18,7 @@ struct ProductDetailView: View {
                         .padding(.horizontal, 20)
                         .padding(.top, 12)
                         .overlay {
-                            AppPlaceholderImageView(cornerRadius: 28, iconSize: 40)
+                            AppPlaceholderImageView(assetName: AppImageLibrary.productImageAssetName(for: product), cornerRadius: 28, iconSize: 40)
                                 .clipShape(RoundedRectangle(cornerRadius: 28))
                                 .padding(.horizontal, 20)
                                 .padding(.top, 12)

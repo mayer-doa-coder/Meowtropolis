@@ -1,5 +1,20 @@
 import SwiftUI
 
+private enum MarketplaceSortOption: String, CaseIterable, Identifiable {
+    case lowToHigh
+    case highToLow
+
+    var id: String { rawValue }
+}
+
+private enum MarketplaceAnimalFilter: String, CaseIterable, Identifiable {
+    case all
+    case cat
+    case dog
+
+    var id: String { rawValue }
+}
+
 struct MarketplaceView: View {
     @EnvironmentObject private var cartState: CartState
     @AppStorage(AppLanguage.storageKey) private var appLanguageCode: String = AppLanguage.englishUS.rawValue
@@ -10,6 +25,8 @@ struct MarketplaceView: View {
     @State private var products: [Product] = []
     @State private var isLoading: Bool = false
     @State private var errorMessage: String?
+    @State private var selectedSortOption: MarketplaceSortOption = .lowToHigh
+    @State private var selectedAnimalFilter: MarketplaceAnimalFilter = .all
 
     init(productService: ProductService = ProductService()) {
         self.productService = productService
@@ -40,6 +57,50 @@ struct MarketplaceView: View {
                     }
                     .padding(.horizontal, 4)
                     .frame(height: 44)
+                }
+                .padding(.horizontal, Spacing.medium)
+
+                CardView {
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(text("Sort", "সাজান"))
+                                .font(TextStyles.caption)
+                                .foregroundStyle(AppDesign.muted)
+
+                            Picker("Sort", selection: $selectedSortOption) {
+                                Text(text("Price: Low to High", "দাম: কম থেকে বেশি")).tag(MarketplaceSortOption.lowToHigh)
+                                Text(text("Price: High to Low", "দাম: বেশি থেকে কম")).tag(MarketplaceSortOption.highToLow)
+                            }
+                            .pickerStyle(.menu)
+                            .onChange(of: selectedSortOption) { option in
+                                UserHistoryService.shared.recordCurrentUser(
+                                    category: .shop,
+                                    action: "Changed marketplace sort",
+                                    details: option.rawValue
+                                )
+                            }
+                        }
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(text("Pet Type", "পোষা প্রাণীর ধরন"))
+                                .font(TextStyles.caption)
+                                .foregroundStyle(AppDesign.muted)
+
+                            Picker("Animal", selection: $selectedAnimalFilter) {
+                                Text(text("All", "সব")).tag(MarketplaceAnimalFilter.all)
+                                Text(text("Only Cat", "শুধু বিড়াল")).tag(MarketplaceAnimalFilter.cat)
+                                Text(text("Only Dog", "শুধু কুকুর")).tag(MarketplaceAnimalFilter.dog)
+                            }
+                            .pickerStyle(.menu)
+                            .onChange(of: selectedAnimalFilter) { filter in
+                                UserHistoryService.shared.recordCurrentUser(
+                                    category: .shop,
+                                    action: "Changed marketplace animal filter",
+                                    details: filter.rawValue
+                                )
+                            }
+                        }
+                    }
                 }
                 .padding(.horizontal, Spacing.medium)
 
@@ -135,15 +196,47 @@ struct MarketplaceView: View {
     }
 
     private var filteredProducts: [Product] {
-        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedQuery.isEmpty else {
-            return products
+        let animalFilteredProducts = products.filter { product in
+            matchesAnimalFilter(product)
         }
 
-        return products.filter { product in
-            product.name.localizedCaseInsensitiveContains(trimmedQuery)
-                || product.category.localizedCaseInsensitiveContains(trimmedQuery)
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        let queryFilteredProducts: [Product]
+
+        if trimmedQuery.isEmpty {
+            queryFilteredProducts = animalFilteredProducts
+        } else {
+            queryFilteredProducts = animalFilteredProducts.filter { product in
+                product.name.localizedCaseInsensitiveContains(trimmedQuery)
+                    || product.category.localizedCaseInsensitiveContains(trimmedQuery)
+            }
         }
+
+        switch selectedSortOption {
+        case .lowToHigh:
+            return queryFilteredProducts.sorted { $0.price < $1.price }
+        case .highToLow:
+            return queryFilteredProducts.sorted { $0.price > $1.price }
+        }
+    }
+
+    private func matchesAnimalFilter(_ product: Product) -> Bool {
+        switch selectedAnimalFilter {
+        case .all:
+            return true
+        case .cat:
+            return inferredAnimalType(for: product) == .cat
+        case .dog:
+            return inferredAnimalType(for: product) == .dog
+        }
+    }
+
+    private func inferredAnimalType(for product: Product) -> MarketplaceAnimalFilter {
+        let key = "\(product.name) \(product.category) \(product.imageURL)".lowercased()
+        if key.contains("dog") || key.contains("puppy") || key.contains("canine") || key.contains("pedigree") || key.contains("wanpy") {
+            return .dog
+        }
+        return .cat
     }
 
     private func loadProducts() {
@@ -172,7 +265,7 @@ struct MarketplaceView: View {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(Color.gray.opacity(0.4))
 
-                    AppPlaceholderImageView(cornerRadius: 10, iconSize: 24)
+                    AppPlaceholderImageView(assetName: AppImageLibrary.productImageAssetName(for: product), cornerRadius: 10, iconSize: 24)
                 }
                 .frame(width: 72, height: 72)
                 .clipShape(RoundedRectangle(cornerRadius: 10))

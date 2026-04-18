@@ -130,7 +130,7 @@ struct GroomingView: View {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color.gray.opacity(0.2))
 
-                AppPlaceholderImageView(cornerRadius: 12, iconSize: 24)
+                AppPlaceholderImageView(assetName: AppImageLibrary.groomingServiceImageAssetName(for: selectedServiceType), cornerRadius: 12, iconSize: 24)
             }
             .frame(height: 130)
             .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -201,7 +201,7 @@ struct GroomingView: View {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color.gray.opacity(0.18))
 
-                AppPlaceholderImageView(cornerRadius: 10, iconSize: 22)
+                AppPlaceholderImageView(assetName: AppImageLibrary.groomingServiceImageAssetName(for: booking.serviceType), cornerRadius: 10, iconSize: 22)
             }
             .frame(height: 96)
             .clipShape(RoundedRectangle(cornerRadius: 10))

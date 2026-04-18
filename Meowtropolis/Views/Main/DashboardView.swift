@@ -117,7 +117,7 @@ private struct HomeTabView: View {
                                 .resizable()
                                 .scaledToFill()
                         } else {
-                            AppPlaceholderImageView(cornerRadius: 28, iconSize: 18)
+                            AppPlaceholderImageView(assetName: AppImageLibrary.userAvatarAssetName, cornerRadius: 28, iconSize: 18)
                         }
                         .frame(width: 56, height: 56)
                         .clipShape(Circle())
@@ -142,7 +142,7 @@ private struct HomeTabView: View {
                             RoundedRectangle(cornerRadius: 14)
                                 .fill(Color(red: 0.78, green: 0.86, blue: 0.95))
 
-                            AppPlaceholderImageView(cornerRadius: 14, iconSize: 42)
+                            AppPlaceholderImageView(assetName: AppImageLibrary.homeBannerAssetName, cornerRadius: 14, iconSize: 42)
 
                             LinearGradient(
                                 colors: [Color.black.opacity(0.45), Color.black.opacity(0.12)],
@@ -276,7 +276,7 @@ private struct HomeTabView: View {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(Color.gray.opacity(0.4))
 
-                    AppPlaceholderImageView(cornerRadius: 10, iconSize: 28)
+                    AppPlaceholderImageView(assetName: AppImageLibrary.serviceImageAssetName(for: title), cornerRadius: 10, iconSize: 28)
                 }
                 .frame(height: 100)
                 .clipShape(RoundedRectangle(cornerRadius: 10))

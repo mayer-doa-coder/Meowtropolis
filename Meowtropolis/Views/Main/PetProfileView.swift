@@ -63,7 +63,7 @@ struct PetProfileView: View {
                                         RoundedRectangle(cornerRadius: 10)
                                             .fill(Color.gray.opacity(0.25))
 
-                                        AppPlaceholderImageView(cornerRadius: 10, iconSize: 24)
+                                        AppPlaceholderImageView(assetName: AppImageLibrary.petImageAssetName(forBreed: pet.breed), cornerRadius: 10, iconSize: 24)
                                     }
                                     .frame(width: 72, height: 72)
                                     .clipShape(RoundedRectangle(cornerRadius: 10))

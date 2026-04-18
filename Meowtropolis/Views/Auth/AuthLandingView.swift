@@ -7,7 +7,7 @@ struct AuthLandingView: View {
         AppBackground {
             ScrollView {
                 VStack(spacing: 24) {
-                    AppPlaceholderImageView(cornerRadius: 18, iconSize: 34)
+                    AppPlaceholderImageView(assetName: AppImageLibrary.authHeroAssetName, cornerRadius: 18, iconSize: 34)
                         .frame(height: 180)
                         .clipShape(RoundedRectangle(cornerRadius: 18))
 

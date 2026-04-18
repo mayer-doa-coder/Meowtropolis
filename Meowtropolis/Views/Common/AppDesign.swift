@@ -178,25 +178,76 @@ private struct ConditionalAccessibilityIdentifier: ViewModifier {
 }
 
 enum AppImageLibrary {
-    static let onboardingHeroURL: URL? = nil
-    static let authHeroURL: URL? = nil
-    static let adoptionBannerURL: URL? = nil
-    static let userAvatarURL: URL? = nil
+    static let onboardingHeroAssetName = "img_cat3"
+    static let authHeroAssetName = "img_pet2"
+    static let homeBannerAssetName = "img_cat2"
+    static let userAvatarAssetName = "img_pet2"
 
-    static func serviceImageURL(for title: String) -> URL? {
-        nil
+    static func serviceImageAssetName(for title: String) -> String {
+        let key = title.lowercased()
+
+        if key.contains("bath") || key.contains("dry") || key.contains("hair") || key.contains("trim") || key.contains("groom") {
+            return "img_pet_groom1"
+        }
+
+        if key.contains("checkup") || key.contains("vet") {
+            return "img_pet_vet1"
+        }
+
+        if key.contains("profile") || key.contains("pet") {
+            return "img_cat1"
+        }
+
+        return "img_pet2"
     }
 
-    static func groomingServiceImageURL(for serviceType: String) -> URL? {
-        serviceImageURL(for: serviceType)
+    static func groomingServiceImageAssetName(for serviceType: String) -> String {
+        let key = serviceType.lowercased()
+        if key.contains("bath") {
+            return "img_pet_groom2"
+        }
+        return "img_pet_groom1"
     }
 
-    static func petImageURL(forBreed breed: String) -> URL? {
-        nil
+    static func vetImageAssetName() -> String {
+        "img_pet_vet2"
     }
 
-    static func productImageURL(for product: Product) -> URL? {
-        nil
+    static func petImageAssetName(forBreed breed: String) -> String {
+        let key = breed.lowercased()
+
+        if key.contains("dog") || key.contains("puppy") || key.contains("canine") || key.contains("কুকুর") {
+            return "img_dog1"
+        }
+
+        if key.contains("rabbit") || key.contains("bunny") || key.contains("খরগোশ") {
+            return "img_pet2"
+        }
+
+        if key.contains("cat") || key.contains("kitten") || key.contains("feline") || key.contains("বিড়াল") {
+            return "img_cat1"
+        }
+
+        return "img_pet2"
+    }
+
+    static func productImageAssetName(for product: Product) -> String {
+        let trimmedImageKey = product.imageURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedImageKey.isEmpty {
+            return trimmedImageKey
+        }
+
+        let key = "\(product.name) \(product.category)".lowercased()
+
+        if key.contains("dog") {
+            return "img_dog1"
+        }
+
+        if key.contains("cat") {
+            return "img_cat1"
+        }
+
+        return "img_pet2"
     }
 
     static func profileImage(fromBase64 base64: String?) -> UIImage? {

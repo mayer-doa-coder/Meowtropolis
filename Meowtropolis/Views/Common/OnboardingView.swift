@@ -17,7 +17,7 @@ struct OnboardingView: View {
                                 UnevenRoundedRectangle(bottomLeadingRadius: 220, bottomTrailingRadius: 220)
                             )
 
-                        AppPlaceholderImageView(cornerRadius: 0, iconSize: 52)
+                        AppPlaceholderImageView(assetName: AppImageLibrary.onboardingHeroAssetName, cornerRadius: 0, iconSize: 52)
                             .frame(height: 360)
                             .clipShape(
                                 UnevenRoundedRectangle(bottomLeadingRadius: 220, bottomTrailingRadius: 220)

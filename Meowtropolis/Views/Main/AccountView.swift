@@ -84,7 +84,7 @@ struct AccountView: View {
                                     .resizable()
                                     .scaledToFill()
                             } else {
-                                AppPlaceholderImageView(cornerRadius: 47, iconSize: 28)
+                                AppPlaceholderImageView(assetName: AppImageLibrary.userAvatarAssetName, cornerRadius: 47, iconSize: 28)
                             }
                             .frame(width: 94, height: 94)
                             .clipShape(Circle())
@@ -553,7 +553,7 @@ private struct PersonalInformationView: View {
                     .resizable()
                     .scaledToFill()
             } else {
-                AppPlaceholderImageView(cornerRadius: 45, iconSize: 24)
+                AppPlaceholderImageView(assetName: AppImageLibrary.userAvatarAssetName, cornerRadius: 45, iconSize: 24)
             }
         }
         .frame(width: 90, height: 90)
