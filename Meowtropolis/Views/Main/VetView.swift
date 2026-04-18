@@ -26,6 +26,16 @@ struct VetView: View {
                         .font(.system(size: 36, weight: .bold, design: .rounded))
                         .foregroundStyle(AppDesign.text)
 
+                    NavigationLink(destination: MapView(initialCategory: "vet")) {
+                        Text(text("Find Nearby Vets on Map", "ম্যাপে কাছাকাছি ভেট দেখুন"))
+                    }
+                    .buttonStyle(OutlinedPrimaryButtonStyle())
+                    .simultaneousGesture(
+                        TapGesture().onEnded {
+                            print("[Navigation] Open Map from Vet (category: vet)")
+                        }
+                    )
+
                     requestFormCard
 
                     if let successMessage {

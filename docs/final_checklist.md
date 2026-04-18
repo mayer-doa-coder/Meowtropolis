@@ -1,0 +1,39 @@
+# Final MVP Checklist
+
+## Release Readiness
+
+- [ ] All MVP features implemented
+- [ ] End-to-end auth to map flow validated
+- [ ] No major crashes in core flow
+- [ ] No broken navigation routes
+- [ ] Data load paths verified
+
+## Testing
+
+- [ ] Unit tests pass in Xcode
+- [ ] UI tests pass in Xcode
+- [ ] Manual smoke flow passes
+
+## Demo Readiness
+
+- [ ] Demo script finalized
+- [ ] Presenter backup steps prepared
+- [ ] Map loading/empty/error/retry states rehearsed
+
+## Fresh Install Rehearsal
+
+- [ ] Simulator app deleted before run
+- [ ] Clean build performed
+- [ ] Fresh install launch successful
+- [ ] Auth works from scratch
+- [ ] Permissions behave correctly
+
+## Freeze Control
+
+- [ ] Freeze policy documented
+- [ ] Team informed: critical fixes only
+- [ ] No new feature PRs accepted
+
+## Freeze Policy Statement
+
+Project is now in freeze state. Only critical issues affecting demo or core functionality will be addressed.

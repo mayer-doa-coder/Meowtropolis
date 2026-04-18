@@ -38,17 +38,21 @@ final class AppState: ObservableObject {
     }
 
     func checkSession() {
+        print("[Auth] checkSession invoked")
         handleAuthStateChanged(userId: authService.currentUserId)
     }
 
     func login(email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        print("[Auth] login attempt for: \(email)")
         authService.signIn(email: email, password: password) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success:
+                    print("[Auth] login success")
                     self?.handleAuthStateChanged(userId: self?.authService.currentUserId)
                     completion(.success(()))
                 case let .failure(error):
+                    print("[Auth] login error: \(error.localizedDescription)")
                     completion(.failure(error))
                 }
             }
@@ -56,6 +60,7 @@ final class AppState: ObservableObject {
     }
 
     func signup(fullName: String, email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        print("[Auth] signup attempt for: \(email)")
         authService.signUp(email: email, password: password) { [weak self] result in
             guard let self else {
                 return
@@ -63,11 +68,13 @@ final class AppState: ObservableObject {
 
             switch result {
             case let .failure(error):
+                print("[Auth] signup error: \(error.localizedDescription)")
                 DispatchQueue.main.async {
                     completion(.failure(error))
                 }
 
             case let .success(uid):
+                print("[Auth] signup success, uid: \(uid)")
                 let user = User(
                     id: uid,
                     name: fullName,
@@ -79,9 +86,11 @@ final class AppState: ObservableObject {
                     DispatchQueue.main.async {
                         switch profileResult {
                         case .success:
+                            print("[Auth] profile created for uid: \(uid)")
                             self.handleAuthStateChanged(userId: uid)
                             completion(.success(()))
                         case let .failure(error):
+                            print("[Auth] profile creation error: \(error.localizedDescription)")
                             completion(.failure(error))
                         }
                     }
@@ -91,10 +100,12 @@ final class AppState: ObservableObject {
     }
 
     func logout(completion: ((Result<Void, Error>) -> Void)? = nil) {
+        print("[Auth] logout requested")
         authService.signOut { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success:
+                    print("[Auth] logout success")
                     self?.isLoggedIn = false
                     self?.currentUserId = nil
                     self?.currentUser = nil
@@ -102,6 +113,7 @@ final class AppState: ObservableObject {
                     self?.profileErrorMessage = nil
                     completion?(.success(()))
                 case let .failure(error):
+                    print("[Auth] logout error: \(error.localizedDescription)")
                     completion?(.failure(error))
                 }
             }
@@ -335,6 +347,7 @@ final class AppState: ObservableObject {
     }
 
     private func handleAuthStateChanged(userId: String?) {
+        print("[Auth] auth state changed. userId present: \(userId != nil)")
         isLoggedIn = (userId != nil)
         currentUserId = userId
 
