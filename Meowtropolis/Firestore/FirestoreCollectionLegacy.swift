@@ -9,6 +9,7 @@ enum FirestoreCollection {
     case pets
     case bookings
     case products
+    case orders
 
     var rawValue: String {
         switch self {
@@ -20,6 +21,8 @@ enum FirestoreCollection {
             return FirestoreCollections.bookings
         case .products:
             return FirestoreCollections.products
+        case .orders:
+            return FirestoreCollections.orders
         }
     }
 }

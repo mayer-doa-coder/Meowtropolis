@@ -7,5 +7,6 @@ enum FirestoreCollections {
     static let pets = "pets"
     static let bookings = "bookings"
     static let products = "products"
+    static let orders = "orders"
     static let vetRequests = "vetRequests"
 }

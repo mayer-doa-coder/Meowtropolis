@@ -178,96 +178,76 @@ private struct ConditionalAccessibilityIdentifier: ViewModifier {
 }
 
 enum AppImageLibrary {
-    static let onboardingHeroURL = URL(string: "https://loremflickr.com/1200/800/pets,home")
-    static let authHeroURL = URL(string: "https://loremflickr.com/1000/600/cat,dog")
-    static let adoptionBannerURL = URL(string: "https://loremflickr.com/1200/500/adopt,pet")
-    static let userAvatarURL = URL(string: "https://loremflickr.com/300/300/pet,owner")
+    static let onboardingHeroAssetName = "img_cat3"
+    static let authHeroAssetName = "img_pet2"
+    static let homeBannerAssetName = "img_cat2"
+    static let userAvatarAssetName = "img_pet2"
 
-    static func serviceImageURL(for title: String) -> URL? {
+    static func serviceImageAssetName(for title: String) -> String {
         let key = title.lowercased()
 
-        if key.contains("bath") || key.contains("dry") || key.contains("বাথ") || key.contains("ড্রাই") {
-            return URL(string: "https://loremflickr.com/800/500/dog,bath")
+        if key.contains("bath") || key.contains("dry") || key.contains("hair") || key.contains("trim") || key.contains("groom") {
+            return "img_pet_groom1"
         }
 
-        if key.contains("hair") || key.contains("trim") || key.contains("groom") || key.contains("হেয়ার") || key.contains("ট্রিম") || key.contains("গ্রুম") {
-            return URL(string: "https://loremflickr.com/800/500/pet,grooming")
+        if key.contains("checkup") || key.contains("vet") {
+            return "img_pet_vet1"
         }
 
-        if key.contains("checkup") || key.contains("vet") || key.contains("চেকআপ") || key.contains("ভেট") {
-            return URL(string: "https://loremflickr.com/800/500/veterinary,pet")
+        if key.contains("profile") || key.contains("pet") {
+            return "img_cat1"
         }
 
-        if key.contains("profile") || key.contains("pet") || key.contains("প্রোফাইল") || key.contains("পেট") {
-            return URL(string: "https://loremflickr.com/800/500/cat,dog,rabbit")
-        }
-
-        return URL(string: "https://loremflickr.com/800/500/pet,care")
+        return "img_pet2"
     }
 
-    static func groomingServiceImageURL(for serviceType: String) -> URL? {
-        serviceImageURL(for: serviceType)
+    static func groomingServiceImageAssetName(for serviceType: String) -> String {
+        let key = serviceType.lowercased()
+        if key.contains("bath") {
+            return "img_pet_groom2"
+        }
+        return "img_pet_groom1"
     }
 
-    static func petImageURL(forBreed breed: String) -> URL? {
+    static func vetImageAssetName() -> String {
+        "img_pet_vet2"
+    }
+
+    static func petImageAssetName(forBreed breed: String) -> String {
         let key = breed.lowercased()
 
-        if key.contains("cat") || key.contains("kitten") || key.contains("feline") || key.contains("বিড়াল") {
-            return URL(string: "https://loremflickr.com/700/500/cat,pet")
-        }
-
         if key.contains("dog") || key.contains("puppy") || key.contains("canine") || key.contains("কুকুর") {
-            return URL(string: "https://loremflickr.com/700/500/dog,pet")
+            return "img_dog1"
         }
 
         if key.contains("rabbit") || key.contains("bunny") || key.contains("খরগোশ") {
-            return URL(string: "https://loremflickr.com/700/500/rabbit,pet")
+            return "img_pet2"
         }
 
-        if key.contains("bird") || key.contains("parrot") || key.contains("পাখি") {
-            return URL(string: "https://loremflickr.com/700/500/bird,pet")
+        if key.contains("cat") || key.contains("kitten") || key.contains("feline") || key.contains("বিড়াল") {
+            return "img_cat1"
         }
 
-        if key.contains("fish") || key.contains("মাছ") {
-            return URL(string: "https://loremflickr.com/700/500/fish,aquarium")
-        }
-
-        if key.contains("hamster") || key.contains("guinea") || key.contains("হ্যামস্টার") {
-            return URL(string: "https://loremflickr.com/700/500/hamster,pet")
-        }
-
-        if key.contains("turtle") || key.contains("reptile") || key.contains("lizard") || key.contains("snake") {
-            return URL(string: "https://loremflickr.com/700/500/reptile,pet")
-        }
-
-        return URL(string: "https://loremflickr.com/700/500/pets,animal")
+        return "img_pet2"
     }
 
-    static func productImageURL(for product: Product) -> URL? {
-        let rawURL = product.imageURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !rawURL.isEmpty, !rawURL.contains("images.meowtropolis.app"), let url = URL(string: rawURL) {
-            return url
+    static func productImageAssetName(for product: Product) -> String {
+        let trimmedImageKey = product.imageURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedImageKey.isEmpty {
+            return trimmedImageKey
         }
 
         let key = "\(product.name) \(product.category)".lowercased()
 
-        if key.contains("food") || key.contains("salmon") || key.contains("treat") {
-            return URL(string: "https://loremflickr.com/800/600/pet,food")
+        if key.contains("dog") {
+            return "img_dog1"
         }
 
-        if key.contains("toy") || key.contains("teaser") {
-            return URL(string: "https://loremflickr.com/800/600/pet,toy")
+        if key.contains("cat") {
+            return "img_cat1"
         }
 
-        if key.contains("harness") || key.contains("accessor") || key.contains("collar") {
-            return URL(string: "https://loremflickr.com/800/600/pet,accessory")
-        }
-
-        if key.contains("groom") || key.contains("shampoo") {
-            return URL(string: "https://loremflickr.com/800/600/pet,grooming")
-        }
-
-        return URL(string: "https://loremflickr.com/800/600/pet,products")
+        return "img_pet2"
     }
 
     static func profileImage(fromBase64 base64: String?) -> UIImage? {
@@ -287,11 +267,15 @@ enum AppLanguage: String, CaseIterable {
     static let storageKey = "appLanguageCode"
 
     var displayTitle: String {
+        displayTitle(in: .englishUS)
+    }
+
+    func displayTitle(in language: AppLanguage) -> String {
         switch self {
         case .englishUS:
-            return "English (US)"
+            return language.text(english: "English (US)", bangla: "ইংরেজি (ইউএস)")
         case .bangla:
-            return "Bangla"
+            return language.text(english: "Bangla", bangla: "বাংলা")
         }
     }
 

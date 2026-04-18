@@ -17,22 +17,11 @@ struct OnboardingView: View {
                                 UnevenRoundedRectangle(bottomLeadingRadius: 220, bottomTrailingRadius: 220)
                             )
 
-                        if let heroURL = AppImageLibrary.onboardingHeroURL {
-                            AsyncImage(url: heroURL) { phase in
-                                switch phase {
-                                case let .success(image):
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                default:
-                                    Color.clear
-                                }
-                            }
+                        AppPlaceholderImageView(assetName: AppImageLibrary.onboardingHeroAssetName, cornerRadius: 0, iconSize: 52)
                             .frame(height: 360)
                             .clipShape(
                                 UnevenRoundedRectangle(bottomLeadingRadius: 220, bottomTrailingRadius: 220)
                             )
-                        }
 
                         LinearGradient(
                             colors: [Color.clear, Color.black.opacity(0.18)],
@@ -46,7 +35,7 @@ struct OnboardingView: View {
                     }
 
                     VStack(spacing: 24) {
-                        Text(text("Welcome to Happy Pet!", "হ্যাপি পেটে স্বাগতম!"))
+                        Text(text("Welcome to Meowtropolis!", "Meowtropolis-এ স্বাগতম!"))
                             .font(.system(size: 40, weight: .bold, design: .rounded))
                             .foregroundStyle(AppDesign.text)
 

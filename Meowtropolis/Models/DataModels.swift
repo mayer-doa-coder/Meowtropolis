@@ -84,6 +84,65 @@ struct Product: Codable {
     let price: Double
     /// Product category used for filtering.
     let category: String
-    /// Public image URL for product thumbnail or preview.
+    /// Local asset key for product thumbnail or preview.
     let imageURL: String
+    /// Available stock quantity for ordering.
+    let stock: Int
+
+    init(
+        id: String,
+        name: String,
+        price: Double,
+        category: String,
+        imageURL: String,
+        stock: Int = 50
+    ) {
+        self.id = id
+        self.name = name
+        self.price = price
+        self.category = category
+        self.imageURL = imageURL
+        self.stock = stock
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case price
+        case category
+        case imageURL
+        case stock
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        price = try container.decode(Double.self, forKey: .price)
+        category = try container.decode(String.self, forKey: .category)
+        imageURL = try container.decode(String.self, forKey: .imageURL)
+        stock = try container.decodeIfPresent(Int.self, forKey: .stock) ?? 50
+    }
+}
+
+/// One item in an order snapshot.
+struct OrderItem: Codable {
+    let productId: String
+    let name: String
+    let category: String
+    let imageURL: String
+    let unitPrice: Double
+    let quantity: Int
+    let lineTotal: Double
+}
+
+/// Order saved to Firestore after checkout.
+struct Order: Codable {
+    let id: String
+    let userId: String
+    let items: [OrderItem]
+    let totalAmount: Double
+    let currencyCode: String
+    let status: String
+    let createdAt: String
 }

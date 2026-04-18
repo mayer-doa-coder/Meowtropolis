@@ -3,6 +3,61 @@ import PhotosUI
 import UserNotifications
 import UIKit
 
+private enum UserHistoryFilter: String, CaseIterable, Identifiable {
+    case all
+    case auth
+    case pets
+    case grooming
+    case vet
+    case shop
+    case map
+    case account
+
+    var id: String { rawValue }
+
+    func title(language: AppLanguage) -> String {
+        switch self {
+        case .all:
+            return language.text(english: "All", bangla: "সব")
+        case .auth:
+            return language.text(english: "Auth", bangla: "লগইন")
+        case .pets:
+            return language.text(english: "Pets", bangla: "পোষা প্রাণী")
+        case .grooming:
+            return language.text(english: "Grooming", bangla: "গ্রুমিং")
+        case .vet:
+            return language.text(english: "Vet", bangla: "ভেট")
+        case .shop:
+            return language.text(english: "Shop", bangla: "শপ")
+        case .map:
+            return language.text(english: "Map", bangla: "ম্যাপ")
+        case .account:
+            return language.text(english: "Account", bangla: "অ্যাকাউন্ট")
+        }
+    }
+
+    var category: UserHistoryCategory? {
+        switch self {
+        case .all:
+            return nil
+        case .auth:
+            return .auth
+        case .pets:
+            return .pets
+        case .grooming:
+            return .grooming
+        case .vet:
+            return .vet
+        case .shop:
+            return .shop
+        case .map:
+            return .map
+        case .account:
+            return .account
+        }
+    }
+}
+
 struct AccountView: View {
     @EnvironmentObject private var appState: AppState
     @AppStorage(ReminderService.preferenceKey) private var remindersEnabled: Bool = false
@@ -12,8 +67,11 @@ struct AccountView: View {
     @State private var isLoggingOut: Bool = false
     @State private var permissionStatusText: String = ""
     @State private var languageUpdateMessage: String?
+    @State private var historyEntries: [UserHistoryEntry] = []
+    @State private var selectedHistoryFilter: UserHistoryFilter = .all
 
     private let reminderService = ReminderService()
+    private let userHistoryService = UserHistoryService.shared
 
     var body: some View {
         AppBackground {
@@ -26,16 +84,7 @@ struct AccountView: View {
                                     .resizable()
                                     .scaledToFill()
                             } else {
-                                AsyncImage(url: AppImageLibrary.userAvatarURL) { phase in
-                                    switch phase {
-                                    case let .success(image):
-                                        image
-                                            .resizable()
-                                            .scaledToFill()
-                                    default:
-                                        Circle().fill(Color.gray.opacity(0.35))
-                                    }
-                                }
+                                AppPlaceholderImageView(assetName: AppImageLibrary.userAvatarAssetName, cornerRadius: 47, iconSize: 28)
                             }
                             .frame(width: 94, height: 94)
                             .clipShape(Circle())
@@ -60,7 +109,7 @@ struct AccountView: View {
                             title: text("Couldn't load your account.", "আপনার অ্যাকাউন্ট লোড করা যায়নি।"),
                             message: text(
                                 "Please check your internet connection. Tap Retry to try again.",
-                                "দয়া করে ইন্টারনেট সংযোগ যাচাই করুন। আবার চেষ্টা করতে Retry চাপুন।"
+                                "দয়া করে ইন্টারনেট সংযোগ যাচাই করুন। আবার চেষ্টা করতে পুনরায় চেষ্টা বোতাম চাপুন।"
                             ) + "\n\n" + profileError,
                             messageAccessibilityIdentifier: "accountProfileErrorMessage",
                             retryTitle: text("Retry", "আবার চেষ্টা করুন"),
@@ -87,14 +136,14 @@ struct AccountView: View {
                                     updateLanguage(language)
                                 } label: {
                                     if language.rawValue == currentLanguage.rawValue {
-                                        Label(language.displayTitle, systemImage: "checkmark")
+                                        Label(language.displayTitle(in: currentLanguage), systemImage: "checkmark")
                                     } else {
-                                        Text(language.displayTitle)
+                                        Text(language.displayTitle(in: currentLanguage))
                                     }
                                 }
                             }
                         } label: {
-                            accountRow(icon: "globe", text: text("Language", "ভাষা"), trailing: currentLanguage.displayTitle)
+                            accountRow(icon: "globe", text: text("Language", "ভাষা"), trailing: currentLanguage.displayTitle(in: currentLanguage))
                         }
                         .buttonStyle(.plain)
 
@@ -133,6 +182,77 @@ struct AccountView: View {
                     }
 
                     CardView {
+                        HStack {
+                            Text(text("User History", "ব্যবহারকারীর ইতিহাস"))
+                                .font(TextStyles.subtitle)
+                                .foregroundStyle(AppDesign.text)
+                            Spacer()
+                            Button(text("Clear", "মুছুন")) {
+                                userHistoryService.clear(for: appState.currentUserId)
+                                loadHistoryEntries()
+                            }
+                            .font(TextStyles.caption)
+                            .foregroundStyle(.red)
+                        }
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(UserHistoryFilter.allCases) { filter in
+                                    Button {
+                                        selectedHistoryFilter = filter
+                                    } label: {
+                                        Text(filter.title(language: currentLanguage))
+                                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                            .foregroundStyle(selectedHistoryFilter == filter ? Color.white : AppDesign.text)
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 8)
+                                            .background(selectedHistoryFilter == filter ? AppDesign.primary : Color.white.opacity(0.85))
+                                            .clipShape(Capsule())
+                                            .overlay {
+                                                Capsule()
+                                                    .stroke(AppDesign.line, lineWidth: selectedHistoryFilter == filter ? 0 : 1)
+                                            }
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                        }
+
+                        if filteredHistoryEntries.isEmpty {
+                            Text(text("No user activity yet.", "এখনও কোনো ব্যবহারকারী কার্যকলাপ নেই।"))
+                                .font(TextStyles.caption)
+                                .foregroundStyle(AppDesign.muted)
+                        } else {
+                            ForEach(filteredHistoryEntries.prefix(20)) { entry in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    HStack {
+                                        Text(localizedHistoryAction(entry.action))
+                                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                            .foregroundStyle(AppDesign.text)
+                                        Spacer()
+                                        Text(entry.category.displayTitle(language: currentLanguage))
+                                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                                            .foregroundStyle(AppDesign.muted)
+                                    }
+
+                                    if let details = entry.details, !details.isEmpty {
+                                        Text(localizedHistoryDetails(details))
+                                            .font(TextStyles.caption)
+                                            .foregroundStyle(AppDesign.muted)
+                                    }
+
+                                    Text(relativeDate(entry.timestamp))
+                                        .font(.system(size: 12, weight: .regular, design: .rounded))
+                                        .foregroundStyle(AppDesign.muted)
+                                }
+                                .padding(12)
+                                .background(Color.white.opacity(0.65))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+                        }
+                    }
+
+                    CardView {
                         Text(text("More", "আরও"))
                             .font(TextStyles.subtitle)
                             .foregroundStyle(AppDesign.text)
@@ -159,7 +279,7 @@ struct AccountView: View {
                             title: text("Couldn't log you out.", "আপনাকে লগ আউট করা যায়নি।"),
                             message: text(
                                 "Please check your internet connection and tap Retry, or tap Logout again.",
-                                "দয়া করে ইন্টারনেট সংযোগ যাচাই করে Retry চাপুন, অথবা আবার Logout চাপুন।"
+                                "দয়া করে ইন্টারনেট সংযোগ যাচাই করে পুনরায় চেষ্টা বোতাম চাপুন, অথবা আবার লগ আউট চাপুন।"
                             ) + "\n\n" + logoutError,
                             messageAccessibilityIdentifier: "accountLogoutErrorMessage",
                             retryTitle: text("Retry", "আবার চেষ্টা করুন"),
@@ -176,9 +296,24 @@ struct AccountView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             refreshPermissionStatus()
+            loadHistoryEntries()
+            userHistoryService.recordCurrentUser(
+                category: .account,
+                action: "Opened account screen"
+            )
         }
         .onChange(of: appLanguageCode) { _ in
             refreshPermissionStatus()
+        }
+        .onChange(of: appState.currentUserId) { _ in
+            loadHistoryEntries()
+        }
+        .onChange(of: selectedHistoryFilter) { filter in
+            userHistoryService.recordCurrentUser(
+                category: .account,
+                action: "Changed history filter",
+                details: filter.title(language: currentLanguage)
+            )
         }
     }
 
@@ -240,6 +375,11 @@ struct AccountView: View {
         ) { result in
             switch result {
             case .success:
+                userHistoryService.recordCurrentUser(
+                    category: .account,
+                    action: "Changed app language",
+                    details: language.displayTitle(in: currentLanguage)
+                )
                 languageUpdateMessage = text("Language updated.", "ভাষা আপডেট হয়েছে।")
             case .failure:
                 appLanguageCode = oldValue
@@ -250,6 +390,10 @@ struct AccountView: View {
 
     private func handleReminderToggle(enabled: Bool) {
         if !enabled {
+            userHistoryService.recordCurrentUser(
+                category: .account,
+                action: "Disabled reminders"
+            )
             permissionStatusText = text("Permission: Reminders disabled", "অনুমতি: রিমাইন্ডার বন্ধ")
             return
         }
@@ -257,10 +401,18 @@ struct AccountView: View {
         reminderService.requestPermission { granted in
             DispatchQueue.main.async {
                 if granted {
+                    userHistoryService.recordCurrentUser(
+                        category: .account,
+                        action: "Enabled reminders"
+                    )
                     permissionStatusText = text("Permission: Allowed", "অনুমতি: অনুমোদিত")
                 } else {
                     remindersEnabled = false
-                    permissionStatusText = text("Permission: Denied (enable in iPhone Settings)", "অনুমতি: প্রত্যাখ্যাত (iPhone Settings থেকে চালু করুন)")
+                    userHistoryService.recordCurrentUser(
+                        category: .account,
+                        action: "Reminder permission denied"
+                    )
+                    permissionStatusText = text("Permission: Denied (enable in iPhone Settings)", "অনুমতি: প্রত্যাখ্যাত (আইফোন সেটিংস থেকে চালু করুন)")
                 }
             }
         }
@@ -275,7 +427,7 @@ struct AccountView: View {
                         ? text("Permission: Allowed", "অনুমতি: অনুমোদিত")
                         : text("Permission: Reminders disabled", "অনুমতি: রিমাইন্ডার বন্ধ")
                 case .denied:
-                    permissionStatusText = text("Permission: Denied (enable in iPhone Settings)", "অনুমতি: প্রত্যাখ্যাত (iPhone Settings থেকে চালু করুন)")
+                    permissionStatusText = text("Permission: Denied (enable in iPhone Settings)", "অনুমতি: প্রত্যাখ্যাত (আইফোন সেটিংস থেকে চালু করুন)")
                 case .notDetermined:
                     permissionStatusText = text("Permission: Not requested", "অনুমতি: এখনো চাওয়া হয়নি")
                 @unknown default:
@@ -283,6 +435,80 @@ struct AccountView: View {
                 }
             }
         }
+    }
+
+    private var filteredHistoryEntries: [UserHistoryEntry] {
+        guard let category = selectedHistoryFilter.category else {
+            return historyEntries
+        }
+
+        return historyEntries.filter { $0.category == category }
+    }
+
+    private func loadHistoryEntries() {
+        historyEntries = userHistoryService.entries(for: appState.currentUserId)
+    }
+
+    private func relativeDate(_ date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.locale = Locale(identifier: currentLanguage == .bangla ? "bn_BD" : "en_US")
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
+
+    private func localizedHistoryAction(_ action: String) -> String {
+        guard currentLanguage == .bangla else {
+            return action
+        }
+
+        let localizedActions: [String: String] = [
+            "Opened account screen": "অ্যাকাউন্ট স্ক্রিন খোলা হয়েছে",
+            "Changed history filter": "ইতিহাসের ফিল্টার পরিবর্তন করা হয়েছে",
+            "Changed app language": "অ্যাপের ভাষা পরিবর্তন করা হয়েছে",
+            "Disabled reminders": "রিমাইন্ডার বন্ধ করা হয়েছে",
+            "Enabled reminders": "রিমাইন্ডার চালু করা হয়েছে",
+            "Reminder permission denied": "রিমাইন্ডার অনুমতি প্রত্যাখ্যাত হয়েছে",
+            "Opened map screen": "ম্যাপ স্ক্রিন খোলা হয়েছে",
+            "Tapped retry on map error": "ম্যাপ ত্রুটি থেকে আবার চেষ্টা করা হয়েছে",
+            "Tapped retry on map empty state": "খালি ম্যাপ অবস্থা থেকে আবার চেষ্টা করা হয়েছে",
+            "Selected map category": "ম্যাপ ক্যাটাগরি নির্বাচন করা হয়েছে",
+            "Opened location settings": "লোকেশন সেটিংস খোলা হয়েছে",
+            "Opened marketplace": "মার্কেটপ্লেস খোলা হয়েছে",
+            "Opened product from list": "পণ্যের তালিকা থেকে পৃষ্ঠা খোলা হয়েছে",
+            "Opened cart from marketplace": "মার্কেটপ্লেস থেকে কার্ট খোলা হয়েছে",
+            "Opened cart": "কার্ট খোলা হয়েছে",
+            "Opened checkout": "চেকআউট খোলা হয়েছে",
+            "Opened checkout screen": "চেকআউট স্ক্রিন খোলা হয়েছে",
+            "Placed order": "অর্ডার সম্পন্ন হয়েছে",
+            "Order placement failed": "অর্ডার সম্পন্ন করা যায়নি",
+            "Closed order confirmation": "অর্ডার নিশ্চিতকরণ বন্ধ করা হয়েছে",
+            "Tapped add to cart": "কার্টে যোগ করুন চাপা হয়েছে",
+            "Viewed product details": "পণ্যের বিস্তারিত দেখা হয়েছে",
+            "Decreased product quantity": "পণ্যের পরিমাণ কমানো হয়েছে",
+            "Increased product quantity": "পণ্যের পরিমাণ বাড়ানো হয়েছে",
+            "Changed marketplace sort": "মার্কেটপ্লেস সাজানো পরিবর্তন করা হয়েছে",
+            "Changed marketplace animal filter": "মার্কেটপ্লেস প্রাণী ফিল্টার পরিবর্তন করা হয়েছে",
+            "Changed stock filter": "স্টক ফিল্টার পরিবর্তন করা হয়েছে",
+            "Submitted store search": "স্টোরে খোঁজ জমা দেওয়া হয়েছে",
+            "Tapped retry in marketplace": "মার্কেটপ্লেসে আবার চেষ্টা চাপা হয়েছে"
+        ]
+
+        return localizedActions[action] ?? action
+    }
+
+    private func localizedHistoryDetails(_ details: String) -> String {
+        guard currentLanguage == .bangla else {
+            return details
+        }
+
+        let lowered = details.lowercased()
+        if lowered == "enabled" {
+            return "চালু"
+        }
+        if lowered == "disabled" {
+            return "বন্ধ"
+        }
+
+        return details
     }
 }
 
@@ -385,16 +611,7 @@ private struct PersonalInformationView: View {
                     .resizable()
                     .scaledToFill()
             } else {
-                AsyncImage(url: AppImageLibrary.userAvatarURL) { phase in
-                    switch phase {
-                    case let .success(image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    default:
-                        Circle().fill(Color.gray.opacity(0.3))
-                    }
-                }
+                AppPlaceholderImageView(assetName: AppImageLibrary.userAvatarAssetName, cornerRadius: 45, iconSize: 24)
             }
         }
         .frame(width: 90, height: 90)

@@ -36,7 +36,13 @@ struct PetProfileView: View {
                         messageAccessibilityIdentifier: "petProfileErrorMessage",
                         retryTitle: text("Retry", "আবার চেষ্টা করুন"),
                         retryAccessibilityIdentifier: "petProfileRetryButton",
-                        onRetry: loadPets
+                        onRetry: {
+                            UserHistoryService.shared.recordCurrentUser(
+                                category: .pets,
+                                action: "Tapped retry in pet profile"
+                            )
+                            loadPets()
+                        }
                     )
                     .padding(20)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -57,19 +63,7 @@ struct PetProfileView: View {
                                         RoundedRectangle(cornerRadius: 10)
                                             .fill(Color.gray.opacity(0.25))
 
-                                        if let imageURL = AppImageLibrary.petImageURL(forBreed: pet.breed) {
-                                            AsyncImage(url: imageURL) { phase in
-                                                switch phase {
-                                                case let .success(image):
-                                                    image
-                                                        .resizable()
-                                                        .scaledToFill()
-                                                default:
-                                                    Image(systemName: "pawprint.fill")
-                                                        .foregroundStyle(AppDesign.muted)
-                                                }
-                                            }
-                                        }
+                                        AppPlaceholderImageView(assetName: AppImageLibrary.petImageAssetName(forBreed: pet.breed), cornerRadius: 10, iconSize: 24)
                                     }
                                     .frame(width: 72, height: 72)
                                     .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -99,11 +93,21 @@ struct PetProfileView: View {
                                 Button(text("Delete", "মুছুন"), role: .destructive) {
                                     petPendingDelete = pet
                                     showingDeleteAlert = true
+                                    UserHistoryService.shared.recordCurrentUser(
+                                        category: .pets,
+                                        action: "Opened delete prompt",
+                                        details: pet.name
+                                    )
                                 }
 
                                 Button(text("Edit", "এডিট")) {
                                     editingPet = pet
                                     showingPetForm = true
+                                    UserHistoryService.shared.recordCurrentUser(
+                                        category: .pets,
+                                        action: "Opened edit pet form",
+                                        details: pet.name
+                                    )
                                 }
                                 .tint(.blue)
                             }
@@ -123,6 +127,10 @@ struct PetProfileView: View {
                 Button {
                     editingPet = nil
                     showingPetForm = true
+                    UserHistoryService.shared.recordCurrentUser(
+                        category: .pets,
+                        action: "Opened add pet form"
+                    )
                 } label: {
                     Label(text("Add Pet", "পোষা প্রাণী যোগ করুন"), systemImage: "plus")
                 }
@@ -150,6 +158,12 @@ struct PetProfileView: View {
         }
         .task {
             loadPets()
+        }
+        .onAppear {
+            UserHistoryService.shared.recordCurrentUser(
+                category: .pets,
+                action: "Opened pet profile"
+            )
         }
     }
 
@@ -193,6 +207,11 @@ struct PetProfileView: View {
                 switch result {
                 case .success:
                     showingPetForm = false
+                    UserHistoryService.shared.recordCurrentUser(
+                        category: .pets,
+                        action: "Added pet",
+                        details: pet.name
+                    )
                     loadPets()
                 case let .failure(error):
                     errorMessage = error.localizedDescription
@@ -217,6 +236,11 @@ struct PetProfileView: View {
                 switch result {
                 case .success:
                     showingPetForm = false
+                    UserHistoryService.shared.recordCurrentUser(
+                        category: .pets,
+                        action: "Updated pet",
+                        details: updatedPet.name
+                    )
                     loadPets()
                 case let .failure(error):
                     errorMessage = error.localizedDescription
@@ -234,6 +258,11 @@ struct PetProfileView: View {
                 case .success:
                     petPendingDelete = nil
                     pets.removeAll { $0.id == pet.id }
+                    UserHistoryService.shared.recordCurrentUser(
+                        category: .pets,
+                        action: "Deleted pet",
+                        details: pet.name
+                    )
                 case let .failure(error):
                     errorMessage = error.localizedDescription
                 }

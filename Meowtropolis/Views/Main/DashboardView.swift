@@ -37,6 +37,35 @@ struct DashboardView: View {
         .accessibilityIdentifier("dashboardTabView")
         .tint(AppDesign.primary)
         .navigationBarBackButtonHidden(true)
+        .onAppear {
+            UserHistoryService.shared.recordCurrentUser(
+                category: .system,
+                action: "Opened dashboard"
+            )
+        }
+        .onChange(of: selectedTab) { newTab in
+            let tabName: String
+            switch newTab {
+            case 0:
+                tabName = "Home"
+            case 1:
+                tabName = "Shop"
+            case 2:
+                tabName = "Vet"
+            case 3:
+                tabName = "Account"
+            case 4:
+                tabName = "Map"
+            default:
+                tabName = "Unknown"
+            }
+
+            UserHistoryService.shared.recordCurrentUser(
+                category: .system,
+                action: "Switched tab",
+                details: tabName
+            )
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(text("Logout", "লগ আউট")) {
@@ -74,6 +103,9 @@ struct DashboardView: View {
 private struct HomeTabView: View {
     @EnvironmentObject private var appState: AppState
     @AppStorage(AppLanguage.storageKey) private var appLanguageCode: String = AppLanguage.englishUS.rawValue
+    @AppStorage("homeCareChecklistFood") private var checklistFoodDone: Bool = false
+    @AppStorage("homeCareChecklistWater") private var checklistWaterDone: Bool = false
+    @AppStorage("homeCareChecklistPlay") private var checklistPlayDone: Bool = false
 
     var body: some View {
         AppBackground {
@@ -85,16 +117,7 @@ private struct HomeTabView: View {
                                 .resizable()
                                 .scaledToFill()
                         } else {
-                            AsyncImage(url: AppImageLibrary.userAvatarURL) { phase in
-                                switch phase {
-                                case let .success(image):
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                default:
-                                    Circle().fill(Color.gray.opacity(0.35))
-                                }
-                            }
+                            AppPlaceholderImageView(assetName: AppImageLibrary.userAvatarAssetName, cornerRadius: 28, iconSize: 18)
                         }
                         .frame(width: 56, height: 56)
                         .clipShape(Circle())
@@ -119,16 +142,7 @@ private struct HomeTabView: View {
                             RoundedRectangle(cornerRadius: 14)
                                 .fill(Color(red: 0.78, green: 0.86, blue: 0.95))
 
-                            AsyncImage(url: AppImageLibrary.adoptionBannerURL) { phase in
-                                switch phase {
-                                case let .success(image):
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                default:
-                                    Color.clear
-                                }
-                            }
+                            AppPlaceholderImageView(assetName: AppImageLibrary.homeBannerAssetName, cornerRadius: 14, iconSize: 42)
 
                             LinearGradient(
                                 colors: [Color.black.opacity(0.45), Color.black.opacity(0.12)],
@@ -137,13 +151,13 @@ private struct HomeTabView: View {
                             )
 
                             VStack(alignment: .leading, spacing: 6) {
-                                Text(text("Adopt A Pet\nComplete The Family", "একটি পোষা প্রাণী নিন\nপরিবার পূর্ণ করুন"))
+                                Text(text("Weekly Care Planner", "সাপ্তাহিক যত্ন পরিকল্পনা"))
                                     .font(.system(size: 20, weight: .bold, design: .rounded))
                                     .foregroundStyle(.white)
-                                Text(text("Up to 30% off", "সর্বোচ্চ ৩০% ছাড়"))
+                                Text(text("Track daily essentials", "দৈনিক প্রয়োজনীয় কাজ ট্র্যাক করুন"))
                                     .font(.system(size: 16, weight: .bold, design: .rounded))
                                     .foregroundStyle(Color(red: 1.0, green: 0.88, blue: 0.4))
-                                Text(text("Use code COMBO30", "কোড ব্যবহার করুন COMBO30"))
+                                Text(text("No pet sales. Care-first experience.", "পোষা প্রাণী বিক্রি নয়, যত্নই অগ্রাধিকার।"))
                                     .font(.system(size: 15, weight: .medium, design: .rounded))
                                     .foregroundStyle(Color.white.opacity(0.95))
                             }
@@ -154,14 +168,33 @@ private struct HomeTabView: View {
                     }
 
                     CardView {
+                        sectionTitle(text("Daily Care Checklist", "দৈনিক যত্ন চেকলিস্ট"))
+
+                        Toggle(isOn: $checklistFoodDone) {
+                            Text(text("Meal completed", "খাবার সম্পন্ন"))
+                                .font(TextStyles.body)
+                        }
+
+                        Toggle(isOn: $checklistWaterDone) {
+                            Text(text("Water refilled", "পানির বাটি ভরা হয়েছে"))
+                                .font(TextStyles.body)
+                        }
+
+                        Toggle(isOn: $checklistPlayDone) {
+                            Text(text("Playtime done", "খেলার সময় সম্পন্ন"))
+                                .font(TextStyles.body)
+                        }
+                    }
+
+                    CardView {
                         sectionTitle(text("Our Services", "আমাদের সেবাসমূহ"))
 
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: Spacing.small) {
                                 chip(text("All", "সব"), selected: true)
-                                chip(text("Cat", "বিড়াল"))
-                                chip(text("Dog", "কুকুর"))
-                                chip(text("Bird", "পাখি"))
+                                chip(text("Health", "স্বাস্থ্য"))
+                                chip(text("Care", "যত্ন"))
+                                chip(text("Profile", "প্রোফাইল"))
                             }
                         }
 
@@ -178,6 +211,31 @@ private struct HomeTabView: View {
         }
         .onAppear {
             print("[UI Redesign] Dashboard updated")
+            UserHistoryService.shared.recordCurrentUser(
+                category: .system,
+                action: "Opened home tab"
+            )
+        }
+        .onChange(of: checklistFoodDone) { isDone in
+            UserHistoryService.shared.recordCurrentUser(
+                category: .account,
+                action: isDone ? "Completed checklist task" : "Unchecked checklist task",
+                details: "Meal completed"
+            )
+        }
+        .onChange(of: checklistWaterDone) { isDone in
+            UserHistoryService.shared.recordCurrentUser(
+                category: .account,
+                action: isDone ? "Completed checklist task" : "Unchecked checklist task",
+                details: "Water refilled"
+            )
+        }
+        .onChange(of: checklistPlayDone) { isDone in
+            UserHistoryService.shared.recordCurrentUser(
+                category: .account,
+                action: isDone ? "Completed checklist task" : "Unchecked checklist task",
+                details: "Playtime done"
+            )
         }
     }
 
@@ -218,20 +276,7 @@ private struct HomeTabView: View {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(Color.gray.opacity(0.4))
 
-                    if let imageURL = AppImageLibrary.serviceImageURL(for: title) {
-                        AsyncImage(url: imageURL) { phase in
-                            switch phase {
-                            case let .success(image):
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                            default:
-                                Image(systemName: "photo")
-                                    .font(.system(size: 28))
-                                    .foregroundStyle(AppDesign.muted)
-                            }
-                        }
-                    }
+                    AppPlaceholderImageView(assetName: AppImageLibrary.serviceImageAssetName(for: title), cornerRadius: 10, iconSize: 28)
                 }
                 .frame(height: 100)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -245,6 +290,15 @@ private struct HomeTabView: View {
             .clipShape(RoundedRectangle(cornerRadius: 14))
             .shadow(color: .black.opacity(0.06), radius: 8, y: 4)
         }
+        .simultaneousGesture(
+            TapGesture().onEnded {
+                UserHistoryService.shared.recordCurrentUser(
+                    category: .system,
+                    action: "Opened service shortcut",
+                    details: title
+                )
+            }
+        )
     }
 
     private var currentLanguage: AppLanguage {

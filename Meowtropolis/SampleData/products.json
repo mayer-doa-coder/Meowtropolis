@@ -1,23 +1,138 @@
 [
   {
-    "id": "product_001",
-    "name": "Premium Salmon Cat Food",
-    "price": 18.99,
-    "category": "food",
-    "imageURL": "https://loremflickr.com/900/700/cat,food"
+    "id": "product_cat_001",
+    "name": "Black Sand Bentonite Cat Litter 10L",
+    "price": 620.00,
+    "category": "cat",
+    "imageURL": "img_black_sand_carbon_bentonite_cat_litter_10l_600x588",
+    "stock": 15
   },
   {
-    "id": "product_002",
-    "name": "Feather Teaser Wand Toy",
-    "price": 7.49,
-    "category": "toys",
-    "imageURL": "https://loremflickr.com/900/700/cat,toy"
+    "id": "product_cat_002",
+    "name": "Heaven Bentonite Cat Litter Apple 5L",
+    "price": 470.00,
+    "category": "cat",
+    "imageURL": "img_heaven_bentonite_cat_litter_apple_5l",
+    "stock": 21
   },
   {
-    "id": "product_003",
-    "name": "Comfort Padded Cat Harness",
-    "price": 14.25,
-    "category": "accessories",
-    "imageURL": "https://loremflickr.com/900/700/cat,harness"
+    "id": "product_cat_003",
+    "name": "Paws Cat Litter 4.5L",
+    "price": 390.00,
+    "category": "cat",
+    "imageURL": "img_paws_cat_litter_4_5l_jpg",
+    "stock": 18
+  },
+  {
+    "id": "product_cat_004",
+    "name": "Cuties Catz Tuna Dry Cat Food",
+    "price": 760.00,
+    "category": "cat",
+    "imageURL": "img_cuties_catz_dry_cat_food_tuna_flavour_png",
+    "stock": 9
+  },
+  {
+    "id": "product_cat_005",
+    "name": "Pet Metro Cat Food Tuna and Chicken 1kg",
+    "price": 680.00,
+    "category": "cat",
+    "imageURL": "img_pet_metro_adult_cat_food_tuna_and_chicken_recipe_1kg",
+    "stock": 11
+  },
+  {
+    "id": "product_cat_006",
+    "name": "Reflex Plus Cat Food Salmon 1.5kg",
+    "price": 1120.00,
+    "category": "cat",
+    "imageURL": "img_reflex_plus_anti_hairball_cat_food_with_salmon_1_5kg",
+    "stock": 7
+  },
+  {
+    "id": "product_cat_007",
+    "name": "ProStar Adult Cat Food Chicken",
+    "price": 990.00,
+    "category": "cat",
+    "imageURL": "img_prostar_cat_food_adult_chicken_600x600_jpg",
+    "stock": 12
+  },
+  {
+    "id": "product_cat_008",
+    "name": "Whiskas Tasty Mix Tuna Kanikama",
+    "price": 95.00,
+    "category": "cat",
+    "imageURL": "img_whiskas_pouch_tasty_mix_gravy_tuna_kanikama_carrots_cat_food_70gm",
+    "stock": 35
+  },
+  {
+    "id": "product_cat_009",
+    "name": "Felix Tuna in Jelly 70g",
+    "price": 88.00,
+    "category": "cat",
+    "imageURL": "img_felix_cat_food_tuna_in_jelly_70g_jpg",
+    "stock": 40
+  },
+  {
+    "id": "product_cat_010",
+    "name": "Felix Sardine in Jelly 70g",
+    "price": 88.00,
+    "category": "cat",
+    "imageURL": "img_felix_cat_food_sardine_in_jelly_70g_jpg",
+    "stock": 0
+  },
+  {
+    "id": "product_dog_001",
+    "name": "Pedigree Adult Dog Food Beef and Vegetables 3kg",
+    "price": 1250.00,
+    "category": "dog",
+    "imageURL": "img_pedigree_adult_dog_food_beef_vegetables_3kg_jpg",
+    "stock": 8
+  },
+  {
+    "id": "product_dog_002",
+    "name": "Pedigree Adult Roasted Chicken Rice 3kg",
+    "price": 1290.00,
+    "category": "dog",
+    "imageURL": "img_pedigree_adult_roasted_chicken_rice_vegetable_flavor_3kg_jpg",
+    "stock": 6
+  },
+  {
+    "id": "product_dog_003",
+    "name": "Pedigree Puppy Chicken Egg and Milk 1.3kg",
+    "price": 710.00,
+    "category": "dog",
+    "imageURL": "img_pedigree_puppy_dry_food_nutri_defense_chicken_egg_and_milk_flavor_1_3kg_jpg",
+    "stock": 13
+  },
+  {
+    "id": "product_dog_004",
+    "name": "Wanpy Dog Wet Food Beef 375g",
+    "price": 240.00,
+    "category": "dog",
+    "imageURL": "img_wanpy_dog_wet_food_can_beef_375gm_600x600",
+    "stock": 26
+  },
+  {
+    "id": "product_dog_005",
+    "name": "Wanpy Tasty Meat Paste Lamb 90g",
+    "price": 210.00,
+    "category": "dog",
+    "imageURL": "img_wanpy_dog_pouch_tasty_meat_paste_lamb_carrot_and_pea_90gm_png",
+    "stock": 22
+  },
+  {
+    "id": "product_dog_006",
+    "name": "Prama Delicacy Dog Treat Milk 70g",
+    "price": 180.00,
+    "category": "dog",
+    "imageURL": "img_prama_delicacy_snack_dog_treats_milk_70gm_600x600",
+    "stock": 19
+  },
+  {
+    "id": "product_dog_007",
+    "name": "Prama Delicacy Dog Treat Maguro 50g",
+    "price": 170.00,
+    "category": "dog",
+    "imageURL": "img_prama_delicacy_snack_dog_treats_maguro_50gm",
+    "stock": 14
   }
 ]

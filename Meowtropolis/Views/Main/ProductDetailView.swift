@@ -18,27 +18,10 @@ struct ProductDetailView: View {
                         .padding(.horizontal, 20)
                         .padding(.top, 12)
                         .overlay {
-                            if let url = AppImageLibrary.productImageURL(for: product) {
-                                AsyncImage(url: url) { phase in
-                                    switch phase {
-                                    case let .success(image):
-                                        image
-                                            .resizable()
-                                            .scaledToFill()
-                                            .clipShape(RoundedRectangle(cornerRadius: 28))
-                                            .padding(.horizontal, 20)
-                                            .padding(.top, 12)
-                                    case .failure:
-                                        Image(systemName: "photo")
-                                            .font(.system(size: 40))
-                                            .foregroundStyle(AppDesign.muted)
-                                    case .empty:
-                                        ProgressView()
-                                    @unknown default:
-                                        EmptyView()
-                                    }
-                                }
-                            }
+                            AppPlaceholderImageView(assetName: AppImageLibrary.productImageAssetName(for: product), cornerRadius: 28, iconSize: 40)
+                                .clipShape(RoundedRectangle(cornerRadius: 28))
+                                .padding(.horizontal, 20)
+                                .padding(.top, 12)
                         }
 
                     CardView {
@@ -53,6 +36,10 @@ struct ProductDetailView: View {
                         Text(currentLanguage.formatMoney(prefixEnglish: "Price:", prefixBangla: "দাম:", value: product.price))
                             .font(TextStyles.subtitle)
                             .foregroundStyle(AppDesign.primary)
+
+                        Text(stockText)
+                            .font(TextStyles.caption)
+                            .foregroundStyle(product.stock > 0 ? AppDesign.muted : .red)
 
                         DividerWithText(text: text("Product Details", "পণ্যের তথ্য"))
 
@@ -72,6 +59,11 @@ struct ProductDetailView: View {
 
                             Button {
                                 quantity = max(1, quantity - 1)
+                                UserHistoryService.shared.recordCurrentUser(
+                                    category: .shop,
+                                    action: "Decreased product quantity",
+                                    details: product.name
+                                )
                             } label: {
                                 Image(systemName: "minus")
                                     .frame(width: 28, height: 28)
@@ -82,7 +74,12 @@ struct ProductDetailView: View {
                                 .frame(minWidth: 40)
 
                             Button {
-                                quantity += 1
+                                quantity = min(max(1, product.stock), quantity + 1)
+                                UserHistoryService.shared.recordCurrentUser(
+                                    category: .shop,
+                                    action: "Increased product quantity",
+                                    details: product.name
+                                )
                             } label: {
                                 Image(systemName: "plus")
                                     .frame(width: 28, height: 28)
@@ -90,6 +87,7 @@ struct ProductDetailView: View {
                                     .background(AppDesign.primary)
                                     .clipShape(RoundedRectangle(cornerRadius: 6))
                             }
+                                    .disabled(product.stock == 0 || quantity >= product.stock)
                         }
 
                         if let successMessage {
@@ -102,8 +100,14 @@ struct ProductDetailView: View {
                         Button(text("Add to Cart", "কার্টে যোগ করুন")) {
                             cartState.addToCart(product: product, quantity: quantity)
                             successMessage = text("Added to cart successfully.", "কার্টে সফলভাবে যোগ করা হয়েছে।")
+                            UserHistoryService.shared.recordCurrentUser(
+                                category: .shop,
+                                action: "Tapped add to cart",
+                                details: "\(product.name) x\(quantity)"
+                            )
                         }
-                        .buttonStyle(FilledPrimaryButtonStyle())
+                        .buttonStyle(FilledPrimaryButtonStyle(disabled: product.stock == 0))
+                        .disabled(product.stock == 0)
                         .accessibilityIdentifier("productDetailAddToCartButton")
 
                         Text(text("Demo note: Checkout does not process real payments yet.", "ডেমো নোট: চেকআউট এখনো বাস্তব পেমেন্ট প্রক্রিয়া করে না।"))
@@ -129,7 +133,24 @@ struct ProductDetailView: View {
                     }
                 }
                 .accessibilityIdentifier("productDetailCartButton")
+                .simultaneousGesture(
+                    TapGesture().onEnded {
+                        UserHistoryService.shared.recordCurrentUser(
+                            category: .shop,
+                            action: "Opened cart from product details",
+                            details: product.name
+                        )
+                    }
+                )
             }
+        }
+        .onAppear {
+            quantity = max(1, min(quantity, max(1, product.stock)))
+            UserHistoryService.shared.recordCurrentUser(
+                category: .shop,
+                action: "Viewed product details",
+                details: product.name
+            )
         }
     }
 
@@ -139,6 +160,14 @@ struct ProductDetailView: View {
 
     private func text(_ english: String, _ bangla: String) -> String {
         currentLanguage.text(english: english, bangla: bangla)
+    }
+
+    private var stockText: String {
+        if product.stock <= 0 {
+            return text("Out of stock", "স্টক শেষ")
+        }
+
+        return text("Available stock: \(product.stock)", "স্টক আছে: \(product.stock)")
     }
 }
 

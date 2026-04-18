@@ -15,6 +15,10 @@ struct RootView: View {
             } else if !appState.isLoggedIn && showOnboarding {
                 OnboardingView {
                     showOnboarding = false
+                    UserHistoryService.shared.recordCurrentUser(
+                        category: .system,
+                        action: "Completed onboarding"
+                    )
                 }
             } else if appState.isLoggedIn && appState.isProfileLoading {
                 profileLoadingView
@@ -61,11 +65,19 @@ struct RootView: View {
                     .multilineTextAlignment(.center)
 
                 Button(text("Retry", "আবার চেষ্টা করুন")) {
+                    UserHistoryService.shared.recordCurrentUser(
+                        category: .account,
+                        action: "Tapped retry on profile load"
+                    )
                     appState.loadCurrentUserProfile()
                 }
                 .buttonStyle(FilledPrimaryButtonStyle())
 
                 Button(text("Logout", "লগ আউট")) {
+                    UserHistoryService.shared.recordCurrentUser(
+                        category: .auth,
+                        action: "Tapped logout from profile error"
+                    )
                     appState.logout()
                 }
                 .buttonStyle(OutlinedPrimaryButtonStyle())

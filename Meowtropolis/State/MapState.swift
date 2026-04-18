@@ -54,6 +54,11 @@ final class MapState: ObservableObject {
         selectedPlace = nil
         lastQuery = cleanedQuery
         permissionState = .requesting
+        UserHistoryService.shared.recordCurrentUser(
+            category: .map,
+            action: "Searched nearby places",
+            details: cleanedQuery
+        )
 
         print("[MapState] Starting search")
 
@@ -145,6 +150,13 @@ final class MapState: ObservableObject {
 
     func selectPlace(_ place: Place?) {
         selectedPlace = place
+        if let place {
+            UserHistoryService.shared.recordCurrentUser(
+                category: .map,
+                action: "Viewed place details",
+                details: place.name
+            )
+        }
     }
 
     private func isPermissionDenied(_ error: Error) -> Bool {
