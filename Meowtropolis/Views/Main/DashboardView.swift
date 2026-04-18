@@ -23,6 +23,11 @@ struct DashboardView: View {
             AccountView()
                 .tabItem { Label(text("Account", "অ্যাকাউন্ট"), systemImage: "person") }
                 .tag(3)
+
+            MapView()
+                .tabItem { Label(text("Map", "ম্যাপ"), systemImage: "map") }
+                .accessibilityIdentifier("mapTab")
+                .tag(4)
         }
         .accessibilityIdentifier("dashboardTabView")
         .tint(AppDesign.primary)

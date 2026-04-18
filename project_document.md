@@ -1,212 +1,236 @@
-# 🐾 Meowtropolis – Smart Pet Care Ecosystem
+# Meowtropolis Final MVP Project Document
 
-## 📌 Project Overview
-**Meowtropolis** is a modern, all-in-one pet care mobile application designed to simplify and enhance the experience of pet ownership. The platform integrates multiple pet-related services—including grooming, healthcare, pet sitting, and e-commerce—into a single seamless digital ecosystem.
+## 1. Phase Status
 
-The goal of Meowtropolis is to provide convenience, reliability, and personalized care for pets while connecting pet owners with trusted service providers.
+This project is in the final phase before demo.
 
----
+Current focus:
+- Documentation completion
+- End-to-end validation
+- Stability checks
+- Freeze enforcement
 
-## 🎯 Objectives
-- Provide a centralized platform for all pet care needs
-- Improve accessibility to grooming and veterinary services
-- Enable easy booking and scheduling of pet-related services
-- Ensure pet health tracking and timely care through reminders
-- Create a trusted marketplace for pet products
+No new feature development is allowed in this phase.
 
 ---
 
-## 👥 Target Users
-- Pet owners (cats, dogs, and other domestic pets)
-- Veterinary professionals
-- Pet groomers
-- Pet sitters and caregivers
-- Pet product vendors
+## 2. MVP Scope (Locked)
+
+Included MVP features:
+- Authentication: signup, login, logout, session restore
+- Dashboard navigation
+- Pet profile management: add, edit, delete, list
+- Grooming booking flow
+- Vet consultation request flow
+- Marketplace browsing and product detail
+- Map tab with nearby place discovery
+
+Excluded from MVP:
+- Payments and advanced checkout
+- Video consultation
+- Community/social features
+- Subscription system
+- Non-critical redesign/refactor work
 
 ---
 
-## 🚀 Core Features
+## 3. Architecture Snapshot
 
-### ✂️ 1. Pet Grooming Services
-- Book grooming appointments
-- Select services (bath, haircut, nail trim, etc.)
-- View groomer profiles and ratings
-- Track appointment status
+Technology:
+- Swift + SwiftUI frontend
+- Firebase Auth + Firestore backend
+- XCTest unit tests and UI tests
 
-### 🏥 2. Veterinary & Healthcare
-- Online vet consultations
-- Digital prescriptions
-- Medicine ordering system
-- Pet health records management
+Layering rules:
+- Views: screen UI only
+- State: loading/error/data orchestration
+- Services: Firebase and external SDK integration
+- Models: Codable data structures
 
-### 🐕 3. Pet Care & Sitting
-- Find verified pet sitters
-- Book walking, boarding, or daycare services
-- Real-time updates and communication
-
-### 🛍️ 4. Pet Marketplace
-- Buy pet food, toys, and accessories
-- Filter products by category, price, and brand
-- Secure checkout system
-
-### 📅 5. Smart Scheduling & Reminders
-- Appointment reminders (grooming, vet visits)
-- Vaccination alerts
-- Feeding and medication schedules
-
-### 👤 6. User Profiles
-- Pet owner profile management
-- Add multiple pets with details (age, breed, medical history)
-- Personalized recommendations
+The freeze phase keeps this architecture unchanged.
 
 ---
 
-## 📱 App Screens
+## 4. Full MVP End-to-End Flow
 
-- Splash Screen
-- Login / Signup
-- Home Dashboard
-- Pet Profile
-- Grooming Booking
-- Vet Consultation
-- Marketplace
+Primary demo flow:
+1. Auth
+2. Dashboard
+3. Pet Profile
+4. Grooming
+5. Vet
+6. Marketplace
+7. Map
+8. Logout back to auth
 
----
-
-## 🧩 System Modules
-
-### 1. User Module
-- Registration & login (email/social auth)
-- Profile & pet management
-
-### 2. Service Module
-- Grooming booking system
-- Vet consultation system
-- Pet sitter booking
-
-### 3. E-commerce Module
-- Product listing
-- Cart & checkout
-- Order tracking
-
-### 4. Notification Module
-- Push notifications
-- Alerts and reminders
-
-### 5. Admin Module
-- Manage users and service providers
-- Monitor transactions
-- Approve listings and services
+Detailed verification path:
+1. Launch app and verify startup route
+2. Signup or login with valid user
+3. Confirm Dashboard opens and tab navigation works
+4. Open Pet Profile and perform add/edit/delete/list checks
+5. Open Grooming and create/view/update booking
+6. Open Vet and submit/view consultation request
+7. Open Marketplace and browse products, open product detail
+8. Open Map tab and validate nearby search states
+9. Logout and confirm auth route is restored
 
 ---
 
-## 📐 System Architecture Diagram
+## 5. Map Flow (New in Final MVP)
 
-User (iOS App)
-   ↓
-Frontend (SwiftUI)
-   ↓
-Firebase Backend
-   ├── Authentication
-   ├── Firestore Database
-   ├── Cloud Storage
-   └── Notifications
+Map user flow:
+1. Open Map tab
+2. Select a category chip
+3. Trigger place search
+4. View nearby places
+5. Verify state handling:
+   - Loading
+   - Empty
+   - Error
+   - Retry
 
----
-
-## 🏗️ Technical Architecture
-
-### 📱 Frontend (iOS App)
-- Swift / SwiftUI
-- Clean UI/UX with responsive design
-- API integration
-
-### 🌐 Backend
-- Node.js / Express.js (or Firebase backend)
-- RESTful APIs
-- Authentication & authorization
-
-### 🗄️ Database
-- MongoDB / Firebase Firestore
-- Stores user data, pet profiles, bookings, and orders
-
-### ☁️ Cloud Services
-- Firebase / AWS
-- Push notifications
-- File storage (images, prescriptions)
+Map state expectations:
+- Loading state shows indicator and no crash
+- Empty state shows no-results message and remains interactive
+- Error state shows error message and retry button
+- Retry action triggers new search attempt path
 
 ---
 
-## 🗄️ Database Schema
+## 6. Acceptance Criteria (Critical)
 
-### User
-- id
-- name
-- email
-- pets[]
+### Authentication
+- [ ] Signup works with valid credentials
+- [ ] Login works with valid credentials
+- [ ] Logout clears session and returns to auth
+- [ ] Auth/session restore works after app restart
+- [ ] Auth errors are visible and non-blocking
 
-### Pet
-- id
-- name
-- age
-- breed
-- medicalHistory
+### Dashboard Navigation
+- [ ] Dashboard opens after login
+- [ ] Tab switching works without route breaks
+- [ ] Existing tabs remain unchanged
+- [ ] No shared-state conflicts between tabs
 
-### Booking
-- id
-- userId
-- petId
-- serviceType
-- date
-- status
+### Pet Profile
+- [ ] Add pet saves successfully
+- [ ] Edit pet updates successfully
+- [ ] Delete pet removes item successfully
+- [ ] Pet list loads correctly
+- [ ] Empty and error states are handled
 
-### Product
-- id
-- name
-- price
-- category
+### Grooming
+- [ ] Booking creation works
+- [ ] Booking list loads correctly
+- [ ] Booking status update works
+- [ ] Loading and error states are handled
+- [ ] No navigation regressions
 
----
+### Vet
+- [ ] Request submission works
+- [ ] Request list loads correctly
+- [ ] Request status display is correct
+- [ ] Loading and error states are handled
+- [ ] No navigation regressions
 
-## 🔐 Security Features
-- Secure authentication (JWT / Firebase Auth)
-- Data encryption
-- Role-based access control
-- Secure payment gateway integration
+### Marketplace
+- [ ] Product list loads correctly
+- [ ] Product detail opens correctly
+- [ ] Firestore/local fallback path is stable
+- [ ] Loading/empty/error states are handled
+- [ ] No crash when data source changes
 
----
-
-## 🧪 Testing Strategy
-
-- Unit Testing for core functions
-- UI Testing for user flows
-- Manual testing for booking system
-- Error handling validation
-
----
-
-
-## 💡 Future Enhancements
-- AI-based pet health recommendations
-- Video consultation with vets
-- GPS tracking for pet walkers
-- Community forum for pet lovers
-- Subscription plans for premium services
+### Map Feature
+- [ ] Map tab opens successfully
+- [ ] Categories trigger search
+- [ ] Places load correctly
+- [ ] Empty state handled
+- [ ] Error state and retry work
+- [ ] No crashes during map interactions
 
 ---
 
-## 📊 Expected Outcomes
-- Simplified pet care management
-- Increased accessibility to pet services
-- Improved pet health tracking
-- Stronger connection between pet owners and service providers
+## 7. Fresh Install Simulator Rehearsal
+
+Run this on macOS + Xcode:
+1. Delete app from simulator
+2. Product -> Clean Build Folder
+3. Reinstall and launch app
+4. Run the full MVP demo flow
+
+Validation targets:
+- [ ] Firebase auth works from scratch
+- [ ] No cached-data dependency
+- [ ] No first-launch crash
+- [ ] Map tab loads correctly
+- [ ] Location permission paths are handled
+
+Execution note for current environment:
+- Runtime simulator rehearsal cannot be executed from this Windows workspace.
+- Code and documentation were updated for a macOS/Xcode rehearsal run.
 
 ---
 
-## ❤️ Conclusion
-Meowtropolis aims to revolutionize the pet care industry by offering a unified, reliable, and user-friendly platform. By combining essential services into one app, it ensures that pets receive the best care while providing peace of mind to their owners.
+## 8. Bug Sweep Rules (Final Phase)
+
+Allowed fixes only:
+- Crashes
+- Broken flow/navigation
+- Data not loading
+- Blocking error-state failures
+
+Not allowed in final phase:
+- New features
+- Non-critical UI polish
+- Refactors not required for stability
+- Design/system changes
 
 ---
 
-## 🏷️ Keywords
-Pet Care, Grooming, Veterinary, Pet Sitting, Pet Marketplace, Mobile App, Swift, iOS, Healthcare, E-commerce
+## 9. Logging Verification
+
+Required logging domains:
+- App startup logs
+- Auth flow logs
+- Map usage logs
+- Error logs
+
+Verification status:
+- App startup logs: present (app init and root appear)
+- Auth logs: present (check session, login, signup, logout, auth state)
+- Map logs: present (map open, category select, retry, search, service status)
+- Error logs: present (location, places, map state, fallback errors)
+
+---
+
+## 10. Freeze Policy
+
+Project is now in freeze state. Only critical issues affecting demo or core functionality will be addressed.
+
+Freeze rules:
+- No new features
+- No refactoring
+- No UI redesign
+- Critical bug fixes only
+
+---
+
+## 11. Final Checklist
+
+- [ ] All MVP features implemented
+- [ ] All flows tested end-to-end
+- [ ] Unit tests pass
+- [ ] UI tests pass
+- [ ] No major bugs
+- [ ] Demo script ready
+- [ ] App works on fresh install
+- [ ] Freeze policy declared
+
+---
+
+## 12. Demo-Ready Deliverables
+
+- Updated final project document
+- Demo script with speaking notes and backup paths
+- Freeze policy declaration
+- Final checklist for sign-off

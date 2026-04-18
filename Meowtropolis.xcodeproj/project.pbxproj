@@ -13,6 +13,8 @@
 		D0A0E9F92F7C77FA00343361 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = D0A0E9F82F7C77FA00343361 /* FirebaseCore */; };
 		D0A0E9FB2F7C77FA00343361 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = D0A0E9FA2F7C77FA00343361 /* FirebaseDatabase */; };
 		D0A0E9FD2F7C77FA00343361 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D0A0E9FC2F7C77FA00343361 /* FirebaseFirestore */; };
+		D1B3F0012F9A100000343361 /* GoogleMaps in Frameworks */ = {isa = PBXBuildFile; productRef = D1B3F0022F9A100000343361 /* GoogleMaps */; };
+		D1B3F0032F9A100000343361 /* GooglePlaces in Frameworks */ = {isa = PBXBuildFile; productRef = D1B3F0042F9A100000343361 /* GooglePlaces */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -67,6 +69,8 @@
 				D0A0E9FB2F7C77FA00343361 /* FirebaseDatabase in Frameworks */,
 				D0A0E9FD2F7C77FA00343361 /* FirebaseFirestore in Frameworks */,
 				D0A0E9F72F7C77FA00343361 /* FirebaseAuth in Frameworks */,
+				D1B3F0012F9A100000343361 /* GoogleMaps in Frameworks */,
+				D1B3F0032F9A100000343361 /* GooglePlaces in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -133,6 +137,8 @@
 				D0A0E9F82F7C77FA00343361 /* FirebaseCore */,
 				D0A0E9FA2F7C77FA00343361 /* FirebaseDatabase */,
 				D0A0E9FC2F7C77FA00343361 /* FirebaseFirestore */,
+				D1B3F0022F9A100000343361 /* GoogleMaps */,
+				D1B3F0042F9A100000343361 /* GooglePlaces */,
 			);
 			productName = Meowtropolis;
 			productReference = D07D72472F7B0DAD0098D4A2 /* Meowtropolis.app */;
@@ -218,6 +224,8 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				D0A0E9F32F7C77FA00343361 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				D1B3F0052F9A100000343361 /* XCRemoteSwiftPackageReference "ios-maps-sdk" */,
+				D1B3F0062F9A100000343361 /* XCRemoteSwiftPackageReference "ios-places-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D07D72482F7B0DAD0098D4A2 /* Products */;
@@ -421,10 +429,13 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
+				GOOGLE_MAPS_API_KEY = "";
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_GOOGLE_MAPS_API_KEY = "$(GOOGLE_MAPS_API_KEY)";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use your location to find nearby pet services.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -452,10 +463,13 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
+				GOOGLE_MAPS_API_KEY = "";
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_GOOGLE_MAPS_API_KEY = "$(GOOGLE_MAPS_API_KEY)";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use your location to find nearby pet services.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -605,6 +619,22 @@
 				minimumVersion = 12.11.0;
 			};
 		};
+		D1B3F0052F9A100000343361 /* XCRemoteSwiftPackageReference "ios-maps-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googlemaps/ios-maps-sdk";
+			requirement = {
+				kind = exactVersion;
+				version = 10.12.0;
+			};
+		};
+		D1B3F0062F9A100000343361 /* XCRemoteSwiftPackageReference "ios-places-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googlemaps/ios-places-sdk";
+			requirement = {
+				kind = exactVersion;
+				version = 10.12.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -632,6 +662,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D0A0E9F32F7C77FA00343361 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
+		};
+		D1B3F0022F9A100000343361 /* GoogleMaps */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D1B3F0052F9A100000343361 /* XCRemoteSwiftPackageReference "ios-maps-sdk" */;
+			productName = GoogleMaps;
+		};
+		D1B3F0042F9A100000343361 /* GooglePlaces */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D1B3F0062F9A100000343361 /* XCRemoteSwiftPackageReference "ios-places-sdk" */;
+			productName = GooglePlaces;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
