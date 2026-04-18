@@ -30,90 +30,76 @@ struct LoginView: View {
                         }
 
                         Spacer()
-
-                        Text(text("Log In", "লগ ইন"))
-                            .font(.system(size: 44, weight: .bold, design: .rounded))
-                            .foregroundStyle(AppDesign.text)
-
-                        Spacer()
-                        Color.clear.frame(width: 34, height: 34)
                     }
-                    .padding(.bottom, 24)
+                    .padding(.bottom, 4)
 
-                    AppInputField(title: text("Email", "ইমেইল"), text: $email, fieldIdentifier: "loginEmailField") {
-                        if let emailError {
-                            Text(emailError)
-                                .font(.footnote)
+                    Text(text("Welcome to Meowtropolis", "Meowtropolis-এ স্বাগতম"))
+                        .font(TextStyles.title)
+                        .foregroundStyle(AppDesign.text)
+
+                    Text(text("Manage your pets, book services, and more", "আপনার পোষা প্রাণী পরিচালনা করুন, সেবা বুক করুন এবং আরও অনেক কিছু করুন"))
+                        .font(TextStyles.body)
+                        .foregroundStyle(AppDesign.muted)
+
+                    CardView {
+                        AppInputField(title: text("Email", "ইমেইল"), text: $email, fieldIdentifier: "loginEmailField") {
+                            fieldSupportText(
+                                helpText: text("Enter your email address", "আপনার ইমেইল ঠিকানা লিখুন"),
+                                errorText: emailError
+                            )
+                        }
+
+                        AppInputField(title: text("Password", "পাসওয়ার্ড"), text: $password, isSecure: true, fieldIdentifier: "loginPasswordField") {
+                            fieldSupportText(
+                                helpText: text("At least 6 characters", "কমপক্ষে ৬ অক্ষর"),
+                                errorText: passwordError
+                            )
+                        }
+
+                        if let successMessage {
+                            Text(successMessage)
+                                .font(TextStyles.caption)
+                                .foregroundStyle(.green)
+                        }
+
+                        if let errorMessage {
+                            Text(errorMessage)
+                                .font(TextStyles.caption)
                                 .foregroundStyle(.red)
                         }
-                    }
 
-                    AppInputField(title: text("Password", "পাসওয়ার্ড"), text: $password, isSecure: true, fieldIdentifier: "loginPasswordField") {
-                        if let passwordError {
-                            Text(passwordError)
-                                .font(.footnote)
-                                .foregroundStyle(.red)
+                        Button(isLoading ? text("Logging in...", "লগইন হচ্ছে...") : text("Login", "লগইন করুন")) {
+                            loginUser()
                         }
-                    }
+                        .buttonStyle(FilledPrimaryButtonStyle(disabled: isLoading))
+                        .disabled(isLoading)
+                        .accessibilityIdentifier("loginSubmitButton")
 
-                    HStack {
-                        Label(text("Remember me", "মনে রাখুন"), systemImage: "checkmark.square.fill")
-                            .font(.system(size: 17, weight: .medium, design: .rounded))
-                            .foregroundStyle(AppDesign.text)
+                        if isLoading {
+                            ProgressView(text("Logging in...", "লগইন হচ্ছে..."))
+                                .frame(maxWidth: .infinity)
+                        }
 
-                        Spacer()
+                        HStack(spacing: 4) {
+                            Text(text("Don't have an account?", "অ্যাকাউন্ট নেই?"))
+                                .foregroundStyle(AppDesign.muted)
+
+                            NavigationLink(text("Sign Up", "নিবন্ধন করুন"), destination: SignupView())
+                                .foregroundStyle(.blue)
+                        }
+                        .font(TextStyles.body)
+                        .frame(maxWidth: .infinity)
 
                         NavigationLink(text("Forgot password?", "পাসওয়ার্ড ভুলে গেছেন?"), destination: ForgotPasswordView())
-                            .font(.system(size: 17, weight: .medium, design: .rounded))
+                            .font(TextStyles.caption)
                             .foregroundStyle(AppDesign.muted)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
                     }
 
-                    if let successMessage {
-                        Text(successMessage)
-                            .font(.footnote)
-                            .foregroundStyle(.green)
-                    }
-
-                    if let errorMessage {
-                        Text(errorMessage)
-                            .font(.footnote)
-                            .foregroundStyle(.red)
-                    }
-
-                    Button(isLoading ? text("Logging in...", "লগ ইন হচ্ছে...") : text("Log In", "লগ ইন")) {
-                        loginUser()
-                    }
-                    .buttonStyle(FilledPrimaryButtonStyle(disabled: isLoading))
-                    .disabled(isLoading)
-                    .accessibilityIdentifier("loginSubmitButton")
-
-                    if isLoading {
-                        ProgressView(text("Signing in...", "সাইন ইন হচ্ছে..."))
-                            .frame(maxWidth: .infinity)
-                    }
-
-                    HStack {
-                        Rectangle().fill(AppDesign.line).frame(height: 1)
-                        Text(text("Or", "অথবা"))
-                            .font(.system(size: 16, weight: .regular, design: .rounded))
-                            .foregroundStyle(AppDesign.muted)
-                            .padding(.horizontal, 8)
-                        Rectangle().fill(AppDesign.line).frame(height: 1)
-                    }
-                    .padding(.top, 8)
+                    DividerWithText(text: text("Or", "অথবা"))
 
                     SocialActionButton(title: text("Continue with Google", "গুগল দিয়ে চালিয়ে যান"), icon: "g.circle.fill")
                     SocialActionButton(title: text("Continue with Facebook", "ফেসবুক দিয়ে চালিয়ে যান"), icon: "f.cursive.circle.fill")
-
-                    HStack(spacing: 4) {
-                        Text(text("Don't have an account?", "অ্যাকাউন্ট নেই?"))
-                            .foregroundStyle(AppDesign.muted)
-                        NavigationLink(text("Register", "রেজিস্টার"), destination: SignupView())
-                            .foregroundStyle(.blue)
-                    }
-                    .font(.system(size: 18, weight: .medium, design: .rounded))
-                    .frame(maxWidth: .infinity)
-                    .padding(.bottom, 12)
                 }
                 .padding(20)
             }
@@ -122,6 +108,7 @@ struct LoginView: View {
     }
 
     private func loginUser() {
+        print("[AuthUI] Login attempt")
         clearMessages()
 
         guard validateInputs() else {
@@ -134,7 +121,7 @@ struct LoginView: View {
             appState.isProfileLoading = false
             appState.profileErrorMessage = nil
             appState.isLoggedIn = true
-            successMessage = text("Login successful. Redirecting to dashboard...", "লগ ইন সফল। ড্যাশবোর্ডে নেওয়া হচ্ছে...")
+            successMessage = text("Login successful. Redirecting to dashboard...", "লগইন সফল। ড্যাশবোর্ডে নেওয়া হচ্ছে...")
             return
         }
 
@@ -148,10 +135,15 @@ struct LoginView: View {
 
                 switch result {
                 case .success:
-                    successMessage = text("Login successful. Redirecting to dashboard...", "লগ ইন সফল। ড্যাশবোর্ডে নেওয়া হচ্ছে...")
+                    successMessage = text("Login successful. Redirecting to dashboard...", "লগইন সফল। ড্যাশবোর্ডে নেওয়া হচ্ছে...")
                     // RootView observes appState.isLoggedIn and shows DashboardView automatically.
                 case let .failure(error):
-                    errorMessage = appState.userFriendlyAuthError(error)
+                    let defaultMessage = text(
+                        "Login failed. Please check your email and password.",
+                        "লগইন ব্যর্থ হয়েছে। ইমেইল এবং পাসওয়ার্ড যাচাই করুন।"
+                    )
+                    let detailedMessage = appState.userFriendlyAuthError(error)
+                    errorMessage = detailedMessage.isEmpty ? defaultMessage : "\(defaultMessage)\n\(detailedMessage)"
                 }
             }
         }
@@ -163,16 +155,43 @@ struct LoginView: View {
         let cleanedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
 
         if cleanedEmail.isEmpty {
-            emailError = text("Email is required.", "ইমেইল প্রয়োজন।")
+            print("[AuthUI] Validation error: email")
+            emailError = text("Please enter your email address.", "দয়া করে আপনার ইমেইল ঠিকানা লিখুন।")
+            isValid = false
+        } else if !isValidEmail(cleanedEmail) {
+            print("[AuthUI] Validation error: email")
+            emailError = text("Please enter a valid email address.", "দয়া করে একটি সঠিক ইমেইল ঠিকানা লিখুন।")
             isValid = false
         }
 
         if password.isEmpty {
-            passwordError = text("Password is required.", "পাসওয়ার্ড প্রয়োজন।")
+            passwordError = text("Please enter your password.", "দয়া করে আপনার পাসওয়ার্ড লিখুন।")
+            isValid = false
+        } else if password.count < 6 {
+            passwordError = text("Password must be at least 6 characters.", "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।")
             isValid = false
         }
 
         return isValid
+    }
+
+    // Simple regex for beginner-level email format validation.
+    private func isValidEmail(_ email: String) -> Bool {
+        let pattern = "^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+        return NSPredicate(format: "SELF MATCHES %@", pattern).evaluate(with: email)
+    }
+
+    @ViewBuilder
+    private func fieldSupportText(helpText: String, errorText: String?) -> some View {
+        Text(helpText)
+            .font(TextStyles.caption)
+            .foregroundStyle(AppDesign.muted)
+
+        if let errorText {
+            Text(errorText)
+                .font(TextStyles.caption)
+                .foregroundStyle(.red)
+        }
     }
 
     private func clearMessages() {

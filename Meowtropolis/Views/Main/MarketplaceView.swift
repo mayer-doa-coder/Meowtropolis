@@ -17,46 +17,40 @@ struct MarketplaceView: View {
 
     var body: some View {
         AppBackground {
-            VStack(spacing: 14) {
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundStyle(AppDesign.muted)
-                    TextField(text("Search products", "পণ্য খুঁজুন"), text: $query)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
+            VStack(spacing: Spacing.small) {
+                CardView {
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundStyle(AppDesign.muted)
+                        TextField(text("Search products", "পণ্য খুঁজুন"), text: $query)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                    }
+                    .padding(.horizontal, 4)
+                    .frame(height: 44)
                 }
-                .padding(.horizontal, 14)
-                .frame(height: 44)
-                .background(Color.white.opacity(0.5))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .padding(.horizontal, 20)
+                .padding(.horizontal, Spacing.medium)
 
                 if isLoading {
-                    ProgressView(text("Loading products...", "পণ্য লোড হচ্ছে..."))
+                    LoadingBlockView(message: text("Loading products...", "পণ্য লোড হচ্ছে..."))
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if let errorMessage {
-                    VStack(spacing: 10) {
-                        Text(text("Could not load products", "পণ্য লোড করা যায়নি"))
-                            .font(.system(size: 22, weight: .bold, design: .rounded))
-                            .foregroundStyle(AppDesign.text)
-
-                        Text(errorMessage)
-                            .font(.system(size: 15, weight: .regular, design: .rounded))
-                            .foregroundStyle(.red)
-                            .multilineTextAlignment(.center)
-
-                        Button(text("Try Again", "আবার চেষ্টা করুন")) {
-                            loadProducts()
-                        }
-                        .buttonStyle(FilledPrimaryButtonStyle())
-                    }
+                    ErrorStateView(
+                        title: text("Could not load products", "পণ্য লোড করা যায়নি"),
+                        message: errorMessage,
+                        retryTitle: text("Retry", "আবার চেষ্টা করুন"),
+                        onRetry: loadProducts
+                    )
                     .padding(20)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if filteredProducts.isEmpty {
-                    Text(text("No products available", "কোনো পণ্য পাওয়া যায়নি"))
-                        .font(.system(size: 17, weight: .medium, design: .rounded))
-                        .foregroundStyle(AppDesign.muted)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    EmptyStateView(
+                        icon: "bag",
+                        title: text("No products available", "কোনো পণ্য পাওয়া যায়নি"),
+                        message: text("Try another search keyword.", "অন্য একটি খোঁজার শব্দ ব্যবহার করুন।")
+                    )
+                    .padding(.horizontal, Spacing.medium)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List {
                         ForEach(filteredProducts, id: \.id) { product in
@@ -126,48 +120,50 @@ struct MarketplaceView: View {
     }
 
     private func productRow(_ product: Product) -> some View {
-        HStack(spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.gray.opacity(0.4))
+        CardView {
+            HStack(spacing: Spacing.small) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.gray.opacity(0.4))
 
-                if let imageURL = AppImageLibrary.productImageURL(for: product) {
-                    AsyncImage(url: imageURL) { phase in
-                        switch phase {
-                        case let .success(image):
-                            image
-                                .resizable()
-                                .scaledToFill()
-                        default:
-                            Image(systemName: "photo")
-                                .foregroundStyle(AppDesign.muted)
+                    if let imageURL = AppImageLibrary.productImageURL(for: product) {
+                        AsyncImage(url: imageURL) { phase in
+                            switch phase {
+                            case let .success(image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                            default:
+                                Image(systemName: "photo")
+                                    .foregroundStyle(AppDesign.muted)
+                            }
                         }
+                    } else {
+                        Image(systemName: "photo")
+                            .foregroundStyle(AppDesign.muted)
                     }
-                } else {
-                    Image(systemName: "photo")
-                        .foregroundStyle(AppDesign.muted)
                 }
+                .frame(width: 72, height: 72)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(product.name)
+                        .font(TextStyles.body)
+                        .foregroundStyle(AppDesign.text)
+
+                    Text(text("Category:", "ক্যাটাগরি:") + " \(product.category.capitalized)")
+                        .font(TextStyles.caption)
+                        .foregroundStyle(AppDesign.muted)
+
+                    Text(currentLanguage.formatMoney(product.price))
+                        .font(TextStyles.subtitle)
+                        .foregroundStyle(AppDesign.primary)
+                }
+
+                Spacer()
             }
-            .frame(width: 72, height: 72)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-
-            VStack(alignment: .leading, spacing: 5) {
-                Text(product.name)
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppDesign.text)
-
-                Text(text("Category:", "ক্যাটাগরি:") + " \(product.category.capitalized)")
-                    .font(.system(size: 14, weight: .regular, design: .rounded))
-                    .foregroundStyle(AppDesign.muted)
-
-                Text(currentLanguage.formatMoney(product.price))
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppDesign.primary)
-            }
-
-            Spacer()
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 2)
     }
 
     private var currentLanguage: AppLanguage {

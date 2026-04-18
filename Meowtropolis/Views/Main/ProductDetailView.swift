@@ -10,109 +10,109 @@ struct ProductDetailView: View {
 
     var body: some View {
         AppBackground {
-            VStack(spacing: 0) {
-                RoundedRectangle(cornerRadius: 28)
-                    .fill(Color.gray.opacity(0.45))
-                    .frame(height: 280)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 12)
-                    .overlay {
-                        if let url = AppImageLibrary.productImageURL(for: product) {
-                            AsyncImage(url: url) { phase in
-                                switch phase {
-                                case let .success(image):
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                        .clipShape(RoundedRectangle(cornerRadius: 28))
-                                        .padding(.horizontal, 20)
-                                        .padding(.top, 12)
-                                case .failure:
-                                    Image(systemName: "photo")
-                                        .font(.system(size: 40))
-                                        .foregroundStyle(AppDesign.muted)
-                                case .empty:
-                                    ProgressView()
-                                @unknown default:
-                                    EmptyView()
+            ScrollView {
+                VStack(spacing: Spacing.medium) {
+                    RoundedRectangle(cornerRadius: 28)
+                        .fill(Color.gray.opacity(0.45))
+                        .frame(height: 280)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 12)
+                        .overlay {
+                            if let url = AppImageLibrary.productImageURL(for: product) {
+                                AsyncImage(url: url) { phase in
+                                    switch phase {
+                                    case let .success(image):
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                            .clipShape(RoundedRectangle(cornerRadius: 28))
+                                            .padding(.horizontal, 20)
+                                            .padding(.top, 12)
+                                    case .failure:
+                                        Image(systemName: "photo")
+                                            .font(.system(size: 40))
+                                            .foregroundStyle(AppDesign.muted)
+                                    case .empty:
+                                        ProgressView()
+                                    @unknown default:
+                                        EmptyView()
+                                    }
                                 }
                             }
                         }
-                    }
 
-                VStack(alignment: .leading, spacing: 14) {
-                    Text(product.name)
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppDesign.text)
-
-                    Text(text("Category:", "ক্যাটাগরি:") + " \(product.category.capitalized)")
-                        .font(.system(size: 17, weight: .regular, design: .rounded))
-                        .foregroundStyle(AppDesign.muted)
-
-                    Text(currentLanguage.formatMoney(prefixEnglish: "Price:", prefixBangla: "দাম:", value: product.price))
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppDesign.primary)
-
-                    Text(text("About", "বিস্তারিত"))
-                        .font(.system(size: 30, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppDesign.text)
-                        .padding(.top, 8)
-
-                    Text(text("This product is available in the marketplace and loaded from Firestore or local fallback data.", "এই পণ্যটি মার্কেটপ্লেসে উপলব্ধ এবং Firestore অথবা লোকাল ডাটা থেকে লোড হয়।"))
-                        .font(.system(size: 17, weight: .regular, design: .rounded))
-                        .foregroundStyle(AppDesign.muted)
-
-                    HStack {
-                        Text(text("Quantity", "পরিমাণ"))
-                            .font(.system(size: 30, weight: .bold, design: .rounded))
+                    CardView {
+                        Text(product.name)
+                            .font(TextStyles.title)
                             .foregroundStyle(AppDesign.text)
 
-                        Spacer()
+                        Text(text("Category:", "ক্যাটাগরি:") + " \(product.category.capitalized)")
+                            .font(TextStyles.body)
+                            .foregroundStyle(AppDesign.muted)
 
-                        Button {
-                            quantity = max(1, quantity - 1)
-                        } label: {
-                            Image(systemName: "minus")
-                                .frame(width: 28, height: 28)
+                        Text(currentLanguage.formatMoney(prefixEnglish: "Price:", prefixBangla: "দাম:", value: product.price))
+                            .font(TextStyles.subtitle)
+                            .foregroundStyle(AppDesign.primary)
+
+                        DividerWithText(text: text("Product Details", "পণ্যের তথ্য"))
+
+                        Text(text("Check product details and choose quantity before adding to cart.", "কার্টে যোগ করার আগে পণ্যের তথ্য দেখে পরিমাণ বেছে নিন।"))
+                            .font(TextStyles.body)
+                            .foregroundStyle(AppDesign.muted)
+                    }
+                    .padding(.horizontal, 20)
+
+                    CardView {
+                        HStack {
+                            Text(text("Quantity", "পরিমাণ"))
+                                .font(TextStyles.subtitle)
+                                .foregroundStyle(AppDesign.text)
+
+                            Spacer()
+
+                            Button {
+                                quantity = max(1, quantity - 1)
+                            } label: {
+                                Image(systemName: "minus")
+                                    .frame(width: 28, height: 28)
+                            }
+
+                            Text(String(format: "%02d", quantity))
+                                .font(.system(size: 24, weight: .medium, design: .rounded))
+                                .frame(minWidth: 40)
+
+                            Button {
+                                quantity += 1
+                            } label: {
+                                Image(systemName: "plus")
+                                    .frame(width: 28, height: 28)
+                                    .foregroundStyle(.white)
+                                    .background(AppDesign.primary)
+                                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                            }
                         }
 
-                        Text(String(format: "%02d", quantity))
-                            .font(.system(size: 24, weight: .medium, design: .rounded))
-                            .frame(minWidth: 40)
-
-                        Button {
-                            quantity += 1
-                        } label: {
-                            Image(systemName: "plus")
-                                .frame(width: 28, height: 28)
-                                .foregroundStyle(.white)
-                                .background(AppDesign.primary)
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                        if let successMessage {
+                            Text(successMessage)
+                                .font(TextStyles.caption)
+                                .foregroundStyle(.green)
+                                .accessibilityIdentifier("productDetailAddToCartSuccessMessage")
                         }
-                    }
 
-                    if let successMessage {
-                        Text(successMessage)
-                            .font(.footnote)
-                            .foregroundStyle(.green)
-                            .accessibilityIdentifier("productDetailAddToCartSuccessMessage")
-                    }
+                        Button(text("Add to Cart", "কার্টে যোগ করুন")) {
+                            cartState.addToCart(product: product, quantity: quantity)
+                            successMessage = text("Added to cart successfully.", "কার্টে সফলভাবে যোগ করা হয়েছে।")
+                        }
+                        .buttonStyle(FilledPrimaryButtonStyle())
+                        .accessibilityIdentifier("productDetailAddToCartButton")
 
-                    Button(text("Add to Cart", "কার্টে যোগ করুন")) {
-                        cartState.addToCart(product: product, quantity: quantity)
-                        successMessage = text("Added to cart", "কার্টে যোগ করা হয়েছে")
+                        Text(text("Demo note: Checkout does not process real payments yet.", "ডেমো নোট: চেকআউট এখনো বাস্তব পেমেন্ট প্রক্রিয়া করে না।"))
+                            .font(TextStyles.caption)
+                            .foregroundStyle(AppDesign.muted)
                     }
-                    .buttonStyle(FilledPrimaryButtonStyle())
-                    .accessibilityIdentifier("productDetailAddToCartButton")
-
-                    Text(text("MVP mode: checkout is demo-only and does not process real payment.", "MVP মোড: চেকআউট ডেমো-ভিত্তিক এবং বাস্তব পেমেন্ট প্রক্রিয়া করে না।"))
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
-                        .foregroundStyle(AppDesign.muted)
-                        .padding(.top, 8)
+                    .padding(.horizontal, 20)
                 }
-                .padding(20)
-
-                Spacer()
+                .padding(.bottom, 20)
             }
         }
         .navigationTitle(text("Product", "পণ্য"))

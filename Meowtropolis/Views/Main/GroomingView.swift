@@ -38,9 +38,9 @@ struct GroomingView: View {
     var body: some View {
         AppBackground {
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: Spacing.medium) {
                     Text(text("Book Grooming", "গ্রুমিং বুক করুন"))
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
+                        .font(TextStyles.title)
                         .foregroundStyle(AppDesign.text)
 
                     NavigationLink(destination: MapView(initialCategory: "grooming")) {
@@ -57,34 +57,29 @@ struct GroomingView: View {
 
                     if let successMessage {
                         Text(successMessage)
-                            .font(.footnote)
+                            .font(TextStyles.caption)
                             .foregroundStyle(.green)
                     }
 
-                    if let errorMessage {
-                        Text(errorMessage)
-                            .font(.footnote)
-                            .foregroundStyle(.red)
-                    }
-
-                    Divider()
-
-                    Text(text("My Bookings", "আমার বুকিং"))
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppDesign.text)
+                    DividerWithText(text: text("My Bookings", "আমার বুকিং"))
 
                     filterCard
 
                     if isLoading {
-                        ProgressView(text("Loading...", "লোড হচ্ছে..."))
-                            .frame(maxWidth: .infinity)
-                            .padding(.top, 10)
+                        LoadingBlockView(message: text("Loading bookings...", "বুকিং লোড হচ্ছে..."))
+                    } else if let errorMessage, bookings.isEmpty {
+                        ErrorStateView(
+                            title: text("Could not load bookings", "বুকিং লোড করা যায়নি"),
+                            message: errorMessage,
+                            retryTitle: text("Retry", "আবার চেষ্টা করুন"),
+                            onRetry: loadBookings
+                        )
                     } else if bookings.isEmpty {
-                        Text(text("No bookings found", "কোনো বুকিং পাওয়া যায়নি"))
-                            .font(.system(size: 16, weight: .medium, design: .rounded))
-                            .foregroundStyle(AppDesign.muted)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding(.vertical, 14)
+                        EmptyStateView(
+                            icon: "calendar.badge.exclamationmark",
+                            title: text("No bookings found", "কোনো বুকিং পাওয়া যায়নি"),
+                            message: text("Book Grooming to create your first appointment.", "প্রথম অ্যাপয়েন্টমেন্ট তৈরি করতে গ্রুমিং বুক করুন।")
+                        )
                     } else {
                         ForEach(bookings, id: \.id) { booking in
                             bookingRow(booking)
@@ -102,9 +97,9 @@ struct GroomingView: View {
     }
 
     private var bookingFormCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(text("Create Booking", "বুকিং তৈরি করুন"))
-                .font(.system(size: 20, weight: .bold, design: .rounded))
+        CardView {
+            Text(text("Book Grooming", "গ্রুমিং বুক করুন"))
+                .font(TextStyles.subtitle)
                 .foregroundStyle(AppDesign.text)
 
             ZStack {
@@ -155,21 +150,18 @@ struct GroomingView: View {
             DatePicker(text("Date & Time", "তারিখ ও সময়"), selection: $selectedDate, displayedComponents: [.date, .hourAndMinute])
                 .datePickerStyle(.compact)
 
-            Button(text("Create Booking", "বুকিং তৈরি করুন")) {
+            Button(text("Book Grooming", "গ্রুমিং বুক করুন")) {
                 createBooking()
             }
             .buttonStyle(FilledPrimaryButtonStyle(disabled: isLoading || pets.isEmpty))
             .disabled(isLoading || pets.isEmpty)
         }
-        .padding(14)
-        .background(Color.white.opacity(0.65))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
     private var filterCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        CardView {
             Text(text("Filter by Pet (Optional)", "পোষা প্রাণী অনুযায়ী ফিল্টার (ঐচ্ছিক)"))
-                .font(.system(size: 15, weight: .medium, design: .rounded))
+                .font(TextStyles.caption)
                 .foregroundStyle(AppDesign.muted)
 
             Picker(text("Filter by Pet", "পোষা প্রাণী অনুযায়ী ফিল্টার"), selection: $selectedPetIdFilter) {
@@ -183,13 +175,10 @@ struct GroomingView: View {
                 loadBookings()
             }
         }
-        .padding(12)
-        .background(Color.white.opacity(0.65))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     private func bookingRow(_ booking: Booking) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        CardView {
             ZStack {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color.gray.opacity(0.18))
@@ -234,15 +223,12 @@ struct GroomingView: View {
             }
             .pickerStyle(.menu)
         }
-        .padding(12)
-        .background(Color.white.opacity(0.6))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
     private func loadInitialData() {
         guard let userId = appState.currentUserId else {
             isLoading = false
-            errorMessage = text("You need to log in before creating bookings.", "বুকিং তৈরি করতে লগ ইন করতে হবে।")
+            errorMessage = text("You need to log in before booking grooming.", "গ্রুমিং বুক করতে লগ ইন করতে হবে।")
             return
         }
 
@@ -302,7 +288,7 @@ struct GroomingView: View {
     private func createBooking() {
         guard let userId = appState.currentUserId else {
             isLoading = false
-            errorMessage = text("You need to log in before creating bookings.", "বুকিং তৈরি করতে লগ ইন করতে হবে।")
+            errorMessage = text("You need to log in before booking grooming.", "গ্রুমিং বুক করতে লগ ইন করতে হবে।")
             return
         }
 
@@ -333,7 +319,7 @@ struct GroomingView: View {
                     if remindersEnabled {
                         reminderService.scheduleBookingReminder(booking)
                     }
-                    successMessage = text("Booking created successfully.", "বুকিং সফলভাবে তৈরি হয়েছে।")
+                    successMessage = text("Grooming booked successfully.", "গ্রুমিং সফলভাবে বুক হয়েছে।")
                     loadBookings()
                 case let .failure(error):
                     errorMessage = error.localizedDescription

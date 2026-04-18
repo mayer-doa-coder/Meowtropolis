@@ -1,6 +1,11 @@
 import Foundation
 import FirebaseFirestore
 
+// GUARDRAIL:
+// Do not modify Firestore wiring or booking service contracts in this phase.
+// Required for MVP stability and demo consistency.
+// If a requested change risks backend connectivity, stop and log it in docs/issue_inventory.md.
+
 /// Handles Firestore operations for booking data.
 final class BookingService {
     private let db: Firestore

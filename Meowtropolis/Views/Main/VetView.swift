@@ -21,9 +21,9 @@ struct VetView: View {
     var body: some View {
         AppBackground {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    Text(text("Vet Requests", "ভেট রিকোয়েস্ট"))
-                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                VStack(alignment: .leading, spacing: Spacing.medium) {
+                    Text(text("Vet Consultation", "ভেট পরামর্শ"))
+                        .font(TextStyles.title)
                         .foregroundStyle(AppDesign.text)
 
                     NavigationLink(destination: MapView(initialCategory: "vet")) {
@@ -40,21 +40,11 @@ struct VetView: View {
 
                     if let successMessage {
                         Text(successMessage)
-                            .font(.footnote)
+                            .font(TextStyles.caption)
                             .foregroundStyle(.green)
                     }
 
-                    if let errorMessage {
-                        Text(errorMessage)
-                            .font(.footnote)
-                            .foregroundStyle(.red)
-                    }
-
-                    Divider()
-
-                    Text(text("My Requests", "আমার রিকোয়েস্ট"))
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppDesign.text)
+                    DividerWithText(text: text("My Consultation Requests", "আমার পরামর্শের অনুরোধ"))
 
                     requestListSection
 
@@ -70,9 +60,9 @@ struct VetView: View {
     }
 
     private var requestFormCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        CardView {
             Text(text("Describe your pet issue", "আপনার পোষা প্রাণীর সমস্যাটি লিখুন"))
-                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                .font(TextStyles.subtitle)
                 .foregroundStyle(AppDesign.text)
 
             TextEditor(text: $issueDescription)
@@ -88,29 +78,31 @@ struct VetView: View {
                 .font(.system(size: 16, weight: .regular, design: .rounded))
                 .foregroundStyle(AppDesign.muted)
 
-            Button(isSubmitting ? text("Submitting...", "জমা হচ্ছে...") : text("Submit Request", "রিকোয়েস্ট জমা দিন")) {
+            Button(isSubmitting ? text("Sending request...", "অনুরোধ পাঠানো হচ্ছে...") : text("Request Vet Consultation", "ভেট পরামর্শের অনুরোধ করুন")) {
                 submitRequest()
             }
             .buttonStyle(FilledPrimaryButtonStyle(disabled: isSubmitting || isLoading))
             .disabled(isSubmitting || isLoading)
         }
-        .padding(14)
-        .background(Color.white.opacity(0.65))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
     @ViewBuilder
     private var requestListSection: some View {
         if isLoading {
-            ProgressView(text("Loading requests...", "রিকোয়েস্ট লোড হচ্ছে..."))
-                .frame(maxWidth: .infinity)
-                .padding(.top, 10)
+            LoadingBlockView(message: text("Loading requests...", "রিকোয়েস্ট লোড হচ্ছে..."))
+        } else if let errorMessage, requests.isEmpty {
+            ErrorStateView(
+                title: text("Could not load requests", "রিকোয়েস্ট লোড করা যায়নি"),
+                message: errorMessage,
+                retryTitle: text("Retry", "আবার চেষ্টা করুন"),
+                onRetry: loadRequests
+            )
         } else if requests.isEmpty {
-            Text(text("No requests yet", "এখনো কোনো রিকোয়েস্ট নেই"))
-                .font(.system(size: 16, weight: .medium, design: .rounded))
-                .foregroundStyle(AppDesign.muted)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.vertical, 14)
+            EmptyStateView(
+                icon: "stethoscope",
+                title: text("No vet consultation requests yet", "এখনো কোনো ভেট পরামর্শের অনুরোধ নেই"),
+                message: text("Request Vet Consultation to get support for your pet.", "আপনার পোষা প্রাণীর সহায়তার জন্য ভেট পরামর্শের অনুরোধ করুন।")
+            )
         } else {
             ForEach(requests, id: \.id) { request in
                 requestCard(request)
@@ -119,9 +111,9 @@ struct VetView: View {
     }
 
     private func requestCard(_ request: VetRequest) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        CardView {
             Text(request.issueDescription)
-                .font(.system(size: 18, weight: .semibold, design: .rounded))
+            .font(TextStyles.body)
                 .foregroundStyle(AppDesign.text)
 
             Text(text("Status:", "স্ট্যাটাস:") + " \(request.status.localizedLabel(language: currentLanguage))")
@@ -129,24 +121,21 @@ struct VetView: View {
                 .foregroundStyle(AppDesign.primary)
 
             Text(text("Created:", "তৈরি হয়েছে:") + " \(displayDate(from: request.createdAt))")
-                .font(.system(size: 14, weight: .regular, design: .rounded))
+                .font(TextStyles.caption)
                 .foregroundStyle(AppDesign.muted)
         }
-        .padding(12)
-        .background(Color.white.opacity(0.6))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
     private func submitRequest() {
         let cleanedIssue = issueDescription.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard let userId = appState.currentUserId else {
-            errorMessage = text("You need to log in before creating a vet request.", "ভেট রিকোয়েস্ট তৈরি করতে লগ ইন করতে হবে।")
+            errorMessage = text("You need to log in before requesting a vet consultation.", "ভেট পরামর্শের অনুরোধ করতে লগ ইন করতে হবে।")
             return
         }
 
         guard !cleanedIssue.isEmpty else {
-            errorMessage = text("Please describe the issue before submitting.", "জমা দেওয়ার আগে সমস্যাটি লিখুন।")
+            errorMessage = text("Please describe the issue before sending your request.", "অনুরোধ পাঠানোর আগে সমস্যাটি লিখুন।")
             return
         }
 
@@ -170,7 +159,7 @@ struct VetView: View {
                 switch result {
                 case .success:
                     issueDescription = ""
-                    successMessage = text("Vet request submitted successfully.", "ভেট রিকোয়েস্ট সফলভাবে জমা হয়েছে।")
+                    successMessage = text("Vet consultation request sent successfully.", "ভেট পরামর্শের অনুরোধ সফলভাবে পাঠানো হয়েছে।")
                     loadRequests()
                 case let .failure(error):
                     errorMessage = error.localizedDescription
@@ -183,7 +172,7 @@ struct VetView: View {
         guard let userId = appState.currentUserId else {
             isLoading = false
             requests = []
-            errorMessage = text("You need to log in before viewing vet requests.", "ভেট রিকোয়েস্ট দেখতে লগ ইন করতে হবে।")
+            errorMessage = text("You need to log in before viewing vet consultation requests.", "ভেট পরামর্শের অনুরোধ দেখতে লগ ইন করতে হবে।")
             return
         }
 

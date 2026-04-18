@@ -22,79 +22,74 @@ struct PetProfileView: View {
 
     var body: some View {
         AppBackground {
-            VStack(spacing: 12) {
+            VStack(spacing: Spacing.small) {
                 if isLoading {
-                    ProgressView(text("Loading pets...", "পোষা প্রাণী লোড হচ্ছে..."))
+                    LoadingBlockView(message: text("Loading pets...", "পোষা প্রাণী লোড হচ্ছে..."))
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if let errorMessage {
-                    VStack(spacing: 10) {
-                        Text(text("Could not load pets", "পোষা প্রাণীর তথ্য লোড করা যায়নি"))
-                            .font(.system(size: 22, weight: .bold, design: .rounded))
-                            .foregroundStyle(AppDesign.text)
-                        Text(errorMessage)
-                            .font(.system(size: 16, weight: .regular, design: .rounded))
-                            .foregroundStyle(.red)
-                            .multilineTextAlignment(.center)
-                        Button(text("Try Again", "আবার চেষ্টা করুন")) {
-                            loadPets()
-                        }
-                        .buttonStyle(FilledPrimaryButtonStyle())
-                    }
+                    ErrorStateView(
+                        title: text("Could not load pets", "পোষা প্রাণীর তথ্য লোড করা যায়নি"),
+                        message: errorMessage,
+                        retryTitle: text("Retry", "আবার চেষ্টা করুন"),
+                        onRetry: loadPets
+                    )
                     .padding(20)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if pets.isEmpty {
-                    VStack(spacing: 12) {
-                        Text(text("No pets found", "কোনো পোষা প্রাণী পাওয়া যায়নি"))
-                            .font(.system(size: 24, weight: .bold, design: .rounded))
-                            .foregroundStyle(AppDesign.text)
-                        Text(text("Tap Add Pet to create your first pet profile.", "প্রথম পেট প্রোফাইল তৈরি করতে Add Pet চাপুন।"))
-                            .font(.system(size: 16, weight: .regular, design: .rounded))
-                            .foregroundStyle(AppDesign.muted)
-                    }
+                    EmptyStateView(
+                        icon: "pawprint",
+                        title: text("No pets found", "কোনো পোষা প্রাণী পাওয়া যায়নি"),
+                        message: text("Tap Add Pet to create your first pet profile.", "প্রথম পোষা প্রাণীর প্রোফাইল তৈরি করতে 'পোষা প্রাণী যোগ করুন' চাপুন।")
+                    )
                     .padding(20)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List {
                         ForEach(pets, id: \.id) { pet in
-                            HStack(spacing: 12) {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .fill(Color.gray.opacity(0.25))
+                            CardView {
+                                HStack(spacing: Spacing.small) {
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .fill(Color.gray.opacity(0.25))
 
-                                    if let imageURL = AppImageLibrary.petImageURL(forBreed: pet.breed) {
-                                        AsyncImage(url: imageURL) { phase in
-                                            switch phase {
-                                            case let .success(image):
-                                                image
-                                                    .resizable()
-                                                    .scaledToFill()
-                                            default:
-                                                Image(systemName: "pawprint.fill")
-                                                    .foregroundStyle(AppDesign.muted)
+                                        if let imageURL = AppImageLibrary.petImageURL(forBreed: pet.breed) {
+                                            AsyncImage(url: imageURL) { phase in
+                                                switch phase {
+                                                case let .success(image):
+                                                    image
+                                                        .resizable()
+                                                        .scaledToFill()
+                                                default:
+                                                    Image(systemName: "pawprint.fill")
+                                                        .foregroundStyle(AppDesign.muted)
+                                                }
                                             }
                                         }
                                     }
+                                    .frame(width: 72, height: 72)
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        Text(pet.name)
+                                            .font(TextStyles.subtitle)
+                                            .foregroundStyle(AppDesign.text)
+
+                                        Text(text("Breed:", "বংশ:") + " \(pet.breed)")
+                                            .font(TextStyles.body)
+                                            .foregroundStyle(AppDesign.muted)
+
+                                        Text(text("Age:", "বয়স:") + " \(pet.age.map { "\($0) \(text("years", "বছর"))" } ?? text("Not set", "সেট করা হয়নি"))")
+                                            .font(TextStyles.body)
+                                            .foregroundStyle(AppDesign.muted)
+                                    }
+
+                                    Spacer()
                                 }
-                                .frame(width: 72, height: 72)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text(pet.name)
-                                        .font(.system(size: 20, weight: .bold, design: .rounded))
-                                        .foregroundStyle(AppDesign.text)
-
-                                    Text(text("Breed:", "বংশ:") + " \(pet.breed)")
-                                        .font(.system(size: 16, weight: .regular, design: .rounded))
-                                        .foregroundStyle(AppDesign.muted)
-
-                                    Text(text("Age:", "বয়স:") + " \(pet.age.map { "\($0) \(text("years", "বছর"))" } ?? text("Not set", "সেট করা হয়নি"))")
-                                        .font(.system(size: 16, weight: .regular, design: .rounded))
-                                        .foregroundStyle(AppDesign.muted)
-                                }
-
-                                Spacer()
                             }
-                            .padding(.vertical, 6)
+                            .padding(.vertical, 4)
+                            .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 Button(text("Delete", "মুছুন"), role: .destructive) {
                                     petPendingDelete = pet
@@ -109,6 +104,7 @@ struct PetProfileView: View {
                             }
                         }
                     }
+                    .listStyle(.plain)
                     .scrollContentBackground(.hidden)
                     .background(Color.clear)
                 }
@@ -122,7 +118,7 @@ struct PetProfileView: View {
                     editingPet = nil
                     showingPetForm = true
                 } label: {
-                    Label(text("Add Pet", "পেট যোগ করুন"), systemImage: "plus")
+                    Label(text("Add Pet", "পোষা প্রাণী যোগ করুন"), systemImage: "plus")
                 }
             }
         }
@@ -135,7 +131,7 @@ struct PetProfileView: View {
                 }
             }
         }
-        .alert(text("Delete Pet", "পেট মুছুন"), isPresented: $showingDeleteAlert, presenting: petPendingDelete) { pet in
+        .alert(text("Delete Pet", "পোষা প্রাণী মুছুন"), isPresented: $showingDeleteAlert, presenting: petPendingDelete) { pet in
             Button(text("Delete", "মুছুন"), role: .destructive) {
                 deletePet(pet)
             }
@@ -177,7 +173,7 @@ struct PetProfileView: View {
     private func createPet(name: String, breed: String, age: Int?) {
         guard let userId = appState.currentUserId else {
             isLoading = false
-            errorMessage = text("You must be logged in to add a pet.", "পেট যোগ করতে লগ ইন করতে হবে।")
+            errorMessage = text("You must be logged in to add a pet.", "পোষা প্রাণী যোগ করতে লগ ইন করতে হবে।")
             return
         }
 
@@ -270,23 +266,31 @@ private struct PetFormView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section(text("Pet Details", "পেটের তথ্য")) {
-                    TextField(text("Name", "নাম"), text: $name)
-                    TextField(text("Breed", "বংশ"), text: $breed)
-                    TextField(text("Age (years)", "বয়স (বছর)"), text: $ageInput)
-                        .keyboardType(.numberPad)
-                }
+            AppBackground {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: Spacing.medium) {
+                        Text(text("Pet Details", "পোষা প্রাণীর তথ্য"))
+                            .font(TextStyles.subtitle)
+                            .foregroundStyle(AppDesign.text)
 
-                if let formError {
-                    Section {
-                        Text(formError)
-                            .font(.footnote)
-                            .foregroundStyle(.red)
+                        CardView {
+                            AppInputField(title: text("Name", "নাম"), text: $name)
+                            AppInputField(title: text("Breed", "বংশ"), text: $breed)
+                            AppInputField(title: text("Age (years)", "বয়স (বছর)"), text: $ageInput)
+                                .keyboardType(.numberPad)
+                        }
+
+                        if let formError {
+                            ErrorStateView(
+                                title: text("Please review the form", "ফর্মটি যাচাই করুন"),
+                                message: formError
+                            )
+                        }
                     }
+                    .padding(Spacing.medium)
                 }
             }
-            .navigationTitle(existingPet == nil ? text("Add Pet", "পেট যোগ করুন") : text("Edit Pet", "পেট এডিট করুন"))
+            .navigationTitle(existingPet == nil ? text("Add Pet", "পোষা প্রাণী যোগ করুন") : text("Edit Pet", "পোষা প্রাণী সম্পাদনা করুন"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -296,7 +300,7 @@ private struct PetFormView: View {
                 }
 
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(text("Save", "সেভ")) {
+                    Button(text("Save", "সংরক্ষণ করুন")) {
                         savePet()
                     }
                 }

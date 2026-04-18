@@ -2,6 +2,11 @@ import SwiftUI
 import Foundation
 import UIKit
 
+// GUARDRAIL:
+// Do not change the established app color theme or typography family in this file during Phase 0.
+// Required for MVP stability and demo consistency.
+// If a requested change risks these areas, stop and log it in docs/issue_inventory.md.
+
 enum AppDesign {
     static let bg = Color(red: 0.95, green: 0.95, blue: 0.95)
     static let card = Color.white

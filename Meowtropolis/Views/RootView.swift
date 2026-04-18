@@ -60,7 +60,7 @@ struct RootView: View {
                     .foregroundStyle(.red)
                     .multilineTextAlignment(.center)
 
-                Button(text("Try Again", "আবার চেষ্টা করুন")) {
+                Button(text("Retry", "আবার চেষ্টা করুন")) {
                     appState.loadCurrentUserProfile()
                 }
                 .buttonStyle(FilledPrimaryButtonStyle())

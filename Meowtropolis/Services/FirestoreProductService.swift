@@ -1,6 +1,11 @@
 import Foundation
 import FirebaseFirestore
 
+// GUARDRAIL:
+// Do not modify Firestore connection behavior or product fetch contract in this phase.
+// Required for MVP stability and demo consistency.
+// If a requested change risks backend connectivity, stop and log it in docs/issue_inventory.md.
+
 /// Loads product data from Firestore.
 final class FirestoreProductService {
     private let db: Firestore
