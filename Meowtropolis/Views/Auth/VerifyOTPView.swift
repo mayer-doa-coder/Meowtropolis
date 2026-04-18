@@ -43,17 +43,17 @@ struct VerifyOTPView: View {
                         Rectangle().fill(AppDesign.line).frame(height: 1)
                     }
 
-                Text(text("A code has been sent to your phone", "আপনার ফোনে একটি কোড পাঠানো হয়েছে"))
+                Text(text("A code has been sent to your email", "আপনার ইমেইলে একটি কোড পাঠানো হয়েছে"))
                     .font(.system(size: 17, weight: .regular, design: .rounded))
                     .foregroundStyle(AppDesign.muted)
                     .frame(maxWidth: .infinity, alignment: .center)
 
-                Text(text("Resend in 00:57", "০০:৫৭ পরে আবার পাঠান"))
+                Text(text("Resend code in 00:57", "০০:৫৭ পরে কোড আবার পাঠান"))
                     .font(.system(size: 30, weight: .medium, design: .rounded))
                     .foregroundStyle(.blue)
                     .frame(maxWidth: .infinity, alignment: .center)
 
-                Button(text("Confirm", "নিশ্চিত করুন")) {}
+                Button(text("Verify OTP", "ওটিপি যাচাই করুন")) {}
                     .buttonStyle(FilledPrimaryButtonStyle())
 
                 Spacer()

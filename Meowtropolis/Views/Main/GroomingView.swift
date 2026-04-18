@@ -38,14 +38,15 @@ struct GroomingView: View {
     var body: some View {
         AppBackground {
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: Spacing.medium) {
                     Text(text("Book Grooming", "গ্রুমিং বুক করুন"))
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
+                        .font(TextStyles.title)
                         .foregroundStyle(AppDesign.text)
 
                     NavigationLink(destination: MapView(initialCategory: "grooming")) {
                         Text(text("Find Nearby Groomers on Map", "ম্যাপে কাছাকাছি গ্রুমার দেখুন"))
                     }
+                    .accessibilityIdentifier("groomingMapButton")
                     .buttonStyle(OutlinedPrimaryButtonStyle())
                     .simultaneousGesture(
                         TapGesture().onEnded {
@@ -57,34 +58,36 @@ struct GroomingView: View {
 
                     if let successMessage {
                         Text(successMessage)
-                            .font(.footnote)
+                            .font(TextStyles.caption)
                             .foregroundStyle(.green)
                     }
 
                     if let errorMessage {
-                        Text(errorMessage)
-                            .font(.footnote)
-                            .foregroundStyle(.red)
+                        ErrorStateView(
+                            title: text("Couldn't complete the grooming action.", "গ্রুমিং কাজটি সম্পন্ন করা যায়নি।"),
+                            message: text(
+                                "Please check your details or internet connection. Tap Retry to load your bookings again.",
+                                "দয়া করে আপনার তথ্য বা ইন্টারনেট সংযোগ যাচাই করুন। বুকিং আবার লোড করতে Retry চাপুন।"
+                            ) + "\n\n" + errorMessage,
+                            messageAccessibilityIdentifier: "groomingErrorMessage",
+                            retryTitle: text("Retry", "আবার চেষ্টা করুন"),
+                            retryAccessibilityIdentifier: "groomingRetryButton",
+                            onRetry: loadBookings
+                        )
                     }
 
-                    Divider()
-
-                    Text(text("My Bookings", "আমার বুকিং"))
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppDesign.text)
+                    DividerWithText(text: text("My Bookings", "আমার বুকিং"))
 
                     filterCard
 
                     if isLoading {
-                        ProgressView(text("Loading...", "লোড হচ্ছে..."))
-                            .frame(maxWidth: .infinity)
-                            .padding(.top, 10)
-                    } else if bookings.isEmpty {
-                        Text(text("No bookings found", "কোনো বুকিং পাওয়া যায়নি"))
-                            .font(.system(size: 16, weight: .medium, design: .rounded))
-                            .foregroundStyle(AppDesign.muted)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding(.vertical, 14)
+                        LoadingBlockView(message: text("Loading your bookings...", "আপনার বুকিংগুলো লোড হচ্ছে..."))
+                    } else if bookings.isEmpty && errorMessage == nil {
+                        EmptyStateView(
+                            icon: "calendar.badge.exclamationmark",
+                            title: text("No grooming bookings yet.", "এখনও কোনো গ্রুমিং বুকিং নেই।"),
+                            message: text("Tap Book Grooming to create your first appointment.", "প্রথম অ্যাপয়েন্টমেন্ট তৈরি করতে Book Grooming চাপুন।")
+                        )
                     } else {
                         ForEach(bookings, id: \.id) { booking in
                             bookingRow(booking)
@@ -102,9 +105,9 @@ struct GroomingView: View {
     }
 
     private var bookingFormCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(text("Create Booking", "বুকিং তৈরি করুন"))
-                .font(.system(size: 20, weight: .bold, design: .rounded))
+        CardView {
+            Text(text("Book Grooming", "গ্রুমিং বুক করুন"))
+                .font(TextStyles.subtitle)
                 .foregroundStyle(AppDesign.text)
 
             ZStack {
@@ -155,21 +158,19 @@ struct GroomingView: View {
             DatePicker(text("Date & Time", "তারিখ ও সময়"), selection: $selectedDate, displayedComponents: [.date, .hourAndMinute])
                 .datePickerStyle(.compact)
 
-            Button(text("Create Booking", "বুকিং তৈরি করুন")) {
+            Button(text("Book Grooming", "গ্রুমিং বুক করুন")) {
                 createBooking()
             }
+            .accessibilityIdentifier("bookGroomingButton")
             .buttonStyle(FilledPrimaryButtonStyle(disabled: isLoading || pets.isEmpty))
             .disabled(isLoading || pets.isEmpty)
         }
-        .padding(14)
-        .background(Color.white.opacity(0.65))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
     private var filterCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        CardView {
             Text(text("Filter by Pet (Optional)", "পোষা প্রাণী অনুযায়ী ফিল্টার (ঐচ্ছিক)"))
-                .font(.system(size: 15, weight: .medium, design: .rounded))
+                .font(TextStyles.caption)
                 .foregroundStyle(AppDesign.muted)
 
             Picker(text("Filter by Pet", "পোষা প্রাণী অনুযায়ী ফিল্টার"), selection: $selectedPetIdFilter) {
@@ -178,18 +179,16 @@ struct GroomingView: View {
                     Text(pet.name).tag(pet.id)
                 }
             }
+            .accessibilityIdentifier("groomingFilterPicker")
             .pickerStyle(.menu)
             .onChange(of: selectedPetIdFilter) { _ in
                 loadBookings()
             }
         }
-        .padding(12)
-        .background(Color.white.opacity(0.65))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     private func bookingRow(_ booking: Booking) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        CardView {
             ZStack {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color.gray.opacity(0.18))
@@ -234,15 +233,12 @@ struct GroomingView: View {
             }
             .pickerStyle(.menu)
         }
-        .padding(12)
-        .background(Color.white.opacity(0.6))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
     private func loadInitialData() {
         guard let userId = appState.currentUserId else {
             isLoading = false
-            errorMessage = text("You need to log in before creating bookings.", "বুকিং তৈরি করতে লগ ইন করতে হবে।")
+            errorMessage = text("You need to log in before booking grooming.", "গ্রুমিং বুক করতে লগ ইন করতে হবে।")
             return
         }
 
@@ -302,7 +298,7 @@ struct GroomingView: View {
     private func createBooking() {
         guard let userId = appState.currentUserId else {
             isLoading = false
-            errorMessage = text("You need to log in before creating bookings.", "বুকিং তৈরি করতে লগ ইন করতে হবে।")
+            errorMessage = text("You need to log in before booking grooming.", "গ্রুমিং বুক করতে লগ ইন করতে হবে।")
             return
         }
 
@@ -333,7 +329,7 @@ struct GroomingView: View {
                     if remindersEnabled {
                         reminderService.scheduleBookingReminder(booking)
                     }
-                    successMessage = text("Booking created successfully.", "বুকিং সফলভাবে তৈরি হয়েছে।")
+                    successMessage = text("Grooming booked successfully.", "গ্রুমিং সফলভাবে বুক হয়েছে।")
                     loadBookings()
                 case let .failure(error):
                     errorMessage = error.localizedDescription

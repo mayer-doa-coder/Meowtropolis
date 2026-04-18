@@ -1,6 +1,11 @@
 import Foundation
 import FirebaseAuth
 
+// GUARDRAIL:
+// Do not modify Firebase authentication wiring, completion semantics, or service contracts in this phase.
+// Required for MVP stability and demo consistency.
+// If a requested change risks backend connectivity, stop and log it in docs/issue_inventory.md.
+
 /// Firebase implementation of AuthService.
 final class FirebaseAuthService: AuthService {
     var currentUserId: String? {

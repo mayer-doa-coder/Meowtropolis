@@ -18,50 +18,61 @@ struct AccountView: View {
     var body: some View {
         AppBackground {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    VStack(spacing: 8) {
-                        if let profileImage = AppImageLibrary.profileImage(fromBase64: appState.currentUser?.profileImageBase64) {
-                            Image(uiImage: profileImage)
-                                .resizable()
-                                .scaledToFill()
-                        } else {
-                            AsyncImage(url: AppImageLibrary.userAvatarURL) { phase in
-                                switch phase {
-                                case let .success(image):
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                default:
-                                    Circle().fill(Color.gray.opacity(0.35))
+                VStack(alignment: .leading, spacing: Spacing.medium) {
+                    CardView {
+                        VStack(spacing: 8) {
+                            if let profileImage = AppImageLibrary.profileImage(fromBase64: appState.currentUser?.profileImageBase64) {
+                                Image(uiImage: profileImage)
+                                    .resizable()
+                                    .scaledToFill()
+                            } else {
+                                AsyncImage(url: AppImageLibrary.userAvatarURL) { phase in
+                                    switch phase {
+                                    case let .success(image):
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                    default:
+                                        Circle().fill(Color.gray.opacity(0.35))
+                                    }
                                 }
                             }
-                        }
-                        .frame(width: 94, height: 94)
-                        .clipShape(Circle())
+                            .frame(width: 94, height: 94)
+                            .clipShape(Circle())
 
-                        Text(appState.currentUser?.name ?? text("Loading...", "লোড হচ্ছে..."))
-                            .font(.system(size: 30, weight: .bold, design: .rounded))
-                            .foregroundStyle(AppDesign.text)
-                        Text(appState.currentUser?.email ?? "-")
-                            .font(.system(size: 18, weight: .regular, design: .rounded))
-                            .foregroundStyle(AppDesign.muted)
+                            Text(appState.currentUser?.name ?? text("Loading...", "লোড হচ্ছে..."))
+                                .font(TextStyles.subtitle)
+                                .foregroundStyle(AppDesign.text)
+                            Text(appState.currentUser?.email ?? "-")
+                                .font(TextStyles.body)
+                                .foregroundStyle(AppDesign.muted)
+                        }
+                        .frame(maxWidth: .infinity)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.bottom, 8)
 
                     if appState.isProfileLoading {
-                        ProgressView(text("Loading account...", "অ্যাকাউন্ট লোড হচ্ছে..."))
+                        LoadingBlockView(message: text("Loading account...", "অ্যাকাউন্ট লোড হচ্ছে..."))
                             .frame(maxWidth: .infinity)
                     }
 
                     if let profileError = appState.profileErrorMessage {
-                        Text(profileError)
-                            .font(.footnote)
-                            .foregroundStyle(.red)
+                        ErrorStateView(
+                            title: text("Couldn't load your account.", "আপনার অ্যাকাউন্ট লোড করা যায়নি।"),
+                            message: text(
+                                "Please check your internet connection. Tap Retry to try again.",
+                                "দয়া করে ইন্টারনেট সংযোগ যাচাই করুন। আবার চেষ্টা করতে Retry চাপুন।"
+                            ) + "\n\n" + profileError,
+                            messageAccessibilityIdentifier: "accountProfileErrorMessage",
+                            retryTitle: text("Retry", "আবার চেষ্টা করুন"),
+                            retryAccessibilityIdentifier: "accountProfileRetryButton",
+                            onRetry: appState.loadCurrentUserProfile
+                        )
                     }
 
-                    Group {
+                    CardView {
                         Text(text("My Account", "আমার অ্যাকাউন্ট"))
+                            .font(TextStyles.subtitle)
+                            .foregroundStyle(AppDesign.text)
 
                         NavigationLink {
                             PersonalInformationView()
@@ -96,13 +107,16 @@ struct AccountView: View {
 
                         if let languageUpdateMessage {
                             Text(languageUpdateMessage)
-                                .font(.footnote)
+                                .font(TextStyles.caption)
                                 .foregroundStyle(.green)
                         }
                     }
 
-                    Group {
+                    CardView {
                         Text(text("Notifications", "নোটিফিকেশন"))
+                            .font(TextStyles.subtitle)
+                            .foregroundStyle(AppDesign.text)
+
                         HStack {
                             accountRow(icon: "bell", text: text("Enable Reminders", "রিমাইন্ডার চালু করুন"))
                             Spacer()
@@ -114,42 +128,46 @@ struct AccountView: View {
                         }
 
                         Text(permissionStatusText)
-                            .font(.footnote)
+                            .font(TextStyles.caption)
                             .foregroundStyle(AppDesign.muted)
                     }
 
-                    Group {
+                    CardView {
                         Text(text("More", "আরও"))
+                            .font(TextStyles.subtitle)
+                            .foregroundStyle(AppDesign.text)
+
                         accountRow(icon: "info.circle", text: text("Help Center", "সহায়তা কেন্দ্র"))
 
                         Button {
-                            isLoggingOut = true
-                            appState.logout { result in
-                                isLoggingOut = false
-                                if case let .failure(error) = result {
-                                    logoutError = appState.userFriendlyAuthError(error)
-                                }
-                            }
+                            performLogout()
                         } label: {
                             HStack(spacing: 10) {
                                 Image(systemName: "arrow.right.square")
                                     .foregroundStyle(.red)
-                                Text(isLoggingOut ? text("Logging out...", "লগ আউট হচ্ছে...") : text("Log Out", "লগ আউট"))
+                                Text(isLoggingOut ? text("Logging out...", "লগ আউট হচ্ছে...") : text("Logout", "লগ আউট"))
                                     .font(.system(size: 18, weight: .medium, design: .rounded))
                                     .foregroundStyle(AppDesign.text)
                             }
                         }
+                        .accessibilityIdentifier("accountLogoutButton")
                         .disabled(isLoggingOut)
                     }
 
                     if let logoutError {
-                        Text(logoutError)
-                            .font(.footnote)
-                            .foregroundStyle(.red)
+                        ErrorStateView(
+                            title: text("Couldn't log you out.", "আপনাকে লগ আউট করা যায়নি।"),
+                            message: text(
+                                "Please check your internet connection and tap Retry, or tap Logout again.",
+                                "দয়া করে ইন্টারনেট সংযোগ যাচাই করে Retry চাপুন, অথবা আবার Logout চাপুন।"
+                            ) + "\n\n" + logoutError,
+                            messageAccessibilityIdentifier: "accountLogoutErrorMessage",
+                            retryTitle: text("Retry", "আবার চেষ্টা করুন"),
+                            retryAccessibilityIdentifier: "accountLogoutRetryButton",
+                            onRetry: performLogout
+                        )
                     }
                 }
-                .font(.system(size: 30, weight: .bold, design: .rounded))
-                .foregroundStyle(AppDesign.text)
                 .padding(20)
                 .padding(.bottom, 24)
             }
@@ -190,6 +208,16 @@ struct AccountView: View {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(AppDesign.muted)
+            }
+        }
+    }
+
+    private func performLogout() {
+        isLoggingOut = true
+        appState.logout { result in
+            isLoggingOut = false
+            if case let .failure(error) = result {
+                logoutError = appState.userFriendlyAuthError(error)
             }
         }
     }

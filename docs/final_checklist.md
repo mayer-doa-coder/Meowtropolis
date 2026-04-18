@@ -37,3 +37,21 @@
 ## Freeze Policy Statement
 
 Project is now in freeze state. Only critical issues affecting demo or core functionality will be addressed.
+
+## Freeze Gate Declaration (Mandatory)
+
+FREEZE POLICY ACTIVE
+
+- No new features allowed
+- No refactoring allowed
+- No UI redesign allowed
+- Only critical bug fixes are permitted
+
+Reason:
+To ensure demo stability and prevent regressions.
+
+## Validation Environment Note
+
+- This repository was validated from a Windows workspace.
+- Xcode runtime actions (simulator install/reinstall, xcodebuild test) must be executed on macOS.
+- Architecture checks, diagnostics, logging verification, and freeze-gate documentation were completed here.

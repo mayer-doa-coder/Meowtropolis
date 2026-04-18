@@ -209,40 +209,33 @@ struct MapView: View {
     }
 
     private var loadingSection: some View {
-        VStack(spacing: 10) {
-            ProgressView(text("Searching nearby places...", "কাছাকাছি সেবা খোঁজা হচ্ছে..."))
-                .accessibilityIdentifier("loadingIndicator")
-                .frame(maxWidth: .infinity)
-        }
-        .padding(16)
-        .background(Color.white.opacity(0.65))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        LoadingBlockView(message: text("Searching nearby services...", "কাছাকাছি সেবাগুলো খোঁজা হচ্ছে..."))
+            .accessibilityIdentifier("loadingIndicator")
     }
 
     private func errorSection(message: String) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(text("Could not load nearby places.", "কাছাকাছি সেবা লোড করা যায়নি।"))
-                .font(.system(size: 17, weight: .semibold, design: .rounded))
-                .foregroundStyle(AppDesign.text)
+        VStack(spacing: Spacing.small) {
+            ErrorStateView(
+                title: text("Could not load nearby places.", "কাছাকাছি সেবা লোড করা যায়নি।"),
+                message: text(
+                    "Please check your internet connection. Tap Retry to try again.",
+                    "দয়া করে ইন্টারনেট সংযোগ যাচাই করুন। আবার চেষ্টা করতে Retry চাপুন।"
+                ) + "\n\n" + message,
+                messageAccessibilityIdentifier: "errorMessage",
+                retryTitle: text("Retry", "আবার চেষ্টা করুন"),
+                retryAccessibilityIdentifier: "retryButton",
+                onRetry: {
+                    print("[MapView] Retry tapped")
 
-            Text(message)
-                .accessibilityIdentifier("errorMessage")
-                .font(.system(size: 15, weight: .regular, design: .rounded))
-                .foregroundStyle(.red)
+                    if isUITestScenarioActive {
+                        uiTestRetryTapCount += 1
+                        return
+                    }
 
-            Button(text("Retry", "আবার চেষ্টা করুন")) {
-                print("[MapView] Retry tapped")
-
-                if isUITestScenarioActive {
-                    uiTestRetryTapCount += 1
-                    return
+                    let retryQuery = mapState.lastQuery.isEmpty ? selectedCategory.query : mapState.lastQuery
+                    mapState.searchPlaces(query: retryQuery)
                 }
-
-                let retryQuery = mapState.lastQuery.isEmpty ? selectedCategory.query : mapState.lastQuery
-                mapState.searchPlaces(query: retryQuery)
-            }
-            .accessibilityIdentifier("retryButton")
-            .buttonStyle(FilledPrimaryButtonStyle())
+            )
 
             if isUITestScenarioActive {
                 Text("retryCount:\(uiTestRetryTapCount)")
@@ -251,35 +244,31 @@ struct MapView: View {
                     .accessibilityIdentifier("retryTapCountValue")
             }
         }
-        .padding(16)
-        .background(Color.white.opacity(0.65))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
     private var emptySection: some View {
-        VStack(spacing: 10) {
-            Text(text("No places found nearby", "কাছাকাছি কোনো সেবা পাওয়া যায়নি"))
-                .accessibilityIdentifier("noResultsMessage")
-                .font(.system(size: 18, weight: .semibold, design: .rounded))
-                .foregroundStyle(AppDesign.text)
-                .multilineTextAlignment(.center)
+        VStack(spacing: Spacing.small) {
+            EmptyStateView(
+                icon: "map",
+                title: text("No nearby services found.", "কাছাকাছি কোনো সেবা পাওয়া যায়নি।"),
+                message: text("Try another category, then tap Retry.", "অন্য বিভাগ বেছে নিয়ে Retry চাপুন।")
+            )
+            .accessibilityIdentifier("noResultsMessage")
 
-            Button(text("Search Again", "আবার খুঁজুন")) {
+            Button(text("Retry", "আবার চেষ্টা করুন")) {
                 let retryQuery = mapState.lastQuery.isEmpty ? selectedCategory.query : mapState.lastQuery
 
                 if isUITestScenarioActive {
-                    print("[MapView] Search Again tapped")
+                    print("[MapView] Retry tapped")
                     return
                 }
 
                 mapState.searchPlaces(query: retryQuery)
             }
-            .buttonStyle(OutlinedPrimaryButtonStyle())
+            .accessibilityIdentifier("mapEmptyRetryButton")
+            .buttonStyle(FilledPrimaryButtonStyle())
+            .frame(maxWidth: .infinity)
         }
-        .padding(16)
-        .frame(maxWidth: .infinity)
-        .background(Color.white.opacity(0.65))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
     private var successSection: some View {
@@ -362,11 +351,11 @@ private struct MapHeaderView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(englishTitle)
-                .font(.system(size: 34, weight: .bold, design: .rounded))
+                .font(TextStyles.title)
                 .foregroundStyle(AppDesign.text)
 
             Text(banglaTitle)
-                .font(.system(size: 18, weight: .regular, design: .rounded))
+                .font(TextStyles.body)
                 .foregroundStyle(AppDesign.muted)
         }
     }
@@ -386,7 +375,7 @@ private struct CategoryChipsView: View {
                         onSelect(category)
                     } label: {
                         Text(category.title(language: language))
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .font(TextStyles.caption)
                             .foregroundStyle(selectedCategory == category ? Color.white : AppDesign.text)
                             .padding(.horizontal, 16)
                             .frame(height: 40)
@@ -413,13 +402,13 @@ private struct PermissionStatusCard: View {
     let onOpenSettings: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        CardView {
             Text(title)
-                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                .font(TextStyles.body)
                 .foregroundStyle(AppDesign.text)
 
             Text(message)
-                .font(.system(size: 15, weight: .regular, design: .rounded))
+                .font(TextStyles.caption)
                 .foregroundStyle(AppDesign.muted)
 
             if state == .requesting {
@@ -430,6 +419,7 @@ private struct PermissionStatusCard: View {
                         Button(language.text(english: "Allow Location", bangla: "লোকেশন অনুমতি দিন")) {
                             onAllowLocation()
                         }
+                        .accessibilityIdentifier("mapAllowLocationButton")
                         .buttonStyle(FilledPrimaryButtonStyle())
                     }
 
@@ -437,14 +427,12 @@ private struct PermissionStatusCard: View {
                         Button(language.text(english: "Open Settings", bangla: "সেটিংস খুলুন")) {
                             onOpenSettings()
                         }
+                        .accessibilityIdentifier("mapOpenSettingsButton")
                         .buttonStyle(OutlinedPrimaryButtonStyle())
                     }
                 }
             }
         }
-        .padding(14)
-        .background(Color.white.opacity(0.65))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
     private var title: String {
@@ -539,9 +527,9 @@ private struct PlacesListView: View {
     let onSelectPlace: (Place) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        CardView {
             Text(language.text(english: "Nearby Results", bangla: "কাছাকাছি ফলাফল"))
-                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .font(TextStyles.subtitle)
                 .foregroundStyle(AppDesign.text)
 
             ForEach(places) { place in
@@ -576,9 +564,6 @@ private struct PlacesListView: View {
                                 .foregroundStyle(AppDesign.primary)
                         }
                     }
-                    .padding(12)
-                    .background(Color.white.opacity(0.75))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 .buttonStyle(.plain)
             }
@@ -591,13 +576,13 @@ private struct PlaceDetailPanel: View {
     let language: AppLanguage
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        CardView {
             Text(language.text(english: "Selected Place", bangla: "নির্বাচিত স্থান"))
-                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .font(TextStyles.caption)
                 .foregroundStyle(AppDesign.muted)
 
             Text(place.name)
-                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .font(TextStyles.subtitle)
                 .foregroundStyle(AppDesign.text)
 
             Text(place.address)
@@ -617,14 +602,8 @@ private struct PlaceDetailPanel: View {
             }
 
             Button(language.text(english: "View More", bangla: "আরও দেখুন")) {}
+                .accessibilityIdentifier("mapViewMoreButton")
                 .buttonStyle(OutlinedPrimaryButtonStyle())
-        }
-        .padding(14)
-        .background(Color.white.opacity(0.9))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .overlay {
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(AppDesign.line, lineWidth: 1)
         }
     }
 }

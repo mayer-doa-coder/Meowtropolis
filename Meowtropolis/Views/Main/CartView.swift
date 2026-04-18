@@ -85,7 +85,7 @@ struct CartView: View {
                 .foregroundStyle(AppDesign.primary)
 
             NavigationLink(destination: CheckoutView()) {
-                Text(text("Proceed to Checkout", "চেকআউটে যান"))
+                Text(text("Checkout", "চেকআউট"))
             }
             .buttonStyle(FilledPrimaryButtonStyle(disabled: cartState.items.isEmpty))
             .disabled(cartState.items.isEmpty)

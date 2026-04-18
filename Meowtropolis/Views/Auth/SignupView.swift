@@ -34,80 +34,81 @@ struct SignupView: View {
                         }
 
                         Spacer()
-
-                        Text(text("Sign Up", "সাইন আপ"))
-                            .font(.system(size: 44, weight: .bold, design: .rounded))
-                            .foregroundStyle(AppDesign.text)
-
-                        Spacer()
-                        Color.clear.frame(width: 34, height: 34)
                     }
-                    .padding(.bottom, 24)
+                    .padding(.bottom, 4)
 
-                    AppInputField(title: text("Name", "নাম"), text: $fullName) {
-                        if let fullNameError {
-                            Text(fullNameError)
-                                .font(.footnote)
+                    Text(text("Welcome to Meowtropolis", "Meowtropolis-এ স্বাগতম"))
+                        .font(TextStyles.title)
+                        .foregroundStyle(AppDesign.text)
+
+                    Text(text("Manage your pets, book services, and more", "আপনার পোষা প্রাণী পরিচালনা করুন, সেবা বুক করুন এবং আরও অনেক কিছু করুন"))
+                        .font(TextStyles.body)
+                        .foregroundStyle(AppDesign.muted)
+
+                    CardView {
+                        AppInputField(title: text("Name", "নাম"), text: $fullName) {
+                            fieldSupportText(
+                                helpText: text("Enter your full name", "আপনার পুরো নাম লিখুন"),
+                                errorText: fullNameError
+                            )
+                        }
+
+                        AppInputField(title: text("Email", "ইমেইল"), text: $email) {
+                            fieldSupportText(
+                                helpText: text("Enter your email address", "আপনার ইমেইল ঠিকানা লিখুন"),
+                                errorText: emailError
+                            )
+                        }
+
+                        AppInputField(title: text("Password", "পাসওয়ার্ড"), text: $password, isSecure: true) {
+                            fieldSupportText(
+                                helpText: text("At least 6 characters", "কমপক্ষে ৬ অক্ষর"),
+                                errorText: passwordError
+                            )
+                        }
+
+                        AppInputField(title: text("Confirm password", "পাসওয়ার্ড নিশ্চিত করুন"), text: $confirmPassword, isSecure: true) {
+                            fieldSupportText(
+                                helpText: text("Re-enter your password", "আপনার পাসওয়ার্ড আবার লিখুন"),
+                                errorText: confirmPasswordError
+                            )
+                        }
+
+                        if let successMessage {
+                            Text(successMessage)
+                                .font(TextStyles.caption)
+                                .foregroundStyle(.green)
+                        }
+
+                        if let errorMessage {
+                            Text(errorMessage)
+                                .font(TextStyles.caption)
                                 .foregroundStyle(.red)
                         }
-                    }
 
-                    AppInputField(title: text("Email", "ইমেইল"), text: $email) {
-                        if let emailError {
-                            Text(emailError)
-                                .font(.footnote)
-                                .foregroundStyle(.red)
+                        Button(isLoading ? text("Creating account...", "অ্যাকাউন্ট তৈরি হচ্ছে...") : text("Sign Up", "নিবন্ধন করুন")) {
+                            createAccount()
                         }
-                    }
+                        .buttonStyle(FilledPrimaryButtonStyle(disabled: isLoading))
+                        .disabled(isLoading)
 
-                    AppInputField(title: text("Password", "পাসওয়ার্ড"), text: $password, isSecure: true) {
-                        if let passwordError {
-                            Text(passwordError)
-                                .font(.footnote)
-                                .foregroundStyle(.red)
+                        if isLoading {
+                            ProgressView(text("Creating your account...", "আপনার অ্যাকাউন্ট তৈরি হচ্ছে..."))
+                                .frame(maxWidth: .infinity)
                         }
-                    }
 
-                    AppInputField(title: text("Confirm password", "পাসওয়ার্ড নিশ্চিত করুন"), text: $confirmPassword, isSecure: true) {
-                        if let confirmPasswordError {
-                            Text(confirmPasswordError)
-                                .font(.footnote)
-                                .foregroundStyle(.red)
+                        HStack(spacing: 4) {
+                            Text(text("Already have an account?", "ইতিমধ্যে অ্যাকাউন্ট আছে?"))
+                                .foregroundStyle(AppDesign.muted)
+
+                            NavigationLink(text("Login", "লগইন করুন"), destination: LoginView())
+                                .foregroundStyle(.blue)
                         }
+                        .font(TextStyles.body)
+                        .frame(maxWidth: .infinity)
                     }
 
-                    if let successMessage {
-                        Text(successMessage)
-                            .font(.footnote)
-                            .foregroundStyle(.green)
-                    }
-
-                    if let errorMessage {
-                        Text(errorMessage)
-                            .font(.footnote)
-                            .foregroundStyle(.red)
-                    }
-
-                    Button(isLoading ? text("Creating Account...", "অ্যাকাউন্ট তৈরি হচ্ছে...") : text("Sign Up", "সাইন আপ")) {
-                        createAccount()
-                    }
-                    .buttonStyle(FilledPrimaryButtonStyle(disabled: isLoading))
-                    .disabled(isLoading)
-
-                    if isLoading {
-                        ProgressView(text("Creating your account...", "আপনার অ্যাকাউন্ট তৈরি হচ্ছে..."))
-                            .frame(maxWidth: .infinity)
-                    }
-
-                    HStack {
-                        Rectangle().fill(AppDesign.line).frame(height: 1)
-                        Text(text("Or", "অথবা"))
-                            .font(.system(size: 16, weight: .regular, design: .rounded))
-                            .foregroundStyle(AppDesign.muted)
-                            .padding(.horizontal, 8)
-                        Rectangle().fill(AppDesign.line).frame(height: 1)
-                    }
-                    .padding(.top, 8)
+                    DividerWithText(text: text("Or", "অথবা"))
 
                     SocialActionButton(title: text("Continue with Google", "গুগল দিয়ে চালিয়ে যান"), icon: "g.circle.fill")
                     SocialActionButton(title: text("Continue with Facebook", "ফেসবুক দিয়ে চালিয়ে যান"), icon: "f.cursive.circle.fill")
@@ -119,6 +120,7 @@ struct SignupView: View {
     }
 
     private func createAccount() {
+        print("[AuthUI] Signup attempt")
         clearMessages()
 
         guard validateInputs() else {
@@ -134,7 +136,12 @@ struct SignupView: View {
                 case .success:
                     successMessage = text("Account created successfully.", "অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে।")
                 case let .failure(error):
-                    errorMessage = appState.userFriendlyAuthError(error)
+                    let defaultMessage = text(
+                        "Sign up failed. Please review your details and try again.",
+                        "নিবন্ধন ব্যর্থ হয়েছে। আপনার তথ্য যাচাই করে আবার চেষ্টা করুন।"
+                    )
+                    let detailedMessage = appState.userFriendlyAuthError(error)
+                    errorMessage = detailedMessage.isEmpty ? defaultMessage : "\(defaultMessage)\n\(detailedMessage)"
                 }
             }
         }
@@ -147,20 +154,22 @@ struct SignupView: View {
         let cleanedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
 
         if cleanedName.isEmpty {
-            fullNameError = text("Name is required.", "নাম প্রয়োজন।")
+            fullNameError = text("Please enter your name.", "দয়া করে আপনার নাম লিখুন।")
             isValid = false
         }
 
         if cleanedEmail.isEmpty {
-            emailError = text("Email is required.", "ইমেইল প্রয়োজন।")
+            print("[AuthUI] Validation error: email")
+            emailError = text("Please enter your email address.", "দয়া করে আপনার ইমেইল ঠিকানা লিখুন।")
             isValid = false
         } else if !isValidEmail(cleanedEmail) {
+            print("[AuthUI] Validation error: email")
             emailError = text("Please enter a valid email address.", "দয়া করে একটি সঠিক ইমেইল ঠিকানা দিন।")
             isValid = false
         }
 
         if password.isEmpty {
-            passwordError = text("Password is required.", "পাসওয়ার্ড প্রয়োজন।")
+            passwordError = text("Please enter a password.", "দয়া করে একটি পাসওয়ার্ড লিখুন।")
             isValid = false
         } else if password.count < 6 {
             passwordError = text("Password must be at least 6 characters.", "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।")
@@ -168,10 +177,10 @@ struct SignupView: View {
         }
 
         if confirmPassword.isEmpty {
-            confirmPasswordError = text("Please confirm your password.", "দয়া করে আপনার পাসওয়ার্ড নিশ্চিত করুন।")
+            confirmPasswordError = text("Please re-enter your password.", "দয়া করে আপনার পাসওয়ার্ড আবার লিখুন।")
             isValid = false
         } else if confirmPassword != password {
-            confirmPasswordError = text("Passwords do not match.", "পাসওয়ার্ড মিলছে না।")
+            confirmPasswordError = text("Passwords do not match. Please try again.", "পাসওয়ার্ড মিলছে না। আবার চেষ্টা করুন।")
             isValid = false
         }
 
@@ -191,6 +200,19 @@ struct SignupView: View {
         confirmPasswordError = nil
         errorMessage = nil
         successMessage = nil
+    }
+
+    @ViewBuilder
+    private func fieldSupportText(helpText: String, errorText: String?) -> some View {
+        Text(helpText)
+            .font(TextStyles.caption)
+            .foregroundStyle(AppDesign.muted)
+
+        if let errorText {
+            Text(errorText)
+                .font(TextStyles.caption)
+                .foregroundStyle(.red)
+        }
     }
 
     private var currentLanguage: AppLanguage {

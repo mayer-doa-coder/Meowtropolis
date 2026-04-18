@@ -182,3 +182,17 @@ Mark project as READY for next phase only when:
 - Manual journey checklist passes end-to-end
 - No critical/high-priority bugs remain
 - Service signatures remain unchanged
+
+---
+
+## 9) Freeze Gate Declaration (Mandatory)
+
+FREEZE POLICY ACTIVE
+
+- No new features allowed
+- No refactoring allowed
+- No UI redesign allowed
+- Only critical bug fixes are permitted
+
+Reason:
+To ensure demo stability and prevent regressions.

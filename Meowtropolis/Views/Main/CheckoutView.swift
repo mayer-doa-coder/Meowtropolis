@@ -11,7 +11,7 @@ struct CheckoutView: View {
         AppBackground {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    Text(text("Checkout (Demo)", "চেকআউট (ডেমো)"))
+                    Text(text("Checkout", "চেকআউট"))
                         .font(.system(size: 32, weight: .bold, design: .rounded))
                         .foregroundStyle(AppDesign.text)
 
@@ -60,7 +60,7 @@ struct CheckoutView: View {
                                 .font(.system(size: 22, weight: .bold, design: .rounded))
                                 .foregroundStyle(AppDesign.primary)
 
-                            Button(text("Confirm", "নিশ্চিত করুন")) {
+                            Button(text("Place Order", "অর্ডার দিন")) {
                                 cartState.clearCart()
                                 showConfirmation = true
                             }
@@ -83,7 +83,7 @@ struct CheckoutView: View {
                 dismiss()
             }
         } message: {
-            Text(text("Order placed successfully (demo only)", "অর্ডার সফলভাবে সম্পন্ন হয়েছে (শুধু ডেমো)।"))
+            Text(text("Order placed. This is a demo confirmation.", "অর্ডার সম্পন্ন হয়েছে। এটি একটি ডেমো নিশ্চিতকরণ।"))
         }
     }
 

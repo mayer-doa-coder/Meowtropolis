@@ -1,5 +1,10 @@
 import SwiftUI
 
+// GUARDRAIL:
+// Do not change TabView structure, navigation flow, font family usage, or color theme bindings here.
+// Required for MVP stability and demo consistency.
+// If a requested change risks these areas, stop and log it in docs/issue_inventory.md.
+
 struct DashboardView: View {
     @EnvironmentObject private var appState: AppState
     @AppStorage(AppLanguage.storageKey) private var appLanguageCode: String = AppLanguage.englishUS.rawValue
@@ -17,7 +22,7 @@ struct DashboardView: View {
                 .tag(1)
 
             VetView()
-                .tabItem { Label(text("Message", "বার্তা"), systemImage: "bubble.left") }
+                .tabItem { Label(text("Vet", "ভেট"), systemImage: "bubble.left") }
                 .tag(2)
 
             AccountView()
@@ -41,13 +46,19 @@ struct DashboardView: View {
                         }
                     }
                 }
+                .accessibilityIdentifier("dashboardLogoutButton")
                 .foregroundStyle(.red)
             }
         }
         .alert(text("Session", "সেশন"), isPresented: .constant(sessionErrorMessage != nil)) {
             Button(text("OK", "ঠিক আছে")) { sessionErrorMessage = nil }
         } message: {
-            Text(sessionErrorMessage ?? "")
+            Text(
+                text(
+                    "Session action failed. Please check your internet connection and tap OK, then try again.",
+                    "সেশন কাজটি ব্যর্থ হয়েছে। ইন্টারনেট সংযোগ যাচাই করুন, ঠিক আছে চাপুন, তারপর আবার চেষ্টা করুন।"
+                ) + (sessionErrorMessage.map { "\n\n\($0)" } ?? "")
+            )
         }
     }
 
@@ -67,7 +78,7 @@ private struct HomeTabView: View {
     var body: some View {
         AppBackground {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: Spacing.large) {
                     HStack {
                         if let profileImage = AppImageLibrary.profileImage(fromBase64: appState.currentUser?.profileImageBase64) {
                             Image(uiImage: profileImage)
@@ -90,10 +101,10 @@ private struct HomeTabView: View {
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text(text("Hello,", "হ্যালো,") + " \(appState.currentUser?.name ?? text("Pet Parent", "পেট প্যারেন্ট"))")
-                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .font(TextStyles.subtitle)
                                 .foregroundStyle(AppDesign.text)
                             Text(text("Good Morning!", "শুভ সকাল!"))
-                                .font(.system(size: 22, weight: .regular, design: .rounded))
+                                .font(TextStyles.body)
                                 .foregroundStyle(AppDesign.muted)
                         }
 
@@ -103,74 +114,81 @@ private struct HomeTabView: View {
                             .font(.system(size: 20, weight: .medium))
                     }
 
-                    ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Color(red: 0.78, green: 0.86, blue: 0.95))
+                    CardView {
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(Color(red: 0.78, green: 0.86, blue: 0.95))
 
-                        AsyncImage(url: AppImageLibrary.adoptionBannerURL) { phase in
-                            switch phase {
-                            case let .success(image):
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                            default:
-                                Color.clear
+                            AsyncImage(url: AppImageLibrary.adoptionBannerURL) { phase in
+                                switch phase {
+                                case let .success(image):
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                default:
+                                    Color.clear
+                                }
+                            }
+
+                            LinearGradient(
+                                colors: [Color.black.opacity(0.45), Color.black.opacity(0.12)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(text("Adopt A Pet\nComplete The Family", "একটি পোষা প্রাণী নিন\nপরিবার পূর্ণ করুন"))
+                                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                                    .foregroundStyle(.white)
+                                Text(text("Up to 30% off", "সর্বোচ্চ ৩০% ছাড়"))
+                                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                                    .foregroundStyle(Color(red: 1.0, green: 0.88, blue: 0.4))
+                                Text(text("Use code COMBO30", "কোড ব্যবহার করুন COMBO30"))
+                                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                                    .foregroundStyle(Color.white.opacity(0.95))
+                            }
+                            .padding(.leading, 18)
+                        }
+                        .frame(height: 150)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                    }
+
+                    CardView {
+                        sectionTitle(text("Our Services", "আমাদের সেবাসমূহ"))
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: Spacing.small) {
+                                chip(text("All", "সব"), selected: true)
+                                chip(text("Cat", "বিড়াল"))
+                                chip(text("Dog", "কুকুর"))
+                                chip(text("Bird", "পাখি"))
                             }
                         }
 
-                        LinearGradient(
-                            colors: [Color.black.opacity(0.45), Color.black.opacity(0.12)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(text("Adopt A Pet\nComplete The Family", "একটি পোষা প্রাণী নিন\nপরিবার পূর্ণ করুন"))
-                                .font(.system(size: 20, weight: .bold, design: .rounded))
-                                .foregroundStyle(.white)
-                            Text(text("Up to 30% off", "সর্বোচ্চ ৩০% ছাড়"))
-                                .font(.system(size: 16, weight: .bold, design: .rounded))
-                                .foregroundStyle(Color(red: 1.0, green: 0.88, blue: 0.4))
-                            Text(text("Use code COMBO30", "কোড ব্যবহার করুন COMBO30"))
-                                .font(.system(size: 15, weight: .medium, design: .rounded))
-                                .foregroundStyle(Color.white.opacity(0.95))
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: Spacing.small) {
+                            serviceCard(title: text("Bathing & Drying", "বাথিং ও ড্রাইং"), destination: GroomingView())
+                            serviceCard(title: text("Hair Trimming", "হেয়ার ট্রিমিং"), destination: GroomingView())
+                            serviceCard(title: text("Pet Checkup", "পেট চেকআপ"), destination: VetView())
+                            serviceCard(title: text("Pet Profile", "পেট প্রোফাইল"), destination: PetProfileView())
                         }
-                        .padding(.leading, 18)
-                    }
-                    .frame(height: 150)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-
-                    sectionTitle(text("Our Services", "আমাদের সেবাসমূহ"))
-
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 10) {
-                            chip(text("All", "সব"), selected: true)
-                            chip(text("Cat", "বিড়াল"))
-                            chip(text("Dog", "কুকুর"))
-                            chip(text("Bird", "পাখি"))
-                        }
-                    }
-
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
-                        serviceCard(title: text("Bathing & Drying", "বাথিং ও ড্রাইং"), destination: GroomingView())
-                        serviceCard(title: text("Hair Triming", "হেয়ার ট্রিমিং"), destination: GroomingView())
-                        serviceCard(title: text("Pet Checkup", "পেট চেকআপ"), destination: VetView())
-                        serviceCard(title: text("Pet Profile", "পেট প্রোফাইল"), destination: PetProfileView())
                     }
                 }
                 .padding(20)
             }
+        }
+        .onAppear {
+            print("[UI Redesign] Dashboard updated")
         }
     }
 
     private func sectionTitle(_ title: String) -> some View {
         HStack {
             Text(title)
-                .font(.system(size: 34, weight: .bold, design: .rounded))
+                .font(TextStyles.subtitle)
                 .foregroundStyle(AppDesign.text)
             Spacer()
             Text(text("See All", "সব দেখুন"))
-                .font(.system(size: 18, weight: .medium, design: .rounded))
+                .font(TextStyles.caption)
                 .foregroundStyle(.blue)
         }
     }
@@ -181,7 +199,7 @@ private struct HomeTabView: View {
                 .fill(selected ? Color.white.opacity(0.8) : Color.gray.opacity(0.45))
                 .frame(width: 28, height: 28)
             Text(title)
-                .font(.system(size: 18, weight: .medium, design: .rounded))
+                .font(TextStyles.body)
         }
         .foregroundStyle(selected ? .white : AppDesign.muted)
         .padding(.horizontal, 16)

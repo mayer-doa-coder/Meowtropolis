@@ -36,7 +36,7 @@ struct ForgotPasswordView: View {
                     Color.clear.frame(width: 34, height: 34)
                 }
 
-                Text(text("Enter the email associated with your account and we'll send a reset password email.", "আপনার অ্যাকাউন্টের ইমেইল দিন, আমরা পাসওয়ার্ড রিসেটের ইমেইল পাঠাব।"))
+                Text(text("Enter the email linked to your account and we will send a password reset email.", "আপনার অ্যাকাউন্টের সাথে যুক্ত ইমেইল দিন, আমরা পাসওয়ার্ড রিসেটের ইমেইল পাঠাব।"))
                     .font(.system(size: 16, weight: .regular, design: .rounded))
                     .foregroundStyle(AppDesign.muted)
 
@@ -54,7 +54,7 @@ struct ForgotPasswordView: View {
                         .foregroundStyle(isSuccessMessage ? .green : .red)
                 }
 
-                Button(isLoading ? text("Sending...", "পাঠানো হচ্ছে...") : text("Confirm", "নিশ্চিত করুন")) {
+                Button(isLoading ? text("Sending email...", "ইমেইল পাঠানো হচ্ছে...") : text("Send Reset Email", "রিসেট ইমেইল পাঠান")) {
                     sendReset()
                 }
                 .buttonStyle(FilledPrimaryButtonStyle(disabled: isLoading))
