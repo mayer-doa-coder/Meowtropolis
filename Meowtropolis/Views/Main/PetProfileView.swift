@@ -24,13 +24,18 @@ struct PetProfileView: View {
         AppBackground {
             VStack(spacing: Spacing.small) {
                 if isLoading {
-                    LoadingBlockView(message: text("Loading pets...", "পোষা প্রাণী লোড হচ্ছে..."))
+                    LoadingBlockView(message: text("Loading your pets...", "আপনার পোষা প্রাণীগুলো লোড হচ্ছে..."))
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if let errorMessage {
                     ErrorStateView(
-                        title: text("Could not load pets", "পোষা প্রাণীর তথ্য লোড করা যায়নি"),
-                        message: errorMessage,
+                        title: text("Couldn't load your pets.", "আপনার পোষা প্রাণীর তথ্য লোড করা যায়নি।"),
+                        message: text(
+                            "Please check your internet connection. Tap Retry to try again.",
+                            "দয়া করে ইন্টারনেট সংযোগ যাচাই করুন। আবার চেষ্টা করতে Retry চাপুন।"
+                        ) + "\n\n" + errorMessage,
+                        messageAccessibilityIdentifier: "petProfileErrorMessage",
                         retryTitle: text("Retry", "আবার চেষ্টা করুন"),
+                        retryAccessibilityIdentifier: "petProfileRetryButton",
                         onRetry: loadPets
                     )
                     .padding(20)
@@ -38,8 +43,8 @@ struct PetProfileView: View {
                 } else if pets.isEmpty {
                     EmptyStateView(
                         icon: "pawprint",
-                        title: text("No pets found", "কোনো পোষা প্রাণী পাওয়া যায়নি"),
-                        message: text("Tap Add Pet to create your first pet profile.", "প্রথম পোষা প্রাণীর প্রোফাইল তৈরি করতে 'পোষা প্রাণী যোগ করুন' চাপুন।")
+                        title: text("No pets added yet.", "এখনও কোনো পোষা প্রাণী যোগ করা হয়নি।"),
+                        message: text("Tap Add Pet to get started.", "শুরু করতে Add Pet চাপুন।")
                     )
                     .padding(20)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -104,6 +109,7 @@ struct PetProfileView: View {
                             }
                         }
                     }
+                    .accessibilityIdentifier("petProfileList")
                     .listStyle(.plain)
                     .scrollContentBackground(.hidden)
                     .background(Color.clear)
@@ -120,6 +126,7 @@ struct PetProfileView: View {
                 } label: {
                     Label(text("Add Pet", "পোষা প্রাণী যোগ করুন"), systemImage: "plus")
                 }
+                .accessibilityIdentifier("addPetButton")
             }
         }
         .sheet(isPresented: $showingPetForm) {
@@ -274,16 +281,17 @@ private struct PetFormView: View {
                             .foregroundStyle(AppDesign.text)
 
                         CardView {
-                            AppInputField(title: text("Name", "নাম"), text: $name)
-                            AppInputField(title: text("Breed", "বংশ"), text: $breed)
-                            AppInputField(title: text("Age (years)", "বয়স (বছর)"), text: $ageInput)
+                            AppInputField(title: text("Name", "নাম"), text: $name, fieldIdentifier: "petFormNameField")
+                            AppInputField(title: text("Breed", "বংশ"), text: $breed, fieldIdentifier: "petFormBreedField")
+                            AppInputField(title: text("Age (years)", "বয়স (বছর)"), text: $ageInput, fieldIdentifier: "petFormAgeField")
                                 .keyboardType(.numberPad)
                         }
 
                         if let formError {
                             ErrorStateView(
                                 title: text("Please review the form", "ফর্মটি যাচাই করুন"),
-                                message: formError
+                                message: formError,
+                                messageAccessibilityIdentifier: "petFormErrorMessage"
                             )
                         }
                     }
@@ -297,12 +305,14 @@ private struct PetFormView: View {
                     Button(text("Cancel", "বাতিল")) {
                         dismiss()
                     }
+                    .accessibilityIdentifier("petFormCancelButton")
                 }
 
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(text("Save", "সংরক্ষণ করুন")) {
                         savePet()
                     }
+                    .accessibilityIdentifier("petFormSaveButton")
                 }
             }
         }

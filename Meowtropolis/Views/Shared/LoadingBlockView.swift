@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LoadingBlockView: View {
     var message: String = "Loading..."
+    var messageAccessibilityIdentifier: String = "loadingBlockMessage"
 
     var body: some View {
         CardView {
@@ -10,6 +11,7 @@ struct LoadingBlockView: View {
 
                 if !message.isEmpty {
                     Text(message)
+                        .accessibilityIdentifier(messageAccessibilityIdentifier)
                         .font(TextStyles.body)
                         .foregroundStyle(AppDesign.muted)
                         .multilineTextAlignment(.center)

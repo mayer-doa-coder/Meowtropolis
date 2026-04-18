@@ -209,7 +209,7 @@ struct MapView: View {
     }
 
     private var loadingSection: some View {
-        LoadingBlockView(message: text("Searching nearby places...", "কাছাকাছি সেবা খোঁজা হচ্ছে..."))
+        LoadingBlockView(message: text("Searching nearby services...", "কাছাকাছি সেবাগুলো খোঁজা হচ্ছে..."))
             .accessibilityIdentifier("loadingIndicator")
     }
 
@@ -217,7 +217,11 @@ struct MapView: View {
         VStack(spacing: Spacing.small) {
             ErrorStateView(
                 title: text("Could not load nearby places.", "কাছাকাছি সেবা লোড করা যায়নি।"),
-                message: message,
+                message: text(
+                    "Please check your internet connection. Tap Retry to try again.",
+                    "দয়া করে ইন্টারনেট সংযোগ যাচাই করুন। আবার চেষ্টা করতে Retry চাপুন।"
+                ) + "\n\n" + message,
+                messageAccessibilityIdentifier: "errorMessage",
                 retryTitle: text("Retry", "আবার চেষ্টা করুন"),
                 retryAccessibilityIdentifier: "retryButton",
                 onRetry: {
@@ -246,8 +250,8 @@ struct MapView: View {
         VStack(spacing: Spacing.small) {
             EmptyStateView(
                 icon: "map",
-                title: text("No places found nearby", "কাছাকাছি কোনো সেবা পাওয়া যায়নি"),
-                message: text("Try another category or tap Retry.", "অন্য বিভাগ বেছে নিন অথবা আবার চেষ্টা করুন চাপুন।")
+                title: text("No nearby services found.", "কাছাকাছি কোনো সেবা পাওয়া যায়নি।"),
+                message: text("Try another category, then tap Retry.", "অন্য বিভাগ বেছে নিয়ে Retry চাপুন।")
             )
             .accessibilityIdentifier("noResultsMessage")
 
@@ -261,6 +265,7 @@ struct MapView: View {
 
                 mapState.searchPlaces(query: retryQuery)
             }
+            .accessibilityIdentifier("mapEmptyRetryButton")
             .buttonStyle(FilledPrimaryButtonStyle())
             .frame(maxWidth: .infinity)
         }
@@ -414,6 +419,7 @@ private struct PermissionStatusCard: View {
                         Button(language.text(english: "Allow Location", bangla: "লোকেশন অনুমতি দিন")) {
                             onAllowLocation()
                         }
+                        .accessibilityIdentifier("mapAllowLocationButton")
                         .buttonStyle(FilledPrimaryButtonStyle())
                     }
 
@@ -421,6 +427,7 @@ private struct PermissionStatusCard: View {
                         Button(language.text(english: "Open Settings", bangla: "সেটিংস খুলুন")) {
                             onOpenSettings()
                         }
+                        .accessibilityIdentifier("mapOpenSettingsButton")
                         .buttonStyle(OutlinedPrimaryButtonStyle())
                     }
                 }
@@ -595,6 +602,7 @@ private struct PlaceDetailPanel: View {
             }
 
             Button(language.text(english: "View More", bangla: "আরও দেখুন")) {}
+                .accessibilityIdentifier("mapViewMoreButton")
                 .buttonStyle(OutlinedPrimaryButtonStyle())
         }
     }

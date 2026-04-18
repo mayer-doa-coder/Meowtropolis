@@ -29,6 +29,7 @@ struct VetView: View {
                     NavigationLink(destination: MapView(initialCategory: "vet")) {
                         Text(text("Find Nearby Vets on Map", "ম্যাপে কাছাকাছি ভেট দেখুন"))
                     }
+                    .accessibilityIdentifier("vetMapButton")
                     .buttonStyle(OutlinedPrimaryButtonStyle())
                     .simultaneousGesture(
                         TapGesture().onEnded {
@@ -42,6 +43,20 @@ struct VetView: View {
                         Text(successMessage)
                             .font(TextStyles.caption)
                             .foregroundStyle(.green)
+                    }
+
+                    if let errorMessage {
+                        ErrorStateView(
+                            title: text("Couldn't complete the consultation request.", "পরামর্শের অনুরোধ সম্পন্ন করা যায়নি।"),
+                            message: text(
+                                "Please check your details or internet connection. Tap Retry to load your requests again.",
+                                "দয়া করে আপনার তথ্য বা ইন্টারনেট সংযোগ যাচাই করুন। অনুরোধগুলো আবার লোড করতে Retry চাপুন।"
+                            ) + "\n\n" + errorMessage,
+                            messageAccessibilityIdentifier: "vetErrorMessage",
+                            retryTitle: text("Retry", "আবার চেষ্টা করুন"),
+                            retryAccessibilityIdentifier: "vetRetryButton",
+                            onRetry: loadRequests
+                        )
                     }
 
                     DividerWithText(text: text("My Consultation Requests", "আমার পরামর্শের অনুরোধ"))
@@ -66,6 +81,7 @@ struct VetView: View {
                 .foregroundStyle(AppDesign.text)
 
             TextEditor(text: $issueDescription)
+                .accessibilityIdentifier("vetIssueInput")
                 .font(.system(size: 16, weight: .regular, design: .rounded))
                 .frame(minHeight: 110)
                 .padding(8)
@@ -81,6 +97,7 @@ struct VetView: View {
             Button(isSubmitting ? text("Sending request...", "অনুরোধ পাঠানো হচ্ছে...") : text("Request Vet Consultation", "ভেট পরামর্শের অনুরোধ করুন")) {
                 submitRequest()
             }
+            .accessibilityIdentifier("requestVetConsultationButton")
             .buttonStyle(FilledPrimaryButtonStyle(disabled: isSubmitting || isLoading))
             .disabled(isSubmitting || isLoading)
         }
@@ -89,19 +106,12 @@ struct VetView: View {
     @ViewBuilder
     private var requestListSection: some View {
         if isLoading {
-            LoadingBlockView(message: text("Loading requests...", "রিকোয়েস্ট লোড হচ্ছে..."))
-        } else if let errorMessage, requests.isEmpty {
-            ErrorStateView(
-                title: text("Could not load requests", "রিকোয়েস্ট লোড করা যায়নি"),
-                message: errorMessage,
-                retryTitle: text("Retry", "আবার চেষ্টা করুন"),
-                onRetry: loadRequests
-            )
-        } else if requests.isEmpty {
+            LoadingBlockView(message: text("Loading your consultation requests...", "আপনার পরামর্শের অনুরোধগুলো লোড হচ্ছে..."))
+        } else if requests.isEmpty && errorMessage == nil {
             EmptyStateView(
                 icon: "stethoscope",
-                title: text("No vet consultation requests yet", "এখনো কোনো ভেট পরামর্শের অনুরোধ নেই"),
-                message: text("Request Vet Consultation to get support for your pet.", "আপনার পোষা প্রাণীর সহায়তার জন্য ভেট পরামর্শের অনুরোধ করুন।")
+                title: text("No vet consultation requests yet.", "এখনও কোনো ভেট পরামর্শের অনুরোধ নেই।"),
+                message: text("Tap Request Vet Consultation to get support for your pet.", "আপনার পোষা প্রাণীর সহায়তার জন্য Request Vet Consultation চাপুন।")
             )
         } else {
             ForEach(requests, id: \.id) { request in

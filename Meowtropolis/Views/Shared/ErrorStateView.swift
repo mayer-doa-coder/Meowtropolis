@@ -3,6 +3,7 @@ import SwiftUI
 struct ErrorStateView: View {
     var title: String = "Something went wrong"
     var message: String
+    var messageAccessibilityIdentifier: String = "errorMessage"
     var retryTitle: String = "Retry"
     var retryAccessibilityIdentifier: String? = nil
     var onRetry: (() -> Void)? = nil
@@ -15,11 +16,13 @@ struct ErrorStateView: View {
                     .foregroundStyle(.red)
 
                 Text(title)
+                    .accessibilityIdentifier("errorStateTitle")
                     .font(TextStyles.subtitle)
                     .foregroundStyle(AppDesign.text)
                     .multilineTextAlignment(.center)
 
                 Text(message)
+                    .accessibilityIdentifier(messageAccessibilityIdentifier)
                     .font(TextStyles.body)
                     .foregroundStyle(AppDesign.muted)
                     .multilineTextAlignment(.center)

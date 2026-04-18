@@ -57,8 +57,15 @@ struct AccountView: View {
 
                     if let profileError = appState.profileErrorMessage {
                         ErrorStateView(
-                            title: text("Could not load account", "অ্যাকাউন্ট লোড করা যায়নি"),
-                            message: profileError
+                            title: text("Couldn't load your account.", "আপনার অ্যাকাউন্ট লোড করা যায়নি।"),
+                            message: text(
+                                "Please check your internet connection. Tap Retry to try again.",
+                                "দয়া করে ইন্টারনেট সংযোগ যাচাই করুন। আবার চেষ্টা করতে Retry চাপুন।"
+                            ) + "\n\n" + profileError,
+                            messageAccessibilityIdentifier: "accountProfileErrorMessage",
+                            retryTitle: text("Retry", "আবার চেষ্টা করুন"),
+                            retryAccessibilityIdentifier: "accountProfileRetryButton",
+                            onRetry: appState.loadCurrentUserProfile
                         )
                     }
 
@@ -133,13 +140,7 @@ struct AccountView: View {
                         accountRow(icon: "info.circle", text: text("Help Center", "সহায়তা কেন্দ্র"))
 
                         Button {
-                            isLoggingOut = true
-                            appState.logout { result in
-                                isLoggingOut = false
-                                if case let .failure(error) = result {
-                                    logoutError = appState.userFriendlyAuthError(error)
-                                }
-                            }
+                            performLogout()
                         } label: {
                             HStack(spacing: 10) {
                                 Image(systemName: "arrow.right.square")
@@ -149,13 +150,21 @@ struct AccountView: View {
                                     .foregroundStyle(AppDesign.text)
                             }
                         }
+                        .accessibilityIdentifier("accountLogoutButton")
                         .disabled(isLoggingOut)
                     }
 
                     if let logoutError {
                         ErrorStateView(
-                            title: text("Logout failed", "লগ আউট ব্যর্থ হয়েছে"),
-                            message: logoutError
+                            title: text("Couldn't log you out.", "আপনাকে লগ আউট করা যায়নি।"),
+                            message: text(
+                                "Please check your internet connection and tap Retry, or tap Logout again.",
+                                "দয়া করে ইন্টারনেট সংযোগ যাচাই করে Retry চাপুন, অথবা আবার Logout চাপুন।"
+                            ) + "\n\n" + logoutError,
+                            messageAccessibilityIdentifier: "accountLogoutErrorMessage",
+                            retryTitle: text("Retry", "আবার চেষ্টা করুন"),
+                            retryAccessibilityIdentifier: "accountLogoutRetryButton",
+                            onRetry: performLogout
                         )
                     }
                 }
@@ -199,6 +208,16 @@ struct AccountView: View {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(AppDesign.muted)
+            }
+        }
+    }
+
+    private func performLogout() {
+        isLoggingOut = true
+        appState.logout { result in
+            isLoggingOut = false
+            if case let .failure(error) = result {
+                logoutError = appState.userFriendlyAuthError(error)
             }
         }
     }

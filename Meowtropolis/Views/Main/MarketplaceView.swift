@@ -23,6 +23,7 @@ struct MarketplaceView: View {
                         Image(systemName: "magnifyingglass")
                             .foregroundStyle(AppDesign.muted)
                         TextField(text("Search products", "পণ্য খুঁজুন"), text: $query)
+                            .accessibilityIdentifier("marketplaceSearchField")
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
                     }
@@ -32,13 +33,18 @@ struct MarketplaceView: View {
                 .padding(.horizontal, Spacing.medium)
 
                 if isLoading {
-                    LoadingBlockView(message: text("Loading products...", "পণ্য লোড হচ্ছে..."))
+                    LoadingBlockView(message: text("Loading products...", "পণ্যগুলো লোড হচ্ছে..."))
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if let errorMessage {
                     ErrorStateView(
-                        title: text("Could not load products", "পণ্য লোড করা যায়নি"),
-                        message: errorMessage,
+                        title: text("Couldn't load products.", "পণ্য লোড করা যায়নি।"),
+                        message: text(
+                            "Please check your internet connection. Tap Retry to try again.",
+                            "দয়া করে ইন্টারনেট সংযোগ যাচাই করুন। আবার চেষ্টা করতে Retry চাপুন।"
+                        ) + "\n\n" + errorMessage,
+                        messageAccessibilityIdentifier: "marketplaceErrorMessage",
                         retryTitle: text("Retry", "আবার চেষ্টা করুন"),
+                        retryAccessibilityIdentifier: "marketplaceRetryButton",
                         onRetry: loadProducts
                     )
                     .padding(20)
@@ -46,8 +52,8 @@ struct MarketplaceView: View {
                 } else if filteredProducts.isEmpty {
                     EmptyStateView(
                         icon: "bag",
-                        title: text("No products available", "কোনো পণ্য পাওয়া যায়নি"),
-                        message: text("Try another search keyword.", "অন্য একটি খোঁজার শব্দ ব্যবহার করুন।")
+                        title: text("No products found.", "কোনো পণ্য পাওয়া যায়নি।"),
+                        message: text("Try another search keyword to see available products.", "উপলব্ধ পণ্য দেখতে অন্য একটি খোঁজার শব্দ ব্যবহার করুন।")
                     )
                     .padding(.horizontal, Spacing.medium)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)

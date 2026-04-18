@@ -15,12 +15,14 @@ struct EmptyStateView: View {
                 }
 
                 Text(title)
+                    .accessibilityIdentifier("emptyStateTitle")
                     .font(TextStyles.subtitle)
                     .foregroundStyle(AppDesign.text)
                     .multilineTextAlignment(.center)
 
                 if let message, !message.isEmpty {
                     Text(message)
+                        .accessibilityIdentifier("emptyStateMessage")
                         .font(TextStyles.body)
                         .foregroundStyle(AppDesign.muted)
                         .multilineTextAlignment(.center)

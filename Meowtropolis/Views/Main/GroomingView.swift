@@ -46,6 +46,7 @@ struct GroomingView: View {
                     NavigationLink(destination: MapView(initialCategory: "grooming")) {
                         Text(text("Find Nearby Groomers on Map", "ম্যাপে কাছাকাছি গ্রুমার দেখুন"))
                     }
+                    .accessibilityIdentifier("groomingMapButton")
                     .buttonStyle(OutlinedPrimaryButtonStyle())
                     .simultaneousGesture(
                         TapGesture().onEnded {
@@ -61,24 +62,31 @@ struct GroomingView: View {
                             .foregroundStyle(.green)
                     }
 
+                    if let errorMessage {
+                        ErrorStateView(
+                            title: text("Couldn't complete the grooming action.", "গ্রুমিং কাজটি সম্পন্ন করা যায়নি।"),
+                            message: text(
+                                "Please check your details or internet connection. Tap Retry to load your bookings again.",
+                                "দয়া করে আপনার তথ্য বা ইন্টারনেট সংযোগ যাচাই করুন। বুকিং আবার লোড করতে Retry চাপুন।"
+                            ) + "\n\n" + errorMessage,
+                            messageAccessibilityIdentifier: "groomingErrorMessage",
+                            retryTitle: text("Retry", "আবার চেষ্টা করুন"),
+                            retryAccessibilityIdentifier: "groomingRetryButton",
+                            onRetry: loadBookings
+                        )
+                    }
+
                     DividerWithText(text: text("My Bookings", "আমার বুকিং"))
 
                     filterCard
 
                     if isLoading {
-                        LoadingBlockView(message: text("Loading bookings...", "বুকিং লোড হচ্ছে..."))
-                    } else if let errorMessage, bookings.isEmpty {
-                        ErrorStateView(
-                            title: text("Could not load bookings", "বুকিং লোড করা যায়নি"),
-                            message: errorMessage,
-                            retryTitle: text("Retry", "আবার চেষ্টা করুন"),
-                            onRetry: loadBookings
-                        )
-                    } else if bookings.isEmpty {
+                        LoadingBlockView(message: text("Loading your bookings...", "আপনার বুকিংগুলো লোড হচ্ছে..."))
+                    } else if bookings.isEmpty && errorMessage == nil {
                         EmptyStateView(
                             icon: "calendar.badge.exclamationmark",
-                            title: text("No bookings found", "কোনো বুকিং পাওয়া যায়নি"),
-                            message: text("Book Grooming to create your first appointment.", "প্রথম অ্যাপয়েন্টমেন্ট তৈরি করতে গ্রুমিং বুক করুন।")
+                            title: text("No grooming bookings yet.", "এখনও কোনো গ্রুমিং বুকিং নেই।"),
+                            message: text("Tap Book Grooming to create your first appointment.", "প্রথম অ্যাপয়েন্টমেন্ট তৈরি করতে Book Grooming চাপুন।")
                         )
                     } else {
                         ForEach(bookings, id: \.id) { booking in
@@ -153,6 +161,7 @@ struct GroomingView: View {
             Button(text("Book Grooming", "গ্রুমিং বুক করুন")) {
                 createBooking()
             }
+            .accessibilityIdentifier("bookGroomingButton")
             .buttonStyle(FilledPrimaryButtonStyle(disabled: isLoading || pets.isEmpty))
             .disabled(isLoading || pets.isEmpty)
         }
@@ -170,6 +179,7 @@ struct GroomingView: View {
                     Text(pet.name).tag(pet.id)
                 }
             }
+            .accessibilityIdentifier("groomingFilterPicker")
             .pickerStyle(.menu)
             .onChange(of: selectedPetIdFilter) { _ in
                 loadBookings()

@@ -46,13 +46,19 @@ struct DashboardView: View {
                         }
                     }
                 }
+                .accessibilityIdentifier("dashboardLogoutButton")
                 .foregroundStyle(.red)
             }
         }
         .alert(text("Session", "সেশন"), isPresented: .constant(sessionErrorMessage != nil)) {
             Button(text("OK", "ঠিক আছে")) { sessionErrorMessage = nil }
         } message: {
-            Text(sessionErrorMessage ?? "")
+            Text(
+                text(
+                    "Session action failed. Please check your internet connection and tap OK, then try again.",
+                    "সেশন কাজটি ব্যর্থ হয়েছে। ইন্টারনেট সংযোগ যাচাই করুন, ঠিক আছে চাপুন, তারপর আবার চেষ্টা করুন।"
+                ) + (sessionErrorMessage.map { "\n\n\($0)" } ?? "")
+            )
         }
     }
 
