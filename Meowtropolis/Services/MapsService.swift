@@ -8,6 +8,7 @@ final class MapsService {
 
     private let apiKeyInfoKey = "GOOGLE_MAPS_API_KEY"
     private var hasConfigured = false
+    var isPlacesConfigured: Bool { hasConfigured }
 
     private init() {}
 

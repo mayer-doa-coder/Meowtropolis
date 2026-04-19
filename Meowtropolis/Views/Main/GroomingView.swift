@@ -43,21 +43,6 @@ struct GroomingView: View {
                         .font(TextStyles.title)
                         .foregroundStyle(AppDesign.text)
 
-                    NavigationLink(destination: MapView(initialCategory: "grooming")) {
-                        Text(text("Find Nearby Groomers on Map", "ম্যাপে কাছাকাছি গ্রুমার দেখুন"))
-                    }
-                    .accessibilityIdentifier("groomingMapButton")
-                    .buttonStyle(OutlinedPrimaryButtonStyle())
-                    .simultaneousGesture(
-                        TapGesture().onEnded {
-                            print("[Navigation] Open Map from Grooming (category: grooming)")
-                            UserHistoryService.shared.recordCurrentUser(
-                                category: .grooming,
-                                action: "Opened map from grooming"
-                            )
-                        }
-                    )
-
                     bookingFormCard
 
                     if let successMessage {

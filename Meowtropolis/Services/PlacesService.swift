@@ -5,14 +5,31 @@ import GooglePlaces
 final class PlacesService {
     typealias TestSearchHandler = (PlaceSearchRequest, @escaping (Result<[Place], Error>) -> Void) -> Void
 
-    private let placesClient: GMSPlacesClient
+    enum PlacesServiceError: LocalizedError {
+        case notConfigured
+
+        var errorDescription: String? {
+            switch self {
+            case .notConfigured:
+                return "Google Places is not configured. Add GOOGLE_MAPS_API_KEY in Info.plist."
+            }
+        }
+    }
+
+    private let placesClient: GMSPlacesClient?
     private let testSearchHandler: TestSearchHandler?
 
     init(
-        placesClient: GMSPlacesClient = GMSPlacesClient.shared(),
+        placesClient: GMSPlacesClient? = nil,
         testSearchHandler: TestSearchHandler? = nil
     ) {
-        self.placesClient = placesClient
+        if let placesClient {
+            self.placesClient = placesClient
+        } else if MapsService.shared.isPlacesConfigured {
+            self.placesClient = GMSPlacesClient.shared()
+        } else {
+            self.placesClient = nil
+        }
         self.testSearchHandler = testSearchHandler
     }
 
@@ -34,6 +51,12 @@ final class PlacesService {
             return
         }
 
+        guard let placesClient else {
+            print("[PlacesService] Error: Google Places is not configured.")
+            completion(.failure(PlacesServiceError.notConfigured))
+            return
+        }
+
         let executeSearch = {
             let filter = GMSAutocompleteFilter()
 
@@ -41,7 +64,7 @@ final class PlacesService {
                 filter.origin = CLLocation(latitude: latitude, longitude: longitude)
             }
 
-            self.placesClient.findAutocompletePredictions(
+            placesClient.findAutocompletePredictions(
                 fromQuery: cleanedQuery,
                 filter: filter,
                 sessionToken: nil
@@ -60,7 +83,11 @@ final class PlacesService {
                     return
                 }
 
-                self.fetchPlaces(predictions: predictionList, completion: completion)
+                self.fetchPlaces(
+                    predictions: predictionList,
+                    placesClient: placesClient,
+                    completion: completion
+                )
             }
         }
 
@@ -75,6 +102,7 @@ final class PlacesService {
 
     private func fetchPlaces(
         predictions: [GMSAutocompletePrediction],
+        placesClient: GMSPlacesClient,
         completion: @escaping (Result<[Place], Error>) -> Void
     ) {
         let placeFields: GMSPlaceField = [.placeID, .name, .formattedAddress, .coordinate, .rating, .types]
@@ -133,7 +161,7 @@ final class PlacesService {
             address: place.formattedAddress ?? "",
             latitude: place.coordinate.latitude,
             longitude: place.coordinate.longitude,
-            rating: place.rating > 0 ? place.rating : nil,
+            rating: place.rating > 0 ? Double(place.rating) : nil,
             types: place.types ?? []
         )
     }

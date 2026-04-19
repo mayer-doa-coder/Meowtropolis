@@ -28,11 +28,6 @@ struct DashboardView: View {
             AccountView()
                 .tabItem { Label(text("Account", "অ্যাকাউন্ট"), systemImage: "person") }
                 .tag(3)
-
-            MapView()
-                .tabItem { Label(text("Map", "ম্যাপ"), systemImage: "map") }
-                .accessibilityIdentifier("mapTab")
-                .tag(4)
         }
         .accessibilityIdentifier("dashboardTabView")
         .tint(AppDesign.primary)
@@ -54,8 +49,6 @@ struct DashboardView: View {
                 tabName = "Vet"
             case 3:
                 tabName = "Account"
-            case 4:
-                tabName = "Map"
             default:
                 tabName = "Unknown"
             }
@@ -116,12 +109,17 @@ private struct HomeTabView: View {
                             Image(uiImage: profileImage)
                                 .resizable()
                                 .scaledToFill()
+                                .frame(width: 56, height: 56)
+                                .clipShape(Circle())
                         } else {
-                            AppPlaceholderImageView(assetName: AppImageLibrary.userAvatarAssetName, cornerRadius: 28, iconSize: 18)
+                            AppPlaceholderImageView(
+                                assetName: AppImageLibrary.userAvatarAssetName,
+                                cornerRadius: 28,
+                                iconSize: 18
+                            )
+                            .frame(width: 56, height: 56)
+                            .clipShape(Circle())
                         }
-                        .frame(width: 56, height: 56)
-                        .clipShape(Circle())
-
                         VStack(alignment: .leading, spacing: 2) {
                             Text(text("Hello,", "হ্যালো,") + " \(appState.currentUser?.name ?? text("Pet Parent", "পেট প্যারেন্ট"))")
                                 .font(TextStyles.subtitle)

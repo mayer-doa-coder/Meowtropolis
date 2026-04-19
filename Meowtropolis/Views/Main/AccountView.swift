@@ -83,11 +83,17 @@ struct AccountView: View {
                                 Image(uiImage: profileImage)
                                     .resizable()
                                     .scaledToFill()
+                                    .frame(width: 94, height: 94)
+                                    .clipShape(Circle())
                             } else {
-                                AppPlaceholderImageView(assetName: AppImageLibrary.userAvatarAssetName, cornerRadius: 47, iconSize: 28)
+                                AppPlaceholderImageView(
+                                    assetName: AppImageLibrary.userAvatarAssetName,
+                                    cornerRadius: 47,
+                                    iconSize: 28
+                                )
+                                .frame(width: 94, height: 94)
+                                .clipShape(Circle())
                             }
-                            .frame(width: 94, height: 94)
-                            .clipShape(Circle())
 
                             Text(appState.currentUser?.name ?? text("Loading...", "লোড হচ্ছে..."))
                                 .font(TextStyles.subtitle)
@@ -114,7 +120,9 @@ struct AccountView: View {
                             messageAccessibilityIdentifier: "accountProfileErrorMessage",
                             retryTitle: text("Retry", "আবার চেষ্টা করুন"),
                             retryAccessibilityIdentifier: "accountProfileRetryButton",
-                            onRetry: appState.loadCurrentUserProfile
+                            onRetry: {
+                                appState.loadCurrentUserProfile()
+                            }
                         )
                     }
 

@@ -34,9 +34,6 @@ struct MeowtropolisApp: App {
             FirebaseApp.configure()
             print("[AppStartup] Firebase configured from App init")
         }
-
-        MapsService.shared.configure()
-        print("[AppStartup] Maps service configure invoked")
         let service = FirebaseAuthService()
         self.authService = service
         _appState = StateObject(wrappedValue: AppState(authService: service))

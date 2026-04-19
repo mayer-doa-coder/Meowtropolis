@@ -163,7 +163,8 @@ struct MapView: View {
                 triggerSearch(for: selectedCategory)
             }
         }
-        .onChange(of: mapState.currentCoordinate) { coordinate in
+        .onChange(of: currentCoordinateKey) { _ in
+            let coordinate = mapState.currentCoordinate
             guard let coordinate, mapState.selectedPlace == nil else {
                 return
             }
@@ -211,6 +212,14 @@ struct MapView: View {
             return nil
         }
         return MapUITestScenario(rawValue: rawValue.lowercased())
+    }
+
+    private var currentCoordinateKey: String? {
+        guard let coordinate = mapState.currentCoordinate else {
+            return nil
+        }
+
+        return "\(coordinate.latitude),\(coordinate.longitude)"
     }
 
     private var isUITestScenarioActive: Bool {

@@ -26,21 +26,6 @@ struct VetView: View {
                         .font(TextStyles.title)
                         .foregroundStyle(AppDesign.text)
 
-                    NavigationLink(destination: MapView(initialCategory: "vet")) {
-                        Text(text("Find Nearby Vets on Map", "ম্যাপে কাছাকাছি ভেট দেখুন"))
-                    }
-                    .accessibilityIdentifier("vetMapButton")
-                    .buttonStyle(OutlinedPrimaryButtonStyle())
-                    .simultaneousGesture(
-                        TapGesture().onEnded {
-                            print("[Navigation] Open Map from Vet (category: vet)")
-                            UserHistoryService.shared.recordCurrentUser(
-                                category: .vet,
-                                action: "Opened map from vet"
-                            )
-                        }
-                    )
-
                     requestFormCard
 
                     if let successMessage {
