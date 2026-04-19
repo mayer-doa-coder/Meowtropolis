@@ -65,7 +65,7 @@ private struct RelatedProductCard: View {
     NavigationStack {
         RelatedProductsView(
             products: [
-                Product(id: "preview_related_001", name: "Related Cat Food", price: 320, category: "cat", imageURL: "", animalType: "cat", brand: "Preview", isFeatured: false)
+                Product(id: "preview_related_001", name: "Related Cat Food", price: 320, category: "cat", imageURL: "")
             ],
             language: .englishUS,
             onTapProduct: { _ in }

@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import Combine
 
 enum MarketplaceCategoryFilter: String, CaseIterable, Identifiable {
     case all
@@ -59,9 +60,9 @@ final class MarketplaceState: ObservableObject {
         case .all:
             return true
         case .cat:
-            return product.animalType == "cat" || product.animalType == "all"
+            return product.category == "cat" || product.category == "all"
         case .dog:
-            return product.animalType == "dog" || product.animalType == "all"
+            return product.category == "dog" || product.category == "all"
         }
     }
 
