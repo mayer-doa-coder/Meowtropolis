@@ -360,7 +360,7 @@ final class AppState: ObservableObject {
         case .networkError:
             return localizedText(english: "Network error. Please check your internet connection and try again.", bangla: "নেটওয়ার্ক ত্রুটি। ইন্টারনেট সংযোগ যাচাই করে আবার চেষ্টা করুন।")
         default:
-            return authError.localizedDescription
+            return localizedText(english: "Authentication request could not be completed. Please try again.", bangla: "অথেনটিকেশন অনুরোধ সম্পন্ন করা যায়নি। আবার চেষ্টা করুন।")
         }
     }
 

@@ -83,7 +83,7 @@ private struct CartRecommendationCard: View {
     NavigationStack {
         CartRecommendationsView(
             products: [
-                Product(id: "preview_reco_001", name: "Related Cat Treat", price: 220, category: "cat", imageURL: "")
+                Product(id: "preview_reco_001", name: "Related Cat Treat", price: 220, category: "cat", imageURL: "", animalType: "cat", brand: "Preview", isFeatured: false)
             ],
             language: .englishUS,
             onTapProduct: { _ in }

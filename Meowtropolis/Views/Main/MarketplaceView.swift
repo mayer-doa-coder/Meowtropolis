@@ -28,6 +28,7 @@ struct MarketplaceView: View {
     @State private var selectedSortOption: MarketplaceSortOption = .lowToHigh
     @State private var selectedAnimalFilter: MarketplaceAnimalFilter = .all
     @State private var showInStockOnly: Bool = false
+    @State private var selectedProduct: Product?
 
     init(productService: ProductService = ProductService()) {
         self.productService = productService
@@ -153,19 +154,18 @@ struct MarketplaceView: View {
                 } else {
                     List {
                         ForEach(filteredProducts, id: \.id) { product in
-                            NavigationLink(destination: ProductDetailView(product: product)) {
+                            Button {
+                                selectedProduct = product
+                                UserHistoryService.shared.recordCurrentUser(
+                                    category: .shop,
+                                    action: "Opened product from list",
+                                    details: product.name
+                                )
+                            } label: {
                                 productRow(product)
                             }
+                            .buttonStyle(.plain)
                             .accessibilityIdentifier("marketplaceProductRow_\(product.id)")
-                            .simultaneousGesture(
-                                TapGesture().onEnded {
-                                    UserHistoryService.shared.recordCurrentUser(
-                                        category: .shop,
-                                        action: "Opened product from list",
-                                        details: product.name
-                                    )
-                                }
-                            )
                         }
                     }
                     .accessibilityIdentifier("marketplaceProductList")
@@ -173,6 +173,9 @@ struct MarketplaceView: View {
                     .background(Color.clear)
                 }
             }
+        }
+        .navigationDestination(item: $selectedProduct) { product in
+            ProductDetailView(product: product)
         }
         .navigationTitle(text("Store", "স্টোর"))
         .navigationBarTitleDisplayMode(.inline)
