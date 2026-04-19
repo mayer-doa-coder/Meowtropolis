@@ -1,12 +1,12 @@
 ﻿{
-  "images" : [
-    {
-      "filename" : "Whiskas-Pouch-Tasty-Mix-Gravy-Tuna-Kanikama-Carrots-Cat-Food-70gm.webp",
-      "idiom" : "universal"
-    }
-  ],
-  "info" : {
-    "author" : "xcode",
-    "version" : 1
-  }
+    "images":  [
+                   {
+                       "filename":  "img_whiskas_pouch_tasty_mix_gravy_tuna_kanikama_carrots_cat_food_70gm.restored.png",
+                       "idiom":  "universal"
+                   }
+               ],
+    "info":  {
+                 "author":  "xcode",
+                 "version":  1
+             }
 }

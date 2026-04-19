@@ -1,12 +1,12 @@
 ﻿{
-  "images" : [
-    {
-      "filename" : "Prama-Delicacy-Snack-Dog-Treats-Maguro-50gm.webp",
-      "idiom" : "universal"
-    }
-  ],
-  "info" : {
-    "author" : "xcode",
-    "version" : 1
-  }
+    "images":  [
+                   {
+                       "filename":  "img_prama_delicacy_snack_dog_treats_maguro_50gm.restored.png",
+                       "idiom":  "universal"
+                   }
+               ],
+    "info":  {
+                 "author":  "xcode",
+                 "version":  1
+             }
 }

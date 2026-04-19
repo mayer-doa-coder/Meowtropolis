@@ -60,6 +60,45 @@ final class VetService {
             }
     }
 
+    /// Lists all vet requests for admin dashboard, newest first.
+    func listAllRequests(completion: @escaping (Result<[VetRequest], Error>) -> Void) {
+        db.collection(FirestoreCollections.vetRequests)
+            .getDocuments { snapshot, error in
+                if let error {
+                    completion(.failure(error))
+                    return
+                }
+
+                guard let documents = snapshot?.documents else {
+                    completion(.success([]))
+                    return
+                }
+
+                do {
+                    let requests = try documents.map { document in
+                        try self.decodeRequest(data: document.data(), documentId: document.documentID)
+                    }
+                    .sorted { $0.createdAt > $1.createdAt }
+                    completion(.success(requests))
+                } catch {
+                    completion(.failure(error))
+                }
+            }
+    }
+
+    /// Updates request status for admin handling.
+    func updateRequestStatus(requestId: String, status: VetRequestStatus, completion: @escaping (Result<Void, Error>) -> Void) {
+        db.collection(FirestoreCollections.vetRequests)
+            .document(requestId)
+            .updateData(["status": status.rawValue]) { error in
+                if let error {
+                    completion(.failure(error))
+                    return
+                }
+                completion(.success(()))
+            }
+    }
+
     /// Supports legacy docs where id may be missing from payload.
     private func decodeRequest(data: [String: Any], documentId: String) throws -> VetRequest {
         var normalized = data

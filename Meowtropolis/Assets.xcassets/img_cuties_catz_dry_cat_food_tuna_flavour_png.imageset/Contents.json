@@ -1,12 +1,12 @@
 ﻿{
-  "images" : [
-    {
-      "filename" : "Cuties-Catz-Dry-Cat-Food-Tuna-Flavour.png.webp",
-      "idiom" : "universal"
-    }
-  ],
-  "info" : {
-    "author" : "xcode",
-    "version" : 1
-  }
+    "images":  [
+                   {
+                       "filename":  "img_cuties_catz_dry_cat_food_tuna_flavour_png.restored.png",
+                       "idiom":  "universal"
+                   }
+               ],
+    "info":  {
+                 "author":  "xcode",
+                 "version":  1
+             }
 }

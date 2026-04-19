@@ -1,12 +1,12 @@
 ﻿{
-  "images" : [
-    {
-      "filename" : "Paws-Cat-Litter-4.5L.jpg.webp",
-      "idiom" : "universal"
-    }
-  ],
-  "info" : {
-    "author" : "xcode",
-    "version" : 1
-  }
+    "images":  [
+                   {
+                       "filename":  "img_paws_cat_litter_4_5l_jpg.restored.png",
+                       "idiom":  "universal"
+                   }
+               ],
+    "info":  {
+                 "author":  "xcode",
+                 "version":  1
+             }
 }

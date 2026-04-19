@@ -1,12 +1,12 @@
 ﻿{
-  "images" : [
-    {
-      "filename" : "Pet-Metro-Adult-Cat-Food-Tuna-And-Chicken-Recipe-1kg.webp",
-      "idiom" : "universal"
-    }
-  ],
-  "info" : {
-    "author" : "xcode",
-    "version" : 1
-  }
+    "images":  [
+                   {
+                       "filename":  "img_pet_metro_adult_cat_food_tuna_and_chicken_recipe_1kg.restored.png",
+                       "idiom":  "universal"
+                   }
+               ],
+    "info":  {
+                 "author":  "xcode",
+                 "version":  1
+             }
 }

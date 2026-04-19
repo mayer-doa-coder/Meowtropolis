@@ -74,7 +74,7 @@ struct MarketplaceView: View {
                                 Text(text("Price: High to Low", "দাম: বেশি থেকে কম")).tag(MarketplaceSortOption.highToLow)
                             }
                             .pickerStyle(.menu)
-                            .onChange(of: selectedSortOption) { option in
+                            .onChange(of: selectedSortOption) { _, option in
                                 UserHistoryService.shared.recordCurrentUser(
                                     category: .shop,
                                     action: "Changed marketplace sort",
@@ -94,7 +94,7 @@ struct MarketplaceView: View {
                                 Text(text("Only Dog", "শুধু কুকুর")).tag(MarketplaceAnimalFilter.dog)
                             }
                             .pickerStyle(.menu)
-                            .onChange(of: selectedAnimalFilter) { filter in
+                            .onChange(of: selectedAnimalFilter) { _, filter in
                                 UserHistoryService.shared.recordCurrentUser(
                                     category: .shop,
                                     action: "Changed marketplace animal filter",
@@ -109,7 +109,7 @@ struct MarketplaceView: View {
                                 .foregroundStyle(AppDesign.muted)
                         }
                         .toggleStyle(.switch)
-                        .onChange(of: showInStockOnly) { enabled in
+                        .onChange(of: showInStockOnly) { _, enabled in
                             UserHistoryService.shared.recordCurrentUser(
                                 category: .shop,
                                 action: "Changed stock filter",

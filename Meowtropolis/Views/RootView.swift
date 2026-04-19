@@ -24,12 +24,18 @@ struct RootView: View {
                 profileLoadingView
             } else if appState.isLoggedIn, let profileError = appState.profileErrorMessage {
                 profileErrorView(profileError)
+            } else if appState.isLoggedIn && appState.isAdmin {
+                NavigationStack {
+                    AdminDashboardView()
+                }
+                // Reset admin navigation tree when auth state changes.
+                .id("authenticated-admin")
             } else if appState.isLoggedIn {
                 NavigationStack {
                     DashboardView()
                 }
-                // Reset authenticated navigation tree when auth state changes.
-                .id("authenticated")
+                // Reset customer navigation tree when auth state changes.
+                .id("authenticated-customer")
             } else {
                 NavigationStack {
                     AuthLandingView()

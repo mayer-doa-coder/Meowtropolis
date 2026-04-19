@@ -1,12 +1,12 @@
 ﻿{
-  "images" : [
-    {
-      "filename" : "felix-cat-food-tuna-in-jelly-70g.jpg.webp",
-      "idiom" : "universal"
-    }
-  ],
-  "info" : {
-    "author" : "xcode",
-    "version" : 1
-  }
+    "images":  [
+                   {
+                       "filename":  "img_felix_cat_food_tuna_in_jelly_70g_jpg.restored.png",
+                       "idiom":  "universal"
+                   }
+               ],
+    "info":  {
+                 "author":  "xcode",
+                 "version":  1
+             }
 }

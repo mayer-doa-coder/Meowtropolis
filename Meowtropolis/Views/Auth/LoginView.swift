@@ -13,6 +13,9 @@ struct LoginView: View {
     @State private var errorMessage: String?
     @State private var successMessage: String?
 
+    private let defaultAdminEmail = "admin@meowtropolis.com"
+    private let defaultAdminPassword = "admin1234"
+
     var body: some View {
         AppBackground {
             ScrollView {
@@ -78,6 +81,13 @@ struct LoginView: View {
                         .buttonStyle(FilledPrimaryButtonStyle(disabled: isLoading))
                         .disabled(isLoading)
                         .accessibilityIdentifier("loginSubmitButton")
+
+                        Button(isLoading ? text("Preparing admin login...", "অ্যাডমিন লগইন প্রস্তুত হচ্ছে...") : text("Login as Admin", "অ্যাডমিন হিসেবে লগইন")) {
+                            loginAsAdminUser()
+                        }
+                        .buttonStyle(OutlinedPrimaryButtonStyle())
+                        .disabled(isLoading)
+                        .accessibilityIdentifier("loginAdminQuickButton")
 
                         if isLoading {
                             ProgressView(text("Logging in...", "লগইন হচ্ছে..."))
@@ -145,6 +155,33 @@ struct LoginView: View {
                     let defaultMessage = text(
                         "Login failed. Please check your email and password.",
                         "লগইন ব্যর্থ হয়েছে। ইমেইল এবং পাসওয়ার্ড যাচাই করুন।"
+                    )
+                    let detailedMessage = appState.userFriendlyAuthError(error)
+                    errorMessage = detailedMessage.isEmpty ? defaultMessage : "\(defaultMessage)\n\(detailedMessage)"
+                }
+            }
+        }
+    }
+
+    private func loginAsAdminUser() {
+        print("[AuthUI] Admin quick login attempt")
+        clearMessages()
+
+        email = defaultAdminEmail
+        password = defaultAdminPassword
+        isLoading = true
+
+        appState.loginAsDefaultAdmin { result in
+            DispatchQueue.main.async {
+                isLoading = false
+
+                switch result {
+                case .success:
+                    successMessage = text("Admin login successful. Opening admin dashboard...", "অ্যাডমিন লগইন সফল। অ্যাডমিন ড্যাশবোর্ড খোলা হচ্ছে...")
+                case let .failure(error):
+                    let defaultMessage = text(
+                        "Admin login failed. Please try again.",
+                        "অ্যাডমিন লগইন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।"
                     )
                     let detailedMessage = appState.userFriendlyAuthError(error)
                     errorMessage = detailedMessage.isEmpty ? defaultMessage : "\(defaultMessage)\n\(detailedMessage)"

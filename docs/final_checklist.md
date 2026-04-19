@@ -13,6 +13,16 @@
 - [ ] Unit tests pass in Xcode
 - [ ] UI tests pass in Xcode
 - [ ] Manual smoke flow passes
+- [ ] Asset catalog validation script passes (`pwsh ./docs/validate_asset_catalog.ps1`)
+
+## Asset Import Guardrail
+
+- Run `pwsh ./docs/validate_asset_catalog.ps1` after any new image import.
+- Script fails when:
+	- `Contents.json` references `.webp` filenames
+	- referenced image files are missing
+	- unsupported file extensions are used
+	- orphan `.webp` files exist under `Assets.xcassets`
 
 ## Demo Readiness
 

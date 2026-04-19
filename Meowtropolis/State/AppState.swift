@@ -10,10 +10,32 @@ final class AppState: ObservableObject {
     @Published var isProfileLoading: Bool = false
     @Published var profileErrorMessage: String?
 
+    var isAdmin: Bool {
+        guard let user = currentUser else {
+            return false
+        }
+
+        if user.role?.lowercased() == "admin" {
+            return true
+        }
+
+        let normalizedEmail = user.email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if adminEmails.contains(normalizedEmail) {
+            return true
+        }
+
+        return normalizedEmail.hasPrefix("admin@")
+    }
+
     private let authService: any AuthService
     private let userService: UserService
     private let userHistoryService: UserHistoryService
     private var authListenerHandle: NSObjectProtocol?
+    private let demoAdminEmail = "admin@meowtropolis.com"
+    private let demoAdminPassword = "admin1234"
+    private let adminEmails: Set<String> = [
+        "admin@meowtropolis.com"
+    ]
 
     private let appLanguageDefaultsKey = "appLanguageCode"
 
@@ -49,8 +71,10 @@ final class AppState: ObservableObject {
     }
 
     func login(email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        print("[Auth] login attempt for: \(email)")
-        authService.signIn(email: email, password: password) { [weak self] result in
+        let cleanedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        print("[Auth] login attempt for: \(cleanedEmail)")
+
+        authService.signIn(email: cleanedEmail, password: password) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success:
@@ -65,11 +89,22 @@ final class AppState: ObservableObject {
                     }
                     completion(.success(()))
                 case let .failure(error):
+                    if let self,
+                       self.shouldAutoProvisionDemoAdmin(email: cleanedEmail, password: password, error: error) {
+                        print("[Auth] Demo admin not found. Auto-provisioning account.")
+                        self.provisionDemoAdminAndLogin(email: cleanedEmail, password: password, completion: completion)
+                        return
+                    }
+
                     print("[Auth] login error: \(error.localizedDescription)")
                     completion(.failure(error))
                 }
             }
         }
+    }
+
+    func loginAsDefaultAdmin(completion: @escaping (Result<Void, Error>) -> Void) {
+        login(email: demoAdminEmail, password: demoAdminPassword, completion: completion)
     }
 
     func signup(fullName: String, email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void) {
@@ -92,7 +127,8 @@ final class AppState: ObservableObject {
                     id: uid,
                     name: fullName,
                     email: email,
-                    preferredLanguageCode: UserDefaults.standard.string(forKey: appLanguageDefaultsKey)
+                    preferredLanguageCode: UserDefaults.standard.string(forKey: appLanguageDefaultsKey),
+                    role: email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased().hasPrefix("admin@") ? "admin" : "user"
                 )
 
                 userService.createUserProfile(user: user) { profileResult in
@@ -186,7 +222,8 @@ final class AppState: ObservableObject {
             name: cleanedName,
             email: cleanedEmail,
             preferredLanguageCode: preferredLanguageCode,
-            profileImageBase64: profileImageBase64
+            profileImageBase64: profileImageBase64,
+            role: currentUser.role
         )
 
         let saveProfile: () -> Void = { [weak self] in
@@ -382,6 +419,84 @@ final class AppState: ObservableObject {
     private func isValidEmail(_ email: String) -> Bool {
         let pattern = "^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
         return NSPredicate(format: "SELF MATCHES %@", pattern).evaluate(with: email)
+    }
+
+    private func shouldAutoProvisionDemoAdmin(email: String, password: String, error: Error) -> Bool {
+        guard isDemoAdminCredential(email: email, password: password),
+              isUserNotFoundAuthError(error) else {
+            return false
+        }
+        return true
+    }
+
+    private func isDemoAdminCredential(email: String, password: String) -> Bool {
+        email.lowercased() == demoAdminEmail && password == demoAdminPassword
+    }
+
+    private func isUserNotFoundAuthError(_ error: Error) -> Bool {
+        let nsError = error as NSError
+        guard let code = AuthErrorCode(rawValue: nsError.code) else {
+            return false
+        }
+        return code == .userNotFound
+    }
+
+    private func provisionDemoAdminAndLogin(email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        authService.signUp(email: email, password: password) { [weak self] result in
+            guard let self else {
+                return
+            }
+
+            switch result {
+            case let .failure(error):
+                // In rare race conditions, the account may be created by another client meanwhile.
+                let nsError = error as NSError
+                if AuthErrorCode(rawValue: nsError.code) == .emailAlreadyInUse {
+                    self.authService.signIn(email: email, password: password) { signInResult in
+                        DispatchQueue.main.async {
+                            switch signInResult {
+                            case .success:
+                                self.handleAuthStateChanged(userId: self.authService.currentUserId)
+                                completion(.success(()))
+                            case let .failure(signInError):
+                                completion(.failure(signInError))
+                            }
+                        }
+                    }
+                    return
+                }
+
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
+
+            case let .success(uid):
+                let user = User(
+                    id: uid,
+                    name: "Demo Admin",
+                    email: email,
+                    preferredLanguageCode: UserDefaults.standard.string(forKey: appLanguageDefaultsKey),
+                    role: "admin"
+                )
+
+                self.userService.createUserProfile(user: user) { profileResult in
+                    DispatchQueue.main.async {
+                        switch profileResult {
+                        case .success:
+                            self.handleAuthStateChanged(userId: uid)
+                            self.userHistoryService.record(
+                                userId: uid,
+                                category: .auth,
+                                action: "Auto-provisioned demo admin"
+                            )
+                            completion(.success(()))
+                        case let .failure(error):
+                            completion(.failure(error))
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private func localizedText(english: String, bangla: String) -> String {

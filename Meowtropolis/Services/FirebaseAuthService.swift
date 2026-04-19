@@ -20,10 +20,7 @@ final class FirebaseAuthService: AuthService {
     }
 
     func removeAuthStateDidChangeListener(_ handle: NSObjectProtocol) {
-        guard let typedHandle = handle as? AuthStateDidChangeListenerHandle else {
-            return
-        }
-        Auth.auth().removeStateDidChangeListener(typedHandle)
+        Auth.auth().removeStateDidChangeListener(handle)
     }
 
     func signUp(email: String, password: String, completion: @escaping (Result<String, Error>) -> Void) {

@@ -1,12 +1,12 @@
 ﻿{
-  "images" : [
-    {
-      "filename" : "felix-sensations-cat-food-salmontomato-in-jelly-70g.jpg.webp",
-      "idiom" : "universal"
-    }
-  ],
-  "info" : {
-    "author" : "xcode",
-    "version" : 1
-  }
+    "images":  [
+                   {
+                       "filename":  "img_felix_sensations_cat_food_salmontomato_in_jelly_70g_jpg.restored.png",
+                       "idiom":  "universal"
+                   }
+               ],
+    "info":  {
+                 "author":  "xcode",
+                 "version":  1
+             }
 }

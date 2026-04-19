@@ -218,6 +218,7 @@ enum AppImageLibrary {
         "img_whiskas_pouch_tasty_mix_gravy_tuna_kanikama_carrots_cat_food_70gm"
     ]
 
+
     static func serviceImageAssetName(for title: String) -> String {
         let key = title.lowercased()
 
@@ -336,11 +337,7 @@ enum AppImageLibrary {
     }
 
     static func hasImageAsset(named name: String) -> Bool {
-<<<<<<< HEAD
-        UIImage(named: name) != nil
-=======
-        knownImageAssets.contains(name)
->>>>>>> eb2c3bfcfc217d38068dce8598d5ab70f85bd8a5
+        knownImageAssets.contains(name) && UIImage(named: name) != nil
     }
 
     private static func removeKnownImageExtension(from value: String) -> String {

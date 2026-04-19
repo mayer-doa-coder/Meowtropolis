@@ -9,7 +9,7 @@ enum BookingStatus: String, Codable {
 }
 
 /// Basic account information for an app user.
-struct User: Codable {
+struct User: Codable, Sendable {
     /// Unique identifier for the user.
     let id: String
     /// Full name displayed in the app.
@@ -20,24 +20,28 @@ struct User: Codable {
     let preferredLanguageCode: String?
     /// Optional base64 image data used as profile avatar.
     let profileImageBase64: String?
+    /// Optional role for authorization checks (for example: admin, user).
+    let role: String?
 
     init(
         id: String,
         name: String,
         email: String,
         preferredLanguageCode: String? = nil,
-        profileImageBase64: String? = nil
+        profileImageBase64: String? = nil,
+        role: String? = nil
     ) {
         self.id = id
         self.name = name
         self.email = email
         self.preferredLanguageCode = preferredLanguageCode
         self.profileImageBase64 = profileImageBase64
+        self.role = role
     }
 }
 
 /// Basic pet profile linked to a user.
-struct Pet: Codable {
+struct Pet: Codable, Sendable {
     /// Unique identifier for the pet.
     let id: String
     /// Identifier of the user who owns this pet.
@@ -59,7 +63,7 @@ struct Pet: Codable {
 }
 
 /// Service appointment made for a pet.
-struct Booking: Codable {
+struct Booking: Codable, Sendable {
     /// Unique identifier for the booking.
     let id: String
     /// Identifier of the user who created the booking.
@@ -75,7 +79,7 @@ struct Booking: Codable {
 }
 
 /// Item available in the marketplace.
-struct Product: Codable {
+struct Product: Codable, Sendable {
     /// Unique identifier for the product.
     let id: String
     /// Product name shown in listings.
@@ -126,7 +130,7 @@ struct Product: Codable {
 }
 
 /// One item in an order snapshot.
-struct OrderItem: Codable {
+struct OrderItem: Codable, Sendable {
     let productId: String
     let name: String
     let category: String
@@ -137,7 +141,7 @@ struct OrderItem: Codable {
 }
 
 /// Order saved to Firestore after checkout.
-struct Order: Codable {
+struct Order: Codable, Sendable {
     let id: String
     let userId: String
     let items: [OrderItem]

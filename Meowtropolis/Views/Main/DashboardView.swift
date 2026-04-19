@@ -185,14 +185,16 @@ private struct HomeTabView: View {
                     }
 
                     CardView {
-                        sectionTitle(text("Our Services", "আমাদের সেবাসমূহ"))
+                        HStack {
+                            Text(text("Our Services", "আমাদের সেবাসমূহ"))
+                                .font(TextStyles.subtitle)
+                                .foregroundStyle(AppDesign.text)
+                            Spacer()
 
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: Spacing.small) {
-                                chip(text("All", "সব"), selected: true)
-                                chip(text("Health", "স্বাস্থ্য"))
-                                chip(text("Care", "যত্ন"))
-                                chip(text("Profile", "প্রোফাইল"))
+                            NavigationLink(destination: ServicesCatalogView()) {
+                                Text(text("See All", "সব দেখুন"))
+                                    .font(TextStyles.caption)
+                                    .foregroundStyle(.blue)
                             }
                         }
 
@@ -238,28 +240,6 @@ private struct HomeTabView: View {
             Text(title)
                 .font(TextStyles.subtitle)
                 .foregroundStyle(AppDesign.text)
-            Spacer()
-            Text(text("See All", "সব দেখুন"))
-                .font(TextStyles.caption)
-                .foregroundStyle(.blue)
-        }
-    }
-
-    private func chip(_ title: String, selected: Bool = false) -> some View {
-        HStack(spacing: 8) {
-            Circle()
-                .fill(selected ? Color.white.opacity(0.8) : Color.gray.opacity(0.45))
-                .frame(width: 28, height: 28)
-            Text(title)
-                .font(TextStyles.body)
-        }
-        .foregroundStyle(selected ? .white : AppDesign.muted)
-        .padding(.horizontal, 16)
-        .frame(height: 52)
-        .background(selected ? AppDesign.primary : Color.white.opacity(0.3))
-        .clipShape(Capsule())
-        .overlay {
-            Capsule().stroke(AppDesign.line, lineWidth: selected ? 0 : 1)
         }
     }
 

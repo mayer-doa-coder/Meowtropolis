@@ -107,6 +107,49 @@ final class OrderService {
             completion(.success(order))
         }
     }
+
+    /// Lists all orders for admin dashboard, newest first.
+    func listAllOrders(completion: @escaping (Result<[Order], Error>) -> Void) {
+        db.collection(FirestoreCollections.orders)
+            .getDocuments { snapshot, error in
+                if let error {
+                    completion(.failure(error))
+                    return
+                }
+
+                guard let documents = snapshot?.documents else {
+                    completion(.success([]))
+                    return
+                }
+
+                do {
+                    let orders = try documents.map { document in
+                        var data = document.data()
+                        if (data["id"] as? String)?.isEmpty != false {
+                            data["id"] = document.documentID
+                        }
+                        return try FirestoreModelCoder.decode(Order.self, from: data)
+                    }
+                    .sorted { $0.createdAt > $1.createdAt }
+                    completion(.success(orders))
+                } catch {
+                    completion(.failure(error))
+                }
+            }
+    }
+
+    /// Updates order status (for example: processing, completed, cancelled).
+    func updateOrderStatus(orderId: String, status: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        db.collection(FirestoreCollections.orders)
+            .document(orderId)
+            .updateData(["status": status]) { error in
+                if let error {
+                    completion(.failure(error))
+                    return
+                }
+                completion(.success(()))
+            }
+    }
 }
 
 enum OrderServiceError: LocalizedError {

@@ -169,7 +169,7 @@ struct GroomingView: View {
             }
             .accessibilityIdentifier("groomingFilterPicker")
             .pickerStyle(.menu)
-            .onChange(of: selectedPetIdFilter) { _ in
+            .onChange(of: selectedPetIdFilter) { _, _ in
                 UserHistoryService.shared.recordCurrentUser(
                     category: .grooming,
                     action: "Changed grooming filter",

@@ -54,6 +54,32 @@ enum PetBlogRepository {
             content: "Watch for sudden loss of appetite, unusual tiredness, frequent scratching, coughing, or changes in bathroom habits. These signs can point to allergies, infections, or digestive issues. Keep a short daily note of symptoms and timeline. If signs continue for more than 24-48 hours, book a vet checkup quickly.",
             contentBangla: "হঠাৎ ক্ষুধা কমে যাওয়া, অস্বাভাবিক ক্লান্তি, ঘন ঘন চুলকানো, কাশি বা টয়লেটের অভ্যাসে পরিবর্তন দেখলে সতর্ক হোন। এগুলো অ্যালার্জি, সংক্রমণ বা হজমজনিত সমস্যার লক্ষণ হতে পারে। প্রতিদিন সংক্ষিপ্তভাবে লক্ষণ লিখে রাখুন। ২৪-৪৮ ঘণ্টার বেশি সমস্যা থাকলে দ্রুত ভেট চেকআপ নিন।",
             imageAssetName: "img_pet_vet1"
+        ),
+        PetBlog(
+            id: "blog_cat_litter_hygiene",
+            title: "Cat Litter Hygiene Tips for Cleaner Homes",
+            titleBangla: "পরিষ্কার ঘরের জন্য ক্যাট লিটার হাইজিন টিপস",
+            category: "Care",
+            categoryBangla: "যত্ন",
+            readTimeMinutes: 4,
+            excerpt: "Small litter box habits can reduce odor and keep your cat comfortable.",
+            excerptBangla: "লিটার বক্সের ছোট ছোট অভ্যাসে দুর্গন্ধ কমে এবং বিড়াল আরাম পায়।",
+            content: "Scoop the litter box at least once daily and replace full litter weekly. Keep the box in a quiet, ventilated area, and wash it with mild soap before refilling. If your cat avoids the box, check litter texture and depth first. A clean, predictable litter routine reduces stress and accidents.",
+            contentBangla: "প্রতিদিন অন্তত একবার লিটার বক্স পরিষ্কার করুন এবং সপ্তাহে একবার পুরো লিটার বদলান। বক্সটি নীরব ও বাতাস চলাচল করে এমন স্থানে রাখুন, এবং পুনরায় ভরার আগে মৃদু সাবান দিয়ে ধুয়ে নিন। বিড়াল লিটার বক্স এড়িয়ে চললে প্রথমে লিটারের টেক্সচার ও গভীরতা পরীক্ষা করুন। পরিষ্কার ও নিয়মিত রুটিনে চাপ ও দুর্ঘটনা কমে।",
+            imageAssetName: "img_black_sand_carbon_bentonite_cat_litter_10l_600x588"
+        ),
+        PetBlog(
+            id: "blog_dog_training_snacks",
+            title: "Using Treats the Right Way During Dog Training",
+            titleBangla: "কুকুর ট্রেনিংয়ে ট্রিট সঠিকভাবে ব্যবহার করার উপায়",
+            category: "Training",
+            categoryBangla: "প্রশিক্ষণ",
+            readTimeMinutes: 3,
+            excerpt: "Reward timing matters more than treat size in early obedience sessions.",
+            excerptBangla: "প্রাথমিক অনুশীলনে ট্রিটের পরিমাণের চেয়ে সময়মতো পুরস্কার বেশি গুরুত্বপূর্ণ।",
+            content: "Give tiny treats immediately after the correct behavior so your dog links action and reward. Keep sessions short, around 5 to 10 minutes, and end on a positive note. Gradually reduce treat frequency while keeping verbal praise. Consistency from all family members helps your dog learn faster.",
+            contentBangla: "সঠিক আচরণের পর সঙ্গে সঙ্গে ছোট ট্রিট দিন, যাতে কুকুর কাজ ও পুরস্কারের সম্পর্ক বুঝতে পারে। সেশন ৫ থেকে ১০ মিনিটের মতো ছোট রাখুন এবং ভালো মুহূর্তে শেষ করুন। ধীরে ধীরে ট্রিট কমিয়ে মৌখিক প্রশংসা বাড়ান। পরিবারের সবাই একই নিয়ম মানলে শেখা দ্রুত হয়।",
+            imageAssetName: "img_prama_delicacy_snack_dog_treats_milk_70gm_600x600"
         )
     ]
 
@@ -104,6 +130,8 @@ struct PetBlogDetailView: View {
     let blog: PetBlog
 
     var body: some View {
+        let displayImageAsset = AppImageLibrary.resolveExistingAssetName(from: blog.imageAssetName) ?? AppImageLibrary.userAvatarAssetName
+
         AppBackground {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
@@ -111,7 +139,7 @@ struct PetBlogDetailView: View {
                         RoundedRectangle(cornerRadius: 14)
                             .fill(Color.gray.opacity(0.25))
 
-                        AppPlaceholderImageView(assetName: blog.imageAssetName, cornerRadius: 14, iconSize: 28)
+                        AppPlaceholderImageView(assetName: displayImageAsset, cornerRadius: 14, iconSize: 28)
                     }
                     .frame(height: 190)
                     .clipShape(RoundedRectangle(cornerRadius: 14))
@@ -166,13 +194,15 @@ struct PetBlogCardView: View {
     @AppStorage(AppLanguage.storageKey) private var appLanguageCode: String = AppLanguage.englishUS.rawValue
 
     var body: some View {
+        let displayImageAsset = AppImageLibrary.resolveExistingAssetName(from: blog.imageAssetName) ?? AppImageLibrary.userAvatarAssetName
+
         CardView {
             HStack(alignment: .top, spacing: 10) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(Color.gray.opacity(0.3))
 
-                    AppPlaceholderImageView(assetName: blog.imageAssetName, cornerRadius: 10, iconSize: 20)
+                    AppPlaceholderImageView(assetName: displayImageAsset, cornerRadius: 10, iconSize: 20)
                 }
                 .frame(width: compact ? 92 : 110, height: compact ? 92 : 110)
                 .clipShape(RoundedRectangle(cornerRadius: 10))

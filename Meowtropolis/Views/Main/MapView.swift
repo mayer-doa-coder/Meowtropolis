@@ -163,7 +163,7 @@ struct MapView: View {
                 triggerSearch(for: selectedCategory)
             }
         }
-        .onChange(of: currentCoordinateKey) { _ in
+        .onChange(of: currentCoordinateKey) { _, _ in
             let coordinate = mapState.currentCoordinate
             guard let coordinate, mapState.selectedPlace == nil else {
                 return
@@ -176,7 +176,7 @@ struct MapView: View {
                 )
             )
         }
-        .onChange(of: mapState.selectedPlace?.id) { _ in
+        .onChange(of: mapState.selectedPlace?.id) { _, _ in
             guard let place = mapState.selectedPlace else {
                 return
             }

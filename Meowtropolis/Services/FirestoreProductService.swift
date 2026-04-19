@@ -38,4 +38,35 @@ final class FirestoreProductService {
                 }
             }
     }
+
+    /// Creates or updates one product document by id.
+    func upsertProduct(_ product: Product, completion: @escaping (Result<Void, Error>) -> Void) {
+        do {
+            let payload = try FirestoreModelCoder.encode(product)
+            db.collection(FirestoreCollections.products)
+                .document(product.id)
+                .setData(payload, merge: true) { error in
+                    if let error {
+                        completion(.failure(error))
+                        return
+                    }
+                    completion(.success(()))
+                }
+        } catch {
+            completion(.failure(error))
+        }
+    }
+
+    /// Deletes one product document by id.
+    func deleteProduct(productId: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        db.collection(FirestoreCollections.products)
+            .document(productId)
+            .delete { error in
+                if let error {
+                    completion(.failure(error))
+                    return
+                }
+                completion(.success(()))
+            }
+    }
 }

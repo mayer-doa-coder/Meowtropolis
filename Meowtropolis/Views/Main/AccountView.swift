@@ -162,6 +162,15 @@ struct AccountView: View {
                         }
                         .buttonStyle(.plain)
 
+                        if appState.isAdmin {
+                            NavigationLink {
+                                AdminDashboardView()
+                            } label: {
+                                accountRow(icon: "shield.lefthalf.filled", text: text("Admin Dashboard", "অ্যাডমিন ড্যাশবোর্ড"), showsChevron: true)
+                            }
+                            .buttonStyle(.plain)
+                        }
+
                         if let languageUpdateMessage {
                             Text(languageUpdateMessage)
                                 .font(TextStyles.caption)
@@ -534,6 +543,9 @@ struct AccountView: View {
             "Viewed pet blogs": "পোষা প্রাণী ব্লগ দেখা হয়েছে",
             "Opened pet blog": "পোষা প্রাণী ব্লগ খোলা হয়েছে",
             "Opened service shortcut": "সেবা শর্টকাট খোলা হয়েছে",
+            "Opened services catalog": "সেবার তালিকা খোলা হয়েছে",
+            "Opened demo pet map": "ডেমো পেট ম্যাপ খোলা হয়েছে",
+            "Opened admin dashboard": "অ্যাডমিন ড্যাশবোর্ড খোলা হয়েছে",
             "Tapped retry on profile load": "প্রোফাইল লোডে আবার চেষ্টা চাপা হয়েছে",
             "Tapped logout from profile error": "প্রোফাইল ত্রুটি থেকে লগ আউট চাপা হয়েছে"
         ]
