@@ -41,6 +41,10 @@ struct LoginView: View {
                         .font(TextStyles.body)
                         .foregroundStyle(AppDesign.muted)
 
+                    AppPlaceholderImageView(assetName: AppImageLibrary.loginHeroAssetName, cornerRadius: 14, iconSize: 30)
+                        .frame(height: 150)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+
                     CardView {
                         AppInputField(title: text("Email", "ইমেইল"), text: $email, fieldIdentifier: "loginEmailField") {
                             fieldSupportText(

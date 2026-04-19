@@ -45,6 +45,10 @@ struct SignupView: View {
                         .font(TextStyles.body)
                         .foregroundStyle(AppDesign.muted)
 
+                    AppPlaceholderImageView(assetName: AppImageLibrary.signupHeroAssetName, cornerRadius: 14, iconSize: 30)
+                        .frame(height: 150)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+
                     CardView {
                         AppInputField(title: text("Name", "নাম"), text: $fullName) {
                             fieldSupportText(

@@ -32,33 +32,6 @@ struct DashboardView: View {
         .accessibilityIdentifier("dashboardTabView")
         .tint(AppDesign.primary)
         .navigationBarBackButtonHidden(true)
-        .onAppear {
-            UserHistoryService.shared.recordCurrentUser(
-                category: .system,
-                action: "Opened dashboard"
-            )
-        }
-        .onChange(of: selectedTab) { newTab in
-            let tabName: String
-            switch newTab {
-            case 0:
-                tabName = "Home"
-            case 1:
-                tabName = "Shop"
-            case 2:
-                tabName = "Vet"
-            case 3:
-                tabName = "Account"
-            default:
-                tabName = "Unknown"
-            }
-
-            UserHistoryService.shared.recordCurrentUser(
-                category: .system,
-                action: "Switched tab",
-                details: tabName
-            )
-        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(text("Logout", "লগ আউট")) {
@@ -185,6 +158,33 @@ private struct HomeTabView: View {
                     }
 
                     CardView {
+                        HStack {
+                            Text(text("Pet Care Blogs", "পোষা প্রাণী ব্লগ"))
+                                .font(TextStyles.subtitle)
+                                .foregroundStyle(AppDesign.text)
+                            Spacer()
+
+                            NavigationLink(destination: PetBlogListView()) {
+                                Text(text("See All", "সব দেখুন"))
+                                    .font(TextStyles.caption)
+                                    .foregroundStyle(.blue)
+                            }
+                        }
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: Spacing.small) {
+                                ForEach(PetBlogRepository.featured) { blog in
+                                    NavigationLink(destination: PetBlogDetailView(blog: blog)) {
+                                        PetBlogCardView(blog: blog)
+                                            .frame(width: 300)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                        }
+                    }
+
+                    CardView {
                         sectionTitle(text("Our Services", "আমাদের সেবাসমূহ"))
 
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -209,10 +209,6 @@ private struct HomeTabView: View {
         }
         .onAppear {
             print("[UI Redesign] Dashboard updated")
-            UserHistoryService.shared.recordCurrentUser(
-                category: .system,
-                action: "Opened home tab"
-            )
         }
         .onChange(of: checklistFoodDone) { isDone in
             UserHistoryService.shared.recordCurrentUser(

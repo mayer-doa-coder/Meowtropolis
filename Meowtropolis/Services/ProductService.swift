@@ -9,13 +9,16 @@ final class ProductService {
 
     private let firestoreService: FirestoreProductService
     private let localService: LocalProductService
+    private let seedService: ProductSeedService
 
     init(
         firestoreService: FirestoreProductService = FirestoreProductService(),
-        localService: LocalProductService = LocalProductService()
+        localService: LocalProductService = LocalProductService(),
+        seedService: ProductSeedService? = nil
     ) {
         self.firestoreService = firestoreService
         self.localService = localService
+        self.seedService = seedService ?? ProductSeedService(localService: localService)
     }
 
     /// Loads products from Firestore first.
@@ -24,45 +27,47 @@ final class ProductService {
         let firestoreService = self.firestoreService
         let localService = self.localService
 
-        firestoreService.fetchProducts { firestoreResult in
-            let logLoadedSource: (ProductDataSource, Int) -> Void = { source, count in
-                print("[ProductService] Source: \(source.rawValue). Products loaded: \(count)")
-                if source == .firestore {
-                    print("[ProductService] Loaded from Firestore")
-                } else {
-                    print("[ProductService] Loaded from Local JSON")
-                }
-            }
-
-            let logFallbackReason: (String) -> Void = { reason in
-                print("[ProductService] Falling back to local data. Reason: \(reason)")
-            }
-
-            let loadLocalProducts: () -> Void = {
-                localService.loadProducts { localResult in
-                    switch localResult {
-                    case let .success(products):
-                        logLoadedSource(.local, products.count)
-                        completion(.success(products))
-                    case let .failure(error):
-                        print("[ProductService] Local fallback failed: \(error.localizedDescription)")
-                        completion(.failure(error))
+        seedService.ensureSeededIfNeeded {
+            firestoreService.fetchProducts { firestoreResult in
+                let logLoadedSource: (ProductDataSource, Int) -> Void = { source, count in
+                    print("[ProductService] Source: \(source.rawValue). Products loaded: \(count)")
+                    if source == .firestore {
+                        print("[ProductService] Loaded from Firestore")
+                    } else {
+                        print("[ProductService] Loaded from Local JSON")
                     }
                 }
-            }
 
-            switch firestoreResult {
-            case let .success(products) where !products.isEmpty:
-                logLoadedSource(.firestore, products.count)
-                completion(.success(products))
+                let logFallbackReason: (String) -> Void = { reason in
+                    print("[ProductService] Falling back to local data. Reason: \(reason)")
+                }
 
-            case .success:
-                logFallbackReason("Firestore returned empty product list")
-                loadLocalProducts()
+                let loadLocalProducts: () -> Void = {
+                    localService.loadProducts { localResult in
+                        switch localResult {
+                        case let .success(products):
+                            logLoadedSource(.local, products.count)
+                            completion(.success(products))
+                        case let .failure(error):
+                            print("[ProductService] Local fallback failed: \(error.localizedDescription)")
+                            completion(.failure(error))
+                        }
+                    }
+                }
 
-            case let .failure(error):
-                logFallbackReason("Firestore request failed: \(error.localizedDescription)")
-                loadLocalProducts()
+                switch firestoreResult {
+                case let .success(products) where !products.isEmpty:
+                    logLoadedSource(.firestore, products.count)
+                    completion(.success(products))
+
+                case .success:
+                    logFallbackReason("Firestore returned empty product list")
+                    loadLocalProducts()
+
+                case let .failure(error):
+                    logFallbackReason("Firestore request failed: \(error.localizedDescription)")
+                    loadLocalProducts()
+                }
             }
         }
     }

@@ -89,21 +89,30 @@ Example document:
 Matches Swift model: Product
 
 Required fields:
+- id: String
 - name: String
 - price: Double
 - category: String
 - imageURL: String
+- stock: Int (optional, defaults to 50 if missing)
 
 Example document:
 
 ```json
 {
+  "id": "product_cat_001",
   "name": "Cat Food Premium",
   "price": 19.99,
   "category": "food",
-  "imageURL": "https://images.meowtropolis.app/products/cat-food-premium.png"
+  "imageURL": "img_felix_cat_food_tuna_in_jelly_70g_jpg",
+  "stock": 15
 }
 ```
+
+Auto-seeding behavior:
+- On first product fetch, the app checks whether the `products` collection is empty.
+- If empty, it uploads bundled items from `SampleData/products.json` to Firestore.
+- A local one-time seed flag prevents repeated uploads on subsequent app launches.
 
 ## Naming Rules (Mandatory)
 

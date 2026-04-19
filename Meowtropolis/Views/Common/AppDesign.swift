@@ -180,6 +180,8 @@ private struct ConditionalAccessibilityIdentifier: ViewModifier {
 enum AppImageLibrary {
     static let onboardingHeroAssetName = "img_cat3"
     static let authHeroAssetName = "img_pet2"
+    static let loginHeroAssetName = "img_cat2"
+    static let signupHeroAssetName = "img_dog1"
     static let homeBannerAssetName = "img_cat2"
     static let userAvatarAssetName = "img_pet2"
 
@@ -198,7 +200,7 @@ enum AppImageLibrary {
             return "img_cat1"
         }
 
-        return "img_pet2"
+        return fallbackAssetName(for: key)
     }
 
     static func groomingServiceImageAssetName(for serviceType: String) -> String {
@@ -247,7 +249,13 @@ enum AppImageLibrary {
             return "img_cat1"
         }
 
-        return "img_pet2"
+        return fallbackAssetName(for: key)
+    }
+
+    private static func fallbackAssetName(for key: String) -> String {
+        let fallbacks = ["img_cat1", "img_dog1", "img_pet2"]
+        let checksum = key.unicodeScalars.reduce(0) { $0 + Int($1.value) }
+        return fallbacks[checksum % fallbacks.count]
     }
 
     static func profileImage(fromBase64 base64: String?) -> UIImage? {

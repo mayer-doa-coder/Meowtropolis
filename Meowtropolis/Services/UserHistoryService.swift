@@ -55,6 +55,19 @@ final class UserHistoryService {
     private let activeUserDefaultsKey = "activeUserIdForHistory"
     private let storageKeyPrefix = "userHistoryEntries."
     private let maxEntriesPerUser = 200
+    private let noisyActions: Set<String> = [
+        "Switched tab",
+        "Opened dashboard",
+        "Opened home tab",
+        "Opened account screen",
+        "Opened map screen",
+        "Opened marketplace",
+        "Opened cart",
+        "Opened checkout",
+        "Opened checkout screen",
+        "Opened location settings",
+        "Changed history filter"
+    ]
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -89,6 +102,10 @@ final class UserHistoryService {
             return
         }
 
+        guard !shouldSuppress(action: cleanedAction) else {
+            return
+        }
+
         var entries = entriesForUser(userId)
         let entry = UserHistoryEntry(
             id: UUID().uuidString,
@@ -112,7 +129,7 @@ final class UserHistoryService {
         guard let userId, !userId.isEmpty else {
             return []
         }
-        return entriesForUser(userId)
+        return entriesForUser(userId).filter { !shouldSuppress(action: $0.action) }
     }
 
     func clear(for userId: String?) {
@@ -148,5 +165,23 @@ final class UserHistoryService {
 
     private func storageKey(for userId: String) -> String {
         storageKeyPrefix + userId
+    }
+
+    private func shouldSuppress(action: String) -> Bool {
+        if noisyActions.contains(action) {
+            return true
+        }
+
+        // Hide view-level noise while preserving meaningful domain actions.
+        if action.hasPrefix("Opened "),
+           !action.contains("product") && !action.contains("cart") && !action.contains("checkout") {
+            return true
+        }
+
+        if action.hasPrefix("Tapped retry") {
+            return true
+        }
+
+        return false
     }
 }

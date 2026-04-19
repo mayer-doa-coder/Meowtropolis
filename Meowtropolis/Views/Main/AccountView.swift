@@ -644,7 +644,7 @@ private struct PersonalInformationView: View {
         Task {
             guard let rawData = try? await item.loadTransferable(type: Data.self),
                   let image = UIImage(data: rawData),
-                  let compressedData = image.jpegData(compressionQuality: 0.72) else {
+                  let compressedData = optimizedProfileImageData(from: image) else {
                 await MainActor.run {
                     errorMessage = text("Could not load selected image.", "নির্বাচিত ছবি লোড করা যায়নি।")
                 }
@@ -680,12 +680,50 @@ private struct PersonalInformationView: View {
                 currentPasswordForEmailChange = ""
                 successMessage = text("Profile updated successfully.", "প্রোফাইল সফলভাবে আপডেট হয়েছে।")
             case let .failure(error):
-                if (error as NSError).domain == "AppState" {
+                let nsError = error as NSError
+                if nsError.domain == "AppState" {
                     errorMessage = error.localizedDescription
-                } else {
+                } else if nsError.domain.contains("FIRAuth") {
                     errorMessage = appState.userFriendlyAuthError(error)
+                } else {
+                    if nsError.localizedDescription.lowercased().contains("document")
+                        && nsError.localizedDescription.lowercased().contains("large") {
+                        errorMessage = text("Profile photo is too large. Please choose a smaller image.", "প্রোফাইল ছবি অনেক বড়। দয়া করে ছোট ছবি বেছে নিন।")
+                    } else {
+                        errorMessage = appState.userFriendlyProfileError(error)
+                    }
                 }
             }
+        }
+    }
+
+    private func optimizedProfileImageData(from image: UIImage) -> Data? {
+        let resized = resizedImage(image, maxDimension: 768)
+        let targetBytes = 280 * 1024
+        var quality: CGFloat = 0.72
+
+        while quality >= 0.42 {
+            if let data = resized.jpegData(compressionQuality: quality), data.count <= targetBytes {
+                return data
+            }
+            quality -= 0.1
+        }
+
+        return resized.jpegData(compressionQuality: 0.38)
+    }
+
+    private func resizedImage(_ image: UIImage, maxDimension: CGFloat) -> UIImage {
+        let maxSide = max(image.size.width, image.size.height)
+        guard maxSide > maxDimension else {
+            return image
+        }
+
+        let scale = maxDimension / maxSide
+        let newSize = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: newSize))
         }
     }
 }
