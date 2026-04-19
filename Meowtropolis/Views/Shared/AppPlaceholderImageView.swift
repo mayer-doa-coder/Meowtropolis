@@ -11,16 +11,18 @@ struct AppPlaceholderImageView: View {
             RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(Color.gray.opacity(0.18))
 
-            if let assetName, !assetName.isEmpty {
-                Image(assetName)
+            if let resolvedAssetName = AppImageLibrary.resolveExistingAssetName(from: assetName) {
+                Image(resolvedAssetName)
                     .resizable()
                     .scaledToFit()
                     .clipped()
                     .padding(4)
             } else {
-                Image(systemName: "photo.fill")
-                    .font(.system(size: iconSize, weight: .semibold))
-                    .foregroundStyle(tint)
+                Image(AppImageLibrary.userAvatarAssetName)
+                    .resizable()
+                    .scaledToFit()
+                    .clipped()
+                    .padding(4)
             }
         }
     }

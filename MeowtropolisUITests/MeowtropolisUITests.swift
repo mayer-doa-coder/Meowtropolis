@@ -98,6 +98,23 @@ final class MeowtropolisUITests: XCTestCase {
     }
 
     @MainActor
+    func testMarketplaceProductTapNavigatesToDetail() throws {
+        let app = launchLoggedInApp()
+
+        let shopTab = app.tabBars.buttons["Shop"]
+        XCTAssertTrue(shopTab.waitForExistence(timeout: 5), "Shop tab should exist after login.")
+        shopTab.tap()
+
+        let productRowPredicate = NSPredicate(format: "identifier BEGINSWITH %@", "marketplaceProductRow_")
+        let firstProduct = app.buttons.matching(productRowPredicate).firstMatch
+        XCTAssertTrue(firstProduct.waitForExistence(timeout: 8), "At least one product row should exist in marketplace.")
+        firstProduct.tap()
+
+        let addToCartButton = app.buttons["productDetailAddToCartButton"]
+        XCTAssertTrue(addToCartButton.waitForExistence(timeout: 5), "Product detail should open after tapping marketplace product row.")
+    }
+
+    @MainActor
     func testOpenMapTabShowsMapScreen() throws {
         let app = launchLoggedInApp()
 

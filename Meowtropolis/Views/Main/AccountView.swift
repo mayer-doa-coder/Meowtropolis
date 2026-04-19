@@ -475,10 +475,20 @@ struct AccountView: View {
             "Disabled reminders": "রিমাইন্ডার বন্ধ করা হয়েছে",
             "Enabled reminders": "রিমাইন্ডার চালু করা হয়েছে",
             "Reminder permission denied": "রিমাইন্ডার অনুমতি প্রত্যাখ্যাত হয়েছে",
+            "Updated personal information": "ব্যক্তিগত তথ্য আপডেট করা হয়েছে",
+            "Changed password": "পাসওয়ার্ড পরিবর্তন করা হয়েছে",
+            "Deleted account": "অ্যাকাউন্ট মুছে ফেলা হয়েছে",
+            "Logged in": "লগ ইন করা হয়েছে",
+            "Created account": "অ্যাকাউন্ট তৈরি করা হয়েছে",
+            "Logged out": "লগ আউট করা হয়েছে",
+            "Completed onboarding": "অনবোর্ডিং সম্পন্ন করা হয়েছে",
             "Opened map screen": "ম্যাপ স্ক্রিন খোলা হয়েছে",
             "Tapped retry on map error": "ম্যাপ ত্রুটি থেকে আবার চেষ্টা করা হয়েছে",
             "Tapped retry on map empty state": "খালি ম্যাপ অবস্থা থেকে আবার চেষ্টা করা হয়েছে",
             "Selected map category": "ম্যাপ ক্যাটাগরি নির্বাচন করা হয়েছে",
+            "Requested location permission": "লোকেশন অনুমতি চাওয়া হয়েছে",
+            "Searched nearby places": "কাছাকাছি স্থান খোঁজা হয়েছে",
+            "Viewed place details": "স্থানের বিস্তারিত দেখা হয়েছে",
             "Opened location settings": "লোকেশন সেটিংস খোলা হয়েছে",
             "Opened marketplace": "মার্কেটপ্লেস খোলা হয়েছে",
             "Opened product from list": "পণ্যের তালিকা থেকে পৃষ্ঠা খোলা হয়েছে",
@@ -486,10 +496,17 @@ struct AccountView: View {
             "Opened cart": "কার্ট খোলা হয়েছে",
             "Opened checkout": "চেকআউট খোলা হয়েছে",
             "Opened checkout screen": "চেকআউট স্ক্রিন খোলা হয়েছে",
+            "Returned to store from checkout": "চেকআউট থেকে স্টোরে ফিরে যাওয়া হয়েছে",
             "Placed order": "অর্ডার সম্পন্ন হয়েছে",
             "Order placement failed": "অর্ডার সম্পন্ন করা যায়নি",
             "Closed order confirmation": "অর্ডার নিশ্চিতকরণ বন্ধ করা হয়েছে",
             "Tapped add to cart": "কার্টে যোগ করুন চাপা হয়েছে",
+            "Added item to cart": "পণ্য কার্টে যোগ করা হয়েছে",
+            "Removed item from cart": "পণ্য কার্ট থেকে সরানো হয়েছে",
+            "Changed cart quantity": "কার্টের পরিমাণ পরিবর্তন করা হয়েছে",
+            "Updated cart quantity": "কার্টের পরিমাণ আপডেট করা হয়েছে",
+            "Cleared cart": "কার্ট খালি করা হয়েছে",
+            "Attempted add on out-of-stock product": "স্টক শেষ পণ্য কার্টে যোগ করার চেষ্টা করা হয়েছে",
             "Viewed product details": "পণ্যের বিস্তারিত দেখা হয়েছে",
             "Decreased product quantity": "পণ্যের পরিমাণ কমানো হয়েছে",
             "Increased product quantity": "পণ্যের পরিমাণ বাড়ানো হয়েছে",
@@ -497,7 +514,28 @@ struct AccountView: View {
             "Changed marketplace animal filter": "মার্কেটপ্লেস প্রাণী ফিল্টার পরিবর্তন করা হয়েছে",
             "Changed stock filter": "স্টক ফিল্টার পরিবর্তন করা হয়েছে",
             "Submitted store search": "স্টোরে খোঁজ জমা দেওয়া হয়েছে",
-            "Tapped retry in marketplace": "মার্কেটপ্লেসে আবার চেষ্টা চাপা হয়েছে"
+            "Tapped retry in marketplace": "মার্কেটপ্লেসে আবার চেষ্টা চাপা হয়েছে",
+            "Opened grooming screen": "গ্রুমিং স্ক্রিন খোলা হয়েছে",
+            "Tapped retry in grooming": "গ্রুমিংয়ে আবার চেষ্টা চাপা হয়েছে",
+            "Changed grooming filter": "গ্রুমিং ফিল্টার পরিবর্তন করা হয়েছে",
+            "Created grooming booking": "গ্রুমিং বুকিং তৈরি করা হয়েছে",
+            "Updated booking status": "বুকিং স্ট্যাটাস আপডেট করা হয়েছে",
+            "Opened vet screen": "ভেট স্ক্রিন খোলা হয়েছে",
+            "Tapped retry in vet": "ভেটে আবার চেষ্টা চাপা হয়েছে",
+            "Requested vet consultation": "ভেট পরামর্শ চাওয়া হয়েছে",
+            "Opened pet profile": "পেট প্রোফাইল খোলা হয়েছে",
+            "Tapped retry in pet profile": "পেট প্রোফাইলে আবার চেষ্টা চাপা হয়েছে",
+            "Opened add pet form": "পোষা প্রাণী যোগ ফর্ম খোলা হয়েছে",
+            "Opened edit pet form": "পোষা প্রাণী সম্পাদনা ফর্ম খোলা হয়েছে",
+            "Opened delete prompt": "মুছে ফেলার সতর্কবার্তা খোলা হয়েছে",
+            "Added pet": "পোষা প্রাণী যোগ করা হয়েছে",
+            "Updated pet": "পোষা প্রাণী আপডেট করা হয়েছে",
+            "Deleted pet": "পোষা প্রাণী মুছে ফেলা হয়েছে",
+            "Viewed pet blogs": "পোষা প্রাণী ব্লগ দেখা হয়েছে",
+            "Opened pet blog": "পোষা প্রাণী ব্লগ খোলা হয়েছে",
+            "Opened service shortcut": "সেবা শর্টকাট খোলা হয়েছে",
+            "Tapped retry on profile load": "প্রোফাইল লোডে আবার চেষ্টা চাপা হয়েছে",
+            "Tapped logout from profile error": "প্রোফাইল ত্রুটি থেকে লগ আউট চাপা হয়েছে"
         ]
 
         return localizedActions[action] ?? action
@@ -514,6 +552,23 @@ struct AccountView: View {
         }
         if lowered == "disabled" {
             return "বন্ধ"
+        }
+
+        let localizedDetails: [String: String] = [
+            "home": "হোম",
+            "shop": "শপ",
+            "vet": "ভেট",
+            "account": "অ্যাকাউন্ট",
+            "unknown": "অজানা",
+            "meal completed": "খাবার সম্পন্ন",
+            "water refilled": "পানির বাটি ভরা হয়েছে",
+            "playtime done": "খেলার সময় সম্পন্ন",
+            "enabled": "চালু",
+            "disabled": "বন্ধ"
+        ]
+
+        if let mapped = localizedDetails[lowered] {
+            return mapped
         }
 
         return details
