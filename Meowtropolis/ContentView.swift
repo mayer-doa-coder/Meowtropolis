@@ -1,18 +1,3 @@
-//
-//  ContentView.swift
-//  Meowtropolis
-//
-//  Created by MD.Ashraful Islam  on 31/3/26.
-//
-
-import SwiftUI
-
-struct ContentView: View {
-    var body: some View {
-        RootView()
-    }
-}
-
-#Preview {
-    ContentView()
-}
+// This file is intentionally empty.
+// MeowtropolisApp now roots directly to RootView.
+// Remove this file from the Xcode target (Delete → Move to Trash) when convenient.

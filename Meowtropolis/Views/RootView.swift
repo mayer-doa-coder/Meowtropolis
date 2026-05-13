@@ -24,7 +24,7 @@ struct RootView: View {
                 profileLoadingView
             } else if appState.isLoggedIn, let profileError = appState.profileErrorMessage {
                 profileErrorView(profileError)
-            } else if appState.isLoggedIn && appState.isAdmin {
+            } else if appState.isLoggedIn && appState.isAdmin && appState.prefersAdminHome {
                 NavigationStack {
                     AdminDashboardView()
                 }

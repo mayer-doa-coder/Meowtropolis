@@ -9,22 +9,17 @@ final class AppState: ObservableObject {
     @Published var currentUser: User?
     @Published var isProfileLoading: Bool = false
     @Published var profileErrorMessage: String?
+    @Published var prefersAdminHome: Bool = false
 
     var isAdmin: Bool {
         guard let user = currentUser else {
             return false
         }
-
-        if user.role?.lowercased() == "admin" {
-            return true
+        guard prefersAdminHome else {
+            return false
         }
-
         let normalizedEmail = user.email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        if adminEmails.contains(normalizedEmail) {
-            return true
-        }
-
-        return normalizedEmail.hasPrefix("admin@")
+        return adminEmails.contains(normalizedEmail)
     }
 
     private let authService: any AuthService
@@ -79,6 +74,7 @@ final class AppState: ObservableObject {
                 switch result {
                 case .success:
                     print("[Auth] login success")
+                    self?.prefersAdminHome = self?.isDemoAdminCredential(email: cleanedEmail, password: password) ?? false
                     self?.handleAuthStateChanged(userId: self?.authService.currentUserId)
                     if let userId = self?.authService.currentUserId {
                         self?.userHistoryService.record(
@@ -123,12 +119,13 @@ final class AppState: ObservableObject {
 
             case let .success(uid):
                 print("[Auth] signup success, uid: \(uid)")
+                self.prefersAdminHome = self.isDemoAdminCredential(email: email, password: password)
                 let user = User(
                     id: uid,
                     name: fullName,
                     email: email,
                     preferredLanguageCode: UserDefaults.standard.string(forKey: appLanguageDefaultsKey),
-                    role: email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased().hasPrefix("admin@") ? "admin" : "user"
+                    role: self.isDemoAdminCredential(email: email, password: password) ? "admin" : "user"
                 )
 
                 userService.createUserProfile(user: user) { profileResult in
@@ -173,6 +170,7 @@ final class AppState: ObservableObject {
                     self?.currentUser = nil
                     self?.isProfileLoading = false
                     self?.profileErrorMessage = nil
+                          self?.prefersAdminHome = false
                     completion?(.success(()))
                 case let .failure(error):
                     print("[Auth] logout error: \(error.localizedDescription)")
@@ -368,6 +366,9 @@ final class AppState: ObservableObject {
                     self.profileErrorMessage = nil
                     completion?(.success(user))
                 case let .failure(error):
+                    if self.autoProvisionAdminProfileIfMissing(userId: userId, error: error, completion: completion) {
+                        return
+                    }
                     self.currentUser = nil
                     self.profileErrorMessage = self.userFriendlyProfileError(error)
                     completion?(.failure(error))
@@ -456,6 +457,7 @@ final class AppState: ObservableObject {
                         DispatchQueue.main.async {
                             switch signInResult {
                             case .success:
+                                self.prefersAdminHome = true
                                 self.handleAuthStateChanged(userId: self.authService.currentUserId)
                                 completion(.success(()))
                             case let .failure(signInError):
@@ -483,6 +485,7 @@ final class AppState: ObservableObject {
                     DispatchQueue.main.async {
                         switch profileResult {
                         case .success:
+                            self.prefersAdminHome = true
                             self.handleAuthStateChanged(userId: uid)
                             self.userHistoryService.record(
                                 userId: uid,
@@ -504,6 +507,73 @@ final class AppState: ObservableObject {
         return AppLanguage.from(code: code).text(english: english, bangla: bangla)
     }
 
+    private func autoProvisionAdminProfileIfMissing(
+        userId: String,
+        error: Error,
+        completion: ((Result<User, Error>) -> Void)?
+    ) -> Bool {
+        let nsError = error as NSError
+        guard nsError.code == 404,
+              let authUser = Auth.auth().currentUser,
+              authUser.uid == userId else {
+            return false
+        }
+
+        let normalizedEmail = (authUser.email ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        guard !normalizedEmail.isEmpty else {
+            return false
+        }
+
+        let isAdminEmail = adminEmails.contains(normalizedEmail) || normalizedEmail.hasPrefix("admin@")
+        let isAdminEmail = adminEmails.contains(normalizedEmail)
+        guard isAdminEmail else {
+            return false
+        }
+
+        let fallbackName = authUser.displayName?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let resolvedName: String
+        if let fallbackName, !fallbackName.isEmpty {
+            resolvedName = fallbackName
+        } else {
+            resolvedName = "Admin User"
+        }
+        let user = User(
+            id: userId,
+            name: resolvedName,
+            email: normalizedEmail,
+            preferredLanguageCode: UserDefaults.standard.string(forKey: appLanguageDefaultsKey),
+            role: "admin"
+        )
+
+        userService.createUserProfile(user: user) { [weak self] result in
+            DispatchQueue.main.async {
+                guard let self else {
+                    return
+                }
+
+                switch result {
+                case .success:
+                    self.currentUser = user
+                    self.profileErrorMessage = nil
+                    self.userHistoryService.record(
+                        userId: userId,
+                        category: .auth,
+                        action: "Auto-provisioned missing admin profile"
+                    )
+                    completion?(.success(user))
+                case let .failure(provisionError):
+                    self.currentUser = nil
+                    self.profileErrorMessage = self.userFriendlyProfileError(provisionError)
+                    completion?(.failure(provisionError))
+                }
+            }
+        }
+
+        return true
+    }
+
     private func handleAuthStateChanged(userId: String?) {
         print("[Auth] auth state changed. userId present: \(userId != nil)")
         isLoggedIn = (userId != nil)
@@ -514,6 +584,7 @@ final class AppState: ObservableObject {
             currentUser = nil
             isProfileLoading = false
             profileErrorMessage = nil
+            prefersAdminHome = false
             return
         }
 

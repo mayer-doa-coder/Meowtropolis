@@ -2,21 +2,11 @@ import SwiftUI
 import FirebaseCore
 import UIKit
 
-// GUARDRAIL:
-// Do not modify fonts, colors, navigation structure, or Firebase setup in this phase.
-// Required for MVP stability and demo consistency.
-// If a requested change risks these areas, stop and log it in docs/issue_inventory.md.
-
 final class AppDelegate: NSObject, UIApplicationDelegate {
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
-        print("[AppStartup] didFinishLaunching")
-        if FirebaseApp.app() == nil {
-            FirebaseApp.configure()
-            print("[AppStartup] Firebase configured from AppDelegate")
-        }
         return true
     }
 }
@@ -42,12 +32,10 @@ struct MeowtropolisApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
                 .environmentObject(appState)
                 .environmentObject(cartState)
                 .onAppear {
-                    // Check Firebase session when app starts.
-                    print("[AppStartup] Root content appeared, checking session")
                     appState.checkSession()
                 }
         }

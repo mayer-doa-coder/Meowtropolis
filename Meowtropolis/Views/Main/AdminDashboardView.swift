@@ -21,6 +21,7 @@ private enum AdminDashboardSection: String, CaseIterable, Identifiable {
 
 struct AdminDashboardView: View {
     @EnvironmentObject private var appState: AppState
+    @Environment(\.dismiss) private var dismiss
     @AppStorage(AppLanguage.storageKey) private var appLanguageCode: String = AppLanguage.englishUS.rawValue
 
     @State private var selectedSection: AdminDashboardSection = .products
@@ -84,6 +85,26 @@ struct AdminDashboardView: View {
         .navigationTitle(text("Admin Dashboard", "অ্যাডমিন ড্যাশবোর্ড"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    goBack()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.left")
+                        Text(text("Back", "ফিরুন"))
+                    }
+                }
+                .accessibilityIdentifier("adminBackButton")
+            }
+
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(text("Logout", "লগ আউট")) {
+                    appState.logout()
+                }
+                .foregroundStyle(.red)
+                .accessibilityIdentifier("adminLogoutButton")
+            }
+
             ToolbarItem(placement: .topBarTrailing) {
                 if selectedSection == .products {
                     Button {
@@ -392,6 +413,15 @@ struct AdminDashboardView: View {
 
     private func text(_ english: String, _ bangla: String) -> String {
         currentLanguage.text(english: english, bangla: bangla)
+    }
+
+    private func goBack() {
+        if appState.prefersAdminHome {
+            appState.prefersAdminHome = false
+            return
+        }
+
+        dismiss()
     }
 }
 
