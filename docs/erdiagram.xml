@@ -1,0 +1,101 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Checkout Activity Diagram">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Start -->
+        <mxCell id="start" value="START" style="ellipse;whiteSpace=wrap;html=1;fillColor=#000000;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="300" y="20" width="80" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Actions -->
+        <mxCell id="a1" value="Browse Products" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="80" width="180" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="a2" value="Add Product to Cart" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="150" width="180" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Decision: Stock -->
+        <mxCell id="d1" value="In Stock?" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="260" y="220" width="160" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="out1" value="Show Out of Stock → END" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="450" y="230" width="200" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="a3" value="Review Cart (update/remove items)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="330" width="200" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="a4" value="Proceed to Checkout" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="410" width="180" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="a5" value="Enter Delivery Address" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="480" width="200" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="a6" value="Review Order Summary" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="550" width="200" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="a7" value="Confirm & Place Order" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="620" width="200" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="a8" value="Firestore Transaction Start" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="690" width="220" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Decision: Final Stock -->
+        <mxCell id="d2" value="Sufficient Stock?" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="260" y="760" width="180" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="fail" value="Rollback Transaction + Show Error" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="770" width="240" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="success" value="Decrement Stock + Create Order" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="860" width="240" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="a9" value="Show Order Confirmation" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="940" width="220" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- End -->
+        <mxCell id="end" value="END" style="ellipse;whiteSpace=wrap;html=1;fillColor=#000000;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="300" y="1010" width="80" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Connections -->
+        <mxCell edge="1" parent="1" source="start" target="a1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell edge="1" parent="1" source="a1" target="a2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell edge="1" parent="1" source="a2" target="d1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell value="YES" edge="1" parent="1" source="d1" target="a3"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell value="NO" edge="1" parent="1" source="d1" target="out1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell edge="1" parent="1" source="a3" target="a4"/>
+        <mxCell edge="1" parent="1" source="a4" target="a5"/>
+        <mxCell edge="1" parent="1" source="a5" target="a6"/>
+        <mxCell edge="1" parent="1" source="a6" target="a7"/>
+        <mxCell edge="1" parent="1" source="a7" target="a8"/>
+        <mxCell edge="1" parent="1" source="a8" target="d2"/>
+
+        <mxCell value="YES" edge="1" parent="1" source="d2" target="success"/>
+        <mxCell value="NO" edge="1" parent="1" source="d2" target="fail"/>
+
+        <mxCell edge="1" parent="1" source="success" target="a9"/>
+        <mxCell edge="1" parent="1" source="a9" target="end"/>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

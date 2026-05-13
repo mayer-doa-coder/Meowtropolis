@@ -1,0 +1,12 @@
+﻿{
+    "images":  [
+                   {
+                       "filename":  "img_felix_cat_food_sardine_in_jelly_70g_jpg.restored.png",
+                       "idiom":  "universal"
+                   }
+               ],
+    "info":  {
+                 "author":  "xcode",
+                 "version":  1
+             }
+}

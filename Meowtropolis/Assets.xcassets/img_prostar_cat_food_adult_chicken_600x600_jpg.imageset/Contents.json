@@ -1,0 +1,12 @@
+﻿{
+    "images":  [
+                   {
+                       "filename":  "img_prostar_cat_food_adult_chicken_600x600_jpg.restored.png",
+                       "idiom":  "universal"
+                   }
+               ],
+    "info":  {
+                 "author":  "xcode",
+                 "version":  1
+             }
+}

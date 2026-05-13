@@ -1,0 +1,594 @@
+import Foundation
+import Combine
+import FirebaseAuth
+
+/// Shared app state for simple login-based routing.
+final class AppState: ObservableObject {
+    @Published var isLoggedIn: Bool = false
+    @Published var currentUserId: String?
+    @Published var currentUser: User?
+    @Published var isProfileLoading: Bool = false
+    @Published var profileErrorMessage: String?
+    @Published var prefersAdminHome: Bool = false
+
+    var isAdmin: Bool {
+        guard let user = currentUser else {
+            return false
+        }
+        guard prefersAdminHome else {
+            return false
+        }
+        let normalizedEmail = user.email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return adminEmails.contains(normalizedEmail)
+    }
+
+    private let authService: any AuthService
+    private let userService: UserService
+    private let userHistoryService: UserHistoryService
+    private var authListenerHandle: NSObjectProtocol?
+    private let demoAdminEmail = "admin@meowtropolis.com"
+    private let demoAdminPassword = "admin1234"
+    private let adminEmails: Set<String> = [
+        "admin@meowtropolis.com"
+    ]
+
+    private let appLanguageDefaultsKey = "appLanguageCode"
+
+    init(
+        authService: any AuthService = FirebaseAuthService(),
+        userService: UserService = UserService(),
+        userHistoryService: UserHistoryService = .shared
+    ) {
+        self.authService = authService
+        self.userService = userService
+        self.userHistoryService = userHistoryService
+
+        // Set initial state immediately when app starts.
+        checkSession()
+
+        // Keep state synced with auth changes.
+        authListenerHandle = authService.addAuthStateDidChangeListener { [weak self] userId in
+            DispatchQueue.main.async {
+                self?.handleAuthStateChanged(userId: userId)
+            }
+        }
+    }
+
+    deinit {
+        if let authListenerHandle {
+            authService.removeAuthStateDidChangeListener(authListenerHandle)
+        }
+    }
+
+    func checkSession() {
+        print("[Auth] checkSession invoked")
+        handleAuthStateChanged(userId: authService.currentUserId)
+    }
+
+    func login(email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        let cleanedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        print("[Auth] login attempt for: \(cleanedEmail)")
+
+        authService.signIn(email: cleanedEmail, password: password) { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    print("[Auth] login success")
+                    self?.prefersAdminHome = self?.isDemoAdminCredential(email: cleanedEmail, password: password) ?? false
+                    self?.handleAuthStateChanged(userId: self?.authService.currentUserId)
+                    if let userId = self?.authService.currentUserId {
+                        self?.userHistoryService.record(
+                            userId: userId,
+                            category: .auth,
+                            action: "Logged in"
+                        )
+                    }
+                    completion(.success(()))
+                case let .failure(error):
+                    if let self,
+                       self.shouldAutoProvisionDemoAdmin(email: cleanedEmail, password: password, error: error) {
+                        print("[Auth] Demo admin not found. Auto-provisioning account.")
+                        self.provisionDemoAdminAndLogin(email: cleanedEmail, password: password, completion: completion)
+                        return
+                    }
+
+                    print("[Auth] login error: \(error.localizedDescription)")
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
+
+    func loginAsDefaultAdmin(completion: @escaping (Result<Void, Error>) -> Void) {
+        login(email: demoAdminEmail, password: demoAdminPassword, completion: completion)
+    }
+
+    func signup(fullName: String, email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        print("[Auth] signup attempt for: \(email)")
+        authService.signUp(email: email, password: password) { [weak self] result in
+            guard let self else {
+                return
+            }
+
+            switch result {
+            case let .failure(error):
+                print("[Auth] signup error: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
+
+            case let .success(uid):
+                print("[Auth] signup success, uid: \(uid)")
+                self.prefersAdminHome = self.isDemoAdminCredential(email: email, password: password)
+                let user = User(
+                    id: uid,
+                    name: fullName,
+                    email: email,
+                    preferredLanguageCode: UserDefaults.standard.string(forKey: appLanguageDefaultsKey),
+                    role: self.isDemoAdminCredential(email: email, password: password) ? "admin" : "user"
+                )
+
+                userService.createUserProfile(user: user) { profileResult in
+                    DispatchQueue.main.async {
+                        switch profileResult {
+                        case .success:
+                            print("[Auth] profile created for uid: \(uid)")
+                            self.handleAuthStateChanged(userId: uid)
+                            self.userHistoryService.record(
+                                userId: uid,
+                                category: .auth,
+                                action: "Created account"
+                            )
+                            completion(.success(()))
+                        case let .failure(error):
+                            print("[Auth] profile creation error: \(error.localizedDescription)")
+                            completion(.failure(error))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    func logout(completion: ((Result<Void, Error>) -> Void)? = nil) {
+        print("[Auth] logout requested")
+        let userIdBeforeLogout = currentUserId
+        authService.signOut { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    print("[Auth] logout success")
+                    if let userIdBeforeLogout {
+                        self?.userHistoryService.record(
+                            userId: userIdBeforeLogout,
+                            category: .auth,
+                            action: "Logged out"
+                        )
+                    }
+                    self?.isLoggedIn = false
+                    self?.currentUserId = nil
+                    self?.currentUser = nil
+                    self?.isProfileLoading = false
+                    self?.profileErrorMessage = nil
+                          self?.prefersAdminHome = false
+                    completion?(.success(()))
+                case let .failure(error):
+                    print("[Auth] logout error: \(error.localizedDescription)")
+                    completion?(.failure(error))
+                }
+            }
+        }
+    }
+
+    func resetPassword(email: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        authService.resetPassword(email: email) { result in
+            DispatchQueue.main.async {
+                completion(result)
+            }
+        }
+    }
+
+    func updatePersonalInformation(
+        fullName: String,
+        email: String,
+        preferredLanguageCode: String,
+        profileImageBase64: String?,
+        currentPasswordForEmailChange: String?,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        guard let currentUserId,
+              let currentUser else {
+                        completion(.failure(NSError(domain: "AppState", code: 401, userInfo: [NSLocalizedDescriptionKey: localizedText(english: "You must be logged in to update profile.", bangla: "প্রোফাইল আপডেট করতে লগ ইন করতে হবে।")])))
+            return
+        }
+
+        let cleanedName = fullName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !cleanedName.isEmpty else {
+            completion(.failure(NSError(domain: "AppState", code: 422, userInfo: [NSLocalizedDescriptionKey: localizedText(english: "Name is required.", bangla: "নাম প্রয়োজন।")])))
+            return
+        }
+
+        guard isValidEmail(cleanedEmail) else {
+            completion(.failure(NSError(domain: "AppState", code: 422, userInfo: [NSLocalizedDescriptionKey: localizedText(english: "Please enter a valid email address.", bangla: "দয়া করে একটি সঠিক ইমেইল ঠিকানা দিন।")])))
+            return
+        }
+
+        let updatedUser = User(
+            id: currentUserId,
+            name: cleanedName,
+            email: cleanedEmail,
+            preferredLanguageCode: preferredLanguageCode,
+            profileImageBase64: profileImageBase64,
+            role: currentUser.role
+        )
+
+        let saveProfile: () -> Void = { [weak self] in
+            guard let self else {
+                return
+            }
+
+            self.userService.updateUserProfile(user: updatedUser) { result in
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success:
+                        self.userService.fetchCurrentUser(userId: currentUserId) { fetchResult in
+                            DispatchQueue.main.async {
+                                switch fetchResult {
+                                case let .success(freshUser):
+                                    self.currentUser = freshUser
+                                    UserDefaults.standard.set(preferredLanguageCode, forKey: self.appLanguageDefaultsKey)
+                                    self.userHistoryService.record(
+                                        userId: currentUserId,
+                                        category: .account,
+                                        action: "Updated personal information"
+                                    )
+                                    completion(.success(()))
+                                case let .failure(error):
+                                    completion(.failure(error))
+                                }
+                            }
+                        }
+                    case let .failure(error):
+                        completion(.failure(error))
+                    }
+                }
+            }
+        }
+
+        if cleanedEmail.caseInsensitiveCompare(currentUser.email) != .orderedSame {
+            guard let currentPasswordForEmailChange,
+                  !currentPasswordForEmailChange.isEmpty else {
+                                completion(.failure(NSError(domain: "AppState", code: 422, userInfo: [NSLocalizedDescriptionKey: localizedText(english: "Current password is required to change email.", bangla: "ইমেইল পরিবর্তন করতে বর্তমান পাসওয়ার্ড প্রয়োজন।")])))
+                return
+            }
+
+            authService.updateEmail(currentPassword: currentPasswordForEmailChange, newEmail: cleanedEmail) { result in
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success:
+                        saveProfile()
+                    case let .failure(error):
+                        completion(.failure(error))
+                    }
+                }
+            }
+        } else {
+            saveProfile()
+        }
+    }
+
+    func changePassword(currentPassword: String, newPassword: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        authService.updatePassword(currentPassword: currentPassword, newPassword: newPassword) { result in
+            DispatchQueue.main.async {
+                if case .success = result, let userId = self.currentUserId {
+                    self.userHistoryService.record(
+                        userId: userId,
+                        category: .account,
+                        action: "Changed password"
+                    )
+                }
+                completion(result)
+            }
+        }
+    }
+
+    func deleteAccount(currentPassword: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let currentUserId else {
+            completion(.failure(NSError(domain: "AppState", code: 401, userInfo: [NSLocalizedDescriptionKey: localizedText(english: "No logged-in user found.", bangla: "কোনো লগ ইন করা ব্যবহারকারী পাওয়া যায়নি।")])))
+            return
+        }
+
+        userService.deleteUserProfile(userId: currentUserId) { [weak self] profileDeletionResult in
+            guard let self else {
+                return
+            }
+
+            switch profileDeletionResult {
+            case let .failure(error):
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
+
+            case .success:
+                self.authService.deleteCurrentUser(currentPassword: currentPassword) { authDeletionResult in
+                    DispatchQueue.main.async {
+                        switch authDeletionResult {
+                        case .success:
+                            self.userHistoryService.record(
+                                userId: currentUserId,
+                                category: .account,
+                                action: "Deleted account"
+                            )
+                            self.isLoggedIn = false
+                            self.currentUserId = nil
+                            self.currentUser = nil
+                            self.isProfileLoading = false
+                            self.profileErrorMessage = nil
+                            completion(.success(()))
+                        case let .failure(error):
+                            completion(.failure(error))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// Loads profile after login to make user data available app-wide.
+    func loadCurrentUserProfile(completion: ((Result<User, Error>) -> Void)? = nil) {
+        guard let userId = currentUserId else {
+            currentUser = nil
+            isProfileLoading = false
+            profileErrorMessage = nil
+            completion?(.failure(NSError(domain: "AppState", code: 401, userInfo: [NSLocalizedDescriptionKey: localizedText(english: "No logged-in user.", bangla: "কোনো লগ ইন করা ব্যবহারকারী নেই।")])))
+            return
+        }
+
+        isProfileLoading = true
+        profileErrorMessage = nil
+
+        userService.fetchCurrentUser(userId: userId) { [weak self] result in
+            DispatchQueue.main.async {
+                guard let self else {
+                    return
+                }
+
+                self.isProfileLoading = false
+
+                switch result {
+                case let .success(user):
+                    self.currentUser = user
+                    if let code = user.preferredLanguageCode, !code.isEmpty {
+                        UserDefaults.standard.set(code, forKey: self.appLanguageDefaultsKey)
+                    }
+                    self.profileErrorMessage = nil
+                    completion?(.success(user))
+                case let .failure(error):
+                    if self.autoProvisionAdminProfileIfMissing(userId: userId, error: error, completion: completion) {
+                        return
+                    }
+                    self.currentUser = nil
+                    self.profileErrorMessage = self.userFriendlyProfileError(error)
+                    completion?(.failure(error))
+                }
+            }
+        }
+    }
+
+    /// Converts backend auth errors into simple UI messages.
+    func userFriendlyAuthError(_ error: Error) -> String {
+        guard let authError = error as NSError?,
+              let code = AuthErrorCode(rawValue: authError.code) else {
+            return localizedText(english: "Authentication failed. Please try again.", bangla: "অথেনটিকেশন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।")
+        }
+
+        switch code {
+        case .wrongPassword:
+            return localizedText(english: "Incorrect password", bangla: "ভুল পাসওয়ার্ড")
+        case .userNotFound:
+            return localizedText(english: "No account found with this email", bangla: "এই ইমেইলে কোনো অ্যাকাউন্ট পাওয়া যায়নি")
+        case .invalidEmail:
+            return localizedText(english: "Invalid email format", bangla: "ইমেইল ফরম্যাট সঠিক নয়")
+        case .emailAlreadyInUse:
+            return localizedText(english: "This email is already registered.", bangla: "এই ইমেইল ইতোমধ্যে নিবন্ধিত।")
+        case .weakPassword:
+            return localizedText(english: "Password is too weak. Use at least 6 characters.", bangla: "পাসওয়ার্ড দুর্বল। কমপক্ষে ৬ অক্ষর ব্যবহার করুন।")
+        case .networkError:
+            return localizedText(english: "Network error. Please check your internet connection and try again.", bangla: "নেটওয়ার্ক ত্রুটি। ইন্টারনেট সংযোগ যাচাই করে আবার চেষ্টা করুন।")
+        default:
+            return localizedText(english: "Authentication request could not be completed. Please try again.", bangla: "অথেনটিকেশন অনুরোধ সম্পন্ন করা যায়নি। আবার চেষ্টা করুন।")
+        }
+    }
+
+    /// Converts profile and Firestore errors into simple UI messages.
+    func userFriendlyProfileError(_ error: Error) -> String {
+        let nsError = error as NSError
+
+        if nsError.domain == NSURLErrorDomain {
+            return localizedText(english: "Network error while loading your profile.", bangla: "প্রোফাইল লোড করার সময় নেটওয়ার্ক ত্রুটি হয়েছে।")
+        }
+
+        if nsError.code == 404 {
+            return localizedText(english: "Profile not found. Please complete signup again.", bangla: "প্রোফাইল পাওয়া যায়নি। অনুগ্রহ করে আবার সাইন আপ সম্পন্ন করুন।")
+        }
+
+        return localizedText(english: "Unable to load profile right now. Please try again.", bangla: "এই মুহূর্তে প্রোফাইল লোড করা যাচ্ছে না। আবার চেষ্টা করুন।")
+    }
+
+    private func isValidEmail(_ email: String) -> Bool {
+        let pattern = "^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+        return NSPredicate(format: "SELF MATCHES %@", pattern).evaluate(with: email)
+    }
+
+    private func shouldAutoProvisionDemoAdmin(email: String, password: String, error: Error) -> Bool {
+        guard isDemoAdminCredential(email: email, password: password),
+              isUserNotFoundAuthError(error) else {
+            return false
+        }
+        return true
+    }
+
+    private func isDemoAdminCredential(email: String, password: String) -> Bool {
+        email.lowercased() == demoAdminEmail && password == demoAdminPassword
+    }
+
+    private func isUserNotFoundAuthError(_ error: Error) -> Bool {
+        let nsError = error as NSError
+        guard let code = AuthErrorCode(rawValue: nsError.code) else {
+            return false
+        }
+        return code == .userNotFound
+    }
+
+    private func provisionDemoAdminAndLogin(email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        authService.signUp(email: email, password: password) { [weak self] result in
+            guard let self else {
+                return
+            }
+
+            switch result {
+            case let .failure(error):
+                // In rare race conditions, the account may be created by another client meanwhile.
+                let nsError = error as NSError
+                if AuthErrorCode(rawValue: nsError.code) == .emailAlreadyInUse {
+                    self.authService.signIn(email: email, password: password) { signInResult in
+                        DispatchQueue.main.async {
+                            switch signInResult {
+                            case .success:
+                                self.prefersAdminHome = true
+                                self.handleAuthStateChanged(userId: self.authService.currentUserId)
+                                completion(.success(()))
+                            case let .failure(signInError):
+                                completion(.failure(signInError))
+                            }
+                        }
+                    }
+                    return
+                }
+
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
+
+            case let .success(uid):
+                let user = User(
+                    id: uid,
+                    name: "Demo Admin",
+                    email: email,
+                    preferredLanguageCode: UserDefaults.standard.string(forKey: appLanguageDefaultsKey),
+                    role: "admin"
+                )
+
+                self.userService.createUserProfile(user: user) { profileResult in
+                    DispatchQueue.main.async {
+                        switch profileResult {
+                        case .success:
+                            self.prefersAdminHome = true
+                            self.handleAuthStateChanged(userId: uid)
+                            self.userHistoryService.record(
+                                userId: uid,
+                                category: .auth,
+                                action: "Auto-provisioned demo admin"
+                            )
+                            completion(.success(()))
+                        case let .failure(error):
+                            completion(.failure(error))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func localizedText(english: String, bangla: String) -> String {
+        let code = UserDefaults.standard.string(forKey: appLanguageDefaultsKey) ?? AppLanguage.englishUS.rawValue
+        return AppLanguage.from(code: code).text(english: english, bangla: bangla)
+    }
+
+    private func autoProvisionAdminProfileIfMissing(
+        userId: String,
+        error: Error,
+        completion: ((Result<User, Error>) -> Void)?
+    ) -> Bool {
+        let nsError = error as NSError
+        guard nsError.code == 404,
+              let authUser = Auth.auth().currentUser,
+              authUser.uid == userId else {
+            return false
+        }
+
+        let normalizedEmail = (authUser.email ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        guard !normalizedEmail.isEmpty else {
+            return false
+        }
+
+        let isAdminEmail = adminEmails.contains(normalizedEmail) || normalizedEmail.hasPrefix("admin@")
+        let isAdminEmail = adminEmails.contains(normalizedEmail)
+        guard isAdminEmail else {
+            return false
+        }
+
+        let fallbackName = authUser.displayName?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let resolvedName: String
+        if let fallbackName, !fallbackName.isEmpty {
+            resolvedName = fallbackName
+        } else {
+            resolvedName = "Admin User"
+        }
+        let user = User(
+            id: userId,
+            name: resolvedName,
+            email: normalizedEmail,
+            preferredLanguageCode: UserDefaults.standard.string(forKey: appLanguageDefaultsKey),
+            role: "admin"
+        )
+
+        userService.createUserProfile(user: user) { [weak self] result in
+            DispatchQueue.main.async {
+                guard let self else {
+                    return
+                }
+
+                switch result {
+                case .success:
+                    self.currentUser = user
+                    self.profileErrorMessage = nil
+                    self.userHistoryService.record(
+                        userId: userId,
+                        category: .auth,
+                        action: "Auto-provisioned missing admin profile"
+                    )
+                    completion?(.success(user))
+                case let .failure(provisionError):
+                    self.currentUser = nil
+                    self.profileErrorMessage = self.userFriendlyProfileError(provisionError)
+                    completion?(.failure(provisionError))
+                }
+            }
+        }
+
+        return true
+    }
+
+    private func handleAuthStateChanged(userId: String?) {
+        print("[Auth] auth state changed. userId present: \(userId != nil)")
+        isLoggedIn = (userId != nil)
+        currentUserId = userId
+        userHistoryService.setActiveUserId(userId)
+
+        guard userId != nil else {
+            currentUser = nil
+            isProfileLoading = false
+            profileErrorMessage = nil
+            prefersAdminHome = false
+            return
+        }
+
+        // Fetch profile on every fresh authenticated state to avoid stale data.
+        loadCurrentUserProfile()
+    }
+}
